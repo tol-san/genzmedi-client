@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/core/auth/auth_state.dart';
+import 'package:client/core/auth/token_model.dart';
 import 'package:client/core/auth/user_model.dart';
 import 'package:client/core/errors/app_exception.dart';
 import 'package:client/core/storage/preferences_service.dart';
@@ -97,6 +98,38 @@ class AuthNotifier extends StateNotifier<AuthState> {
       } else {
         state = AuthAuthenticated(user);
       }
+    } on AppException {
+      rethrow;
+    } catch (e) {
+      throw UnknownException(e.toString());
+    }
+  }
+
+  /// Verify 6-digit OTP code, save session tokens, and transition to authenticated
+  Future<TokenModel> verifyOtp({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      final tokenModel = await repository.verifyOtp(
+        VerifyOtpRequest(email: email, otp: otp),
+      );
+
+      await storage.saveTokens(
+        accessToken: tokenModel.accessToken,
+        refreshToken: tokenModel.refreshToken,
+      );
+      await prefs.setHasSession(true);
+
+      final user = await repository.getMyProfile();
+
+      if (user.interests.isEmpty && !prefs.isOnboardingCompleted()) {
+        state = AuthNeedsOnboarding(user);
+      } else {
+        state = AuthAuthenticated(user);
+      }
+
+      return tokenModel;
     } on AppException {
       rethrow;
     } catch (e) {

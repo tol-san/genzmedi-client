@@ -28,30 +28,16 @@ class ResetPasswordScreen extends ConsumerStatefulWidget {
 }
 
 class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
-  late final TextEditingController _tokenController;
-  late final TextEditingController _emailController;
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
   bool _isLoading = false;
-  bool _isSuccess = false;
-
   String? _errorMessage;
-  String? _tokenError;
   String? _newPasswordError;
   String? _confirmPasswordError;
 
   @override
-  void initState() {
-    super.initState();
-    _tokenController = TextEditingController(text: widget.initialToken ?? '');
-    _emailController = TextEditingController(text: widget.initialEmail ?? '');
-  }
-
-  @override
   void dispose() {
-    _tokenController.dispose();
-    _emailController.dispose();
     _newPasswordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -60,22 +46,14 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   Future<void> _handleSubmit() async {
     setState(() {
       _errorMessage = null;
-      _tokenError = null;
       _newPasswordError = null;
       _confirmPasswordError = null;
     });
 
-    final token = _tokenController.text.trim();
-    final email = _emailController.text.trim();
     final newPassword = _newPasswordController.text;
     final confirmPassword = _confirmPasswordController.text;
 
     bool hasError = false;
-
-    if (token.isEmpty) {
-      _tokenError = 'Please enter your 6-digit code or reset token.';
-      hasError = true;
-    }
 
     if (newPassword.isEmpty) {
       _newPasswordError = 'Please enter your new password.';
@@ -107,17 +85,16 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       final repository = ref.read(authRepositoryProvider);
       await repository.resetPassword(
         ResetPasswordRequest(
-          token: token,
-          email: email.isNotEmpty ? email : null,
+          token: widget.initialToken ?? '',
+          email: widget.initialEmail,
           newPassword: newPassword,
         ),
       );
 
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _isSuccess = true;
-        });
+        setState(() => _isLoading = false);
+        // Password successfully updated -> navigate directly to feed
+        context.goNamed(RouteNames.homeFeed);
       }
     } catch (e) {
       if (!mounted) return;
@@ -152,8 +129,23 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                 ? AppColors.textPrimaryDark
                 : AppColors.textPrimaryLight,
           ),
-          onPressed: () => context.pop(),
+          onPressed: () => context.goNamed(RouteNames.homeFeed),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => context.goNamed(RouteNames.homeFeed),
+            child: Text(
+              'Skip',
+              style: AppTypography.bodySmall.copyWith(
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondaryLight,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: SafeArea(
         child: Center(
@@ -162,166 +154,114 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               horizontal: AppSpacing.space24,
               vertical: AppSpacing.space24,
             ),
-            child: _isSuccess
-                ? Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Center(
-                        child: Icon(
-                          Icons.check_circle_outline_rounded,
-                          size: 64,
-                          color: AppColors.success,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.space24),
-                      Text(
-                        'Password Reset Complete',
-                        textAlign: TextAlign.center,
-                        style: AppTypography.headingLarge.copyWith(
-                          color: isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.textPrimaryLight,
-                          fontSize: 24,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.space12),
-                      Text(
-                        'Your password has been successfully updated. You can now log in with your new password.',
-                        textAlign: TextAlign.center,
-                        style: AppTypography.bodySmall.copyWith(
-                          color: isDark
-                              ? AppColors.textSecondaryDark
-                              : AppColors.textSecondaryLight,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.space32),
-                      AppButton(
-                        text: 'Sign In',
-                        onPressed: () => context.goNamed(RouteNames.login),
-                      ),
-                    ],
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Center(
-                        child: AppLogo.icon(width: 60, height: 60),
-                      ),
-                      const SizedBox(height: AppSpacing.space20),
-                      Text(
-                        'Enter Verification Code',
-                        textAlign: TextAlign.center,
-                        style: AppTypography.headingLarge.copyWith(
-                          color: isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.textPrimaryLight,
-                          fontSize: 24,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.space8),
-                      Text(
-                        widget.initialEmail != null && widget.initialEmail!.isNotEmpty
-                            ? 'Enter the 6-digit code sent to ${widget.initialEmail} and choose a new password.'
-                            : 'Enter the 6-digit code from your email and set your new password.',
-                        textAlign: TextAlign.center,
-                        style: AppTypography.bodySmall.copyWith(
-                          color: isDark
-                              ? AppColors.textSecondaryDark
-                              : AppColors.textSecondaryLight,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.space32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Center(
+                  child: AppLogo.icon(width: 60, height: 60),
+                ),
+                const SizedBox(height: AppSpacing.space20),
+                Text(
+                  'Set New Password',
+                  textAlign: TextAlign.center,
+                  style: AppTypography.headingLarge.copyWith(
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
+                    fontSize: 24,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.space8),
+                Text(
+                  'Choose a strong password with at least 8 characters.',
+                  textAlign: TextAlign.center,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.space32),
 
-                      if (_errorMessage != null) ...[
-                        Container(
-                          padding: const EdgeInsets.all(AppSpacing.space12),
-                          decoration: BoxDecoration(
-                            color: AppColors.error.withValues(alpha: 0.08),
-                            borderRadius: AppSpacing.roundedSm,
-                            border: Border.all(
-                              color: AppColors.error.withValues(alpha: 0.3),
+                if (_errorMessage != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.space12),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.08),
+                      borderRadius: AppSpacing.roundedSm,
+                      border: Border.all(
+                        color: AppColors.error.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.error_outline_rounded,
+                          color: AppColors.error,
+                          size: 18,
+                        ),
+                        const SizedBox(width: AppSpacing.space8),
+                        Expanded(
+                          child: Text(
+                            _errorMessage!,
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.error,
                             ),
                           ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.error_outline_rounded,
-                                color: AppColors.error,
-                                size: 18,
-                              ),
-                              const SizedBox(width: AppSpacing.space8),
-                              Expanded(
-                                child: Text(
-                                  _errorMessage!,
-                                  style: AppTypography.bodySmall.copyWith(
-                                    color: AppColors.error,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
                         ),
-                        const SizedBox(height: AppSpacing.space16),
                       ],
-
-                      // 6-digit OTP / Code Input Field
-                      AppTextField(
-                        controller: _tokenController,
-                        label: 'Verification Code',
-                        hintText: 'Enter 6-digit code (e.g. 482910)',
-                        errorText: _tokenError,
-                        keyboardType: TextInputType.text,
-                        textInputAction: TextInputAction.next,
-                        onChanged: (_) {
-                          if (_tokenError != null) {
-                            setState(() => _tokenError = null);
-                          }
-                        },
-                      ),
-                      const SizedBox(height: AppSpacing.space16),
-
-                      // New Password Field
-                      AppTextField(
-                        controller: _newPasswordController,
-                        label: 'New Password',
-                        hintText: 'Enter new password (min. 8 characters)',
-                        errorText: _newPasswordError,
-                        isPassword: true,
-                        textInputAction: TextInputAction.next,
-                        onChanged: (_) {
-                          if (_newPasswordError != null) {
-                            setState(() => _newPasswordError = null);
-                          }
-                        },
-                      ),
-                      const SizedBox(height: AppSpacing.space16),
-
-                      // Confirm Password Field
-                      AppTextField(
-                        controller: _confirmPasswordController,
-                        label: 'Confirm Password',
-                        hintText: 'Re-enter your new password',
-                        errorText: _confirmPasswordError,
-                        isPassword: true,
-                        textInputAction: TextInputAction.done,
-                        onChanged: (_) {
-                          if (_confirmPasswordError != null) {
-                            setState(() => _confirmPasswordError = null);
-                          }
-                        },
-                        onSubmitted: (_) => _handleSubmit(),
-                      ),
-                      const SizedBox(height: AppSpacing.space24),
-
-                      AppButton(
-                        text: 'Update Password',
-                        isLoading: _isLoading,
-                        onPressed: _isLoading ? null : _handleSubmit,
-                      ),
-                    ],
+                    ),
                   ),
+                  const SizedBox(height: AppSpacing.space16),
+                ],
+
+                // New Password Field
+                AppTextField(
+                  controller: _newPasswordController,
+                  label: 'New Password',
+                  hintText: 'Enter new password (min. 8 characters)',
+                  errorText: _newPasswordError,
+                  isPassword: true,
+                  textInputAction: TextInputAction.next,
+                  onChanged: (_) {
+                    if (_newPasswordError != null) {
+                      setState(() => _newPasswordError = null);
+                    }
+                  },
+                ),
+                const SizedBox(height: AppSpacing.space16),
+
+                // Confirm Password Field
+                AppTextField(
+                  controller: _confirmPasswordController,
+                  label: 'Confirm Password',
+                  hintText: 'Re-enter your new password',
+                  errorText: _confirmPasswordError,
+                  isPassword: true,
+                  textInputAction: TextInputAction.done,
+                  onChanged: (_) {
+                    if (_confirmPasswordError != null) {
+                      setState(() => _confirmPasswordError = null);
+                    }
+                  },
+                  onSubmitted: (_) => _handleSubmit(),
+                ),
+                const SizedBox(height: AppSpacing.space24),
+
+                AppButton(
+                  text: 'Save Password',
+                  isLoading: _isLoading,
+                  onPressed: _isLoading ? null : _handleSubmit,
+                ),
+                const SizedBox(height: AppSpacing.space16),
+
+                AppButton.secondary(
+                  text: 'Skip to Feed',
+                  onPressed: () => context.goNamed(RouteNames.homeFeed),
+                ),
+              ],
+            ),
           ),
         ),
       ),

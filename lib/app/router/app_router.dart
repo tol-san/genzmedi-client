@@ -11,6 +11,7 @@ import 'package:client/features/auth/presentation/screens/login_screen.dart';
 import 'package:client/features/auth/presentation/screens/register_screen.dart';
 import 'package:client/features/auth/presentation/screens/reset_password_screen.dart';
 import 'package:client/features/auth/presentation/screens/splash_screen.dart';
+import 'package:client/features/auth/presentation/screens/verify_otp_screen.dart';
 import 'package:client/features/feeds/presentation/screens/home_feed_screen.dart';
 import 'package:client/features/feeds/presentation/screens/shorts_feed_screen.dart';
 import 'package:client/features/posts/presentation/screens/create_hub_screen.dart';
@@ -34,6 +35,7 @@ class RouterNotifier extends ChangeNotifier {
     final isPublicAuthRoute = matched == '/login' ||
         matched == '/register' ||
         matched == '/forgot-password' ||
+        matched == '/verify-otp' ||
         matched == '/reset-password';
 
     // 1. While initial session checking, stay on splash screen
@@ -60,6 +62,9 @@ class RouterNotifier extends ChangeNotifier {
 
     // 4. Authenticated user attempting to access auth, onboarding, or splash
     if (authState is AuthAuthenticated) {
+      if (matched == '/reset-password') {
+        return null;
+      }
       if (isPublicAuthRoute || matched == '/onboarding' || matched == '/splash') {
         return '/feed';
       }
@@ -104,6 +109,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/forgot-password',
         name: RouteNames.forgotPassword,
         builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/verify-otp',
+        name: RouteNames.verifyOtp,
+        builder: (context, state) {
+          final email = state.uri.queryParameters['email'] ?? '';
+          final otp = state.uri.queryParameters['otp'];
+          return VerifyOtpScreen(
+            email: email,
+            initialOtp: otp,
+          );
+        },
       ),
       GoRoute(
         path: '/reset-password',

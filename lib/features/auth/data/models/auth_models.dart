@@ -53,6 +53,25 @@ class ForgotPasswordRequest extends Equatable {
   List<Object?> get props => [email];
 }
 
+/// Request payload for validating 6-digit OTP code
+class VerifyOtpRequest extends Equatable {
+  final String email;
+  final String otp;
+
+  const VerifyOtpRequest({
+    required this.email,
+    required this.otp,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'email': email,
+        'otp': otp,
+      };
+
+  @override
+  List<Object?> get props => [email, otp];
+}
+
 /// Request payload for completing password reset
 class ResetPasswordRequest extends Equatable {
   final String token;

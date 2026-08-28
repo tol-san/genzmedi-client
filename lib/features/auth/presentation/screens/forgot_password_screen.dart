@@ -71,6 +71,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           _isLoading = false;
           _isSuccess = true;
         });
+        context.pushNamed(
+          RouteNames.verifyOtp,
+          queryParameters: {'email': email},
+        );
       }
     } catch (e) {
       if (!mounted) return;

@@ -146,6 +146,26 @@ class AuthRepository {
     }
   }
 
+  /// Verify 6-digit OTP and authenticate session
+  Future<TokenModel> verifyOtp(VerifyOtpRequest request) async {
+    try {
+      final response = await dio.post(
+        ApiEndpoints.verifyOtp,
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return TokenModel.fromJson(response.data as Map<String, dynamic>);
+      }
+      throw ErrorMapper.fromStatusCode(
+        response.statusCode,
+        'Invalid or expired verification code.',
+      );
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
+
   /// Reset password with verification token
   Future<void> resetPassword(ResetPasswordRequest request) async {
     try {
