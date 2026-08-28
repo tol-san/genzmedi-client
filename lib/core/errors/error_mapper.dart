@@ -11,6 +11,8 @@ abstract class ErrorMapper {
         return ForbiddenException(defaultMessage);
       case 404:
         return NotFoundException(defaultMessage);
+      case 409:
+        return ConflictException(defaultMessage);
       case 422:
         return ValidationException(message: defaultMessage);
       default:

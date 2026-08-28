@@ -63,6 +63,16 @@ class NotFoundException extends AppException {
         );
 }
 
+/// 409 Conflict — Entity already exists or conflict
+class ConflictException extends AppException {
+  const ConflictException([
+    String message = 'A conflict occurred with an existing resource.',
+  ]) : super(
+          message: message,
+          statusCode: 409,
+        );
+}
+
 /// 422 Unprocessable Entity — Field-level validation failure
 class ValidationException extends AppException {
   final Map<String, dynamic>? fieldErrors;

@@ -4,9 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:client/core/auth/auth_notifier.dart';
+import 'package:client/core/errors/app_exception.dart';
 import 'package:client/core/storage/preferences_service.dart';
 import 'package:client/core/storage/secure_storage_service.dart';
 import 'package:client/core/theme/app_theme.dart';
+import 'package:client/features/auth/data/models/auth_models.dart';
 import 'package:client/features/auth/data/repositories/auth_repository.dart';
 import 'package:client/features/auth/presentation/screens/register_screen.dart';
 
@@ -17,6 +19,7 @@ class MockPreferencesService extends Mock implements PreferencesService {}
 void main() {
   setUpAll(() {
     GoogleFonts.config.allowRuntimeFetching = false;
+    registerFallbackValue(const SignupOtpRequest(email: '', password: ''));
   });
 
   late MockAuthRepository mockRepository;
@@ -89,6 +92,37 @@ void main() {
 
       expect(find.text('Please enter a valid email address.'), findsOneWidget);
       expect(find.text('Password must be at least 8 characters long.'), findsOneWidget);
+      expect(find.byKey(const Key('register_error_banner')), findsNothing);
+    });
+
+    testWidgets('Shows server email error directly under email field and suppresses top banner', (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      when(() => mockRepository.requestSignupOtp(any())).thenThrow(
+        const ConflictException('A user with this email already exists.'),
+      );
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('register_email_field')),
+        'existing@example.com',
+      );
+      await tester.enterText(
+        find.byKey(const Key('register_password_field')),
+        'ValidPassword123!',
+      );
+
+      final submitFinder = find.byKey(const Key('register_submit_button'));
+      await tester.ensureVisible(submitFinder);
+      await tester.tap(submitFinder);
+      await tester.pumpAndSettle();
+
+      expect(find.text('A user with this email already exists.'), findsOneWidget);
+      expect(find.byKey(const Key('register_error_banner')), findsNothing);
     });
   });
 }

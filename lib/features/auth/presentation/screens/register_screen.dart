@@ -66,9 +66,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
 
     if (hasError) {
-      setState(() {
-        _errorMessage = 'Please fix the errors above.';
-      });
+      setState(() {});
       return;
     }
 
@@ -100,14 +98,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               .replaceFirst(RegExp(r'^[A-Za-z_]+Exception:\s*'), '')
               .replaceFirst(RegExp(r'\s*\(statusCode:\s*\d+\)'), '');
 
+      final msgLower = cleanMessage.toLowerCase();
       setState(() {
         _isLoading = false;
-        _errorMessage = cleanMessage;
-        final msgLower = cleanMessage.toLowerCase();
         if (msgLower.contains('email')) {
           _emailError = cleanMessage;
+          _errorMessage = null;
         } else if (msgLower.contains('password')) {
           _passwordError = cleanMessage;
+          _errorMessage = null;
+        } else {
+          _errorMessage = cleanMessage;
         }
       });
     } finally {
