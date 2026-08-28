@@ -10,11 +10,14 @@
 
 | Method | Path | Request Body / Params | Response Model | Description |
 |---|---|---|---|---|
-| POST | `/auth/register` | `UserRegisterRequest` (JSON) | `UserResponse` (201) | Register new user account |
+| POST | `/auth/register/request-otp` | `SignupOtpRequest` (JSON) | `SignupOtpResponse` (200) | Send 6-digit OTP to email (5-min TTL) |
+| POST | `/auth/register/verify-otp` | `SignupVerifyOtpRequest` (JSON) | `TokenResponse` (201) | Verify signup OTP, auto-create user & profile |
+| POST | `/auth/register` | `UserRegisterRequest` (JSON) | `UserResponse` (201) | Direct registration (legacy) |
 | POST | `/auth/login` | `LoginRequest` (JSON) | `TokenResponse` (200) | Login via email/username & password |
 | POST | `/auth/refresh` | `RefreshTokenRequest` (JSON) | `TokenRefreshResponse` (200) | Rotate and refresh access token |
-| POST | `/auth/logout` | `RefreshTokenRequest` (JSON) | `MessageResponse` (200) | Revoke refresh token & session |
-| POST | `/auth/forgot-password` | `ForgotPasswordRequest` (JSON) | `ForgotPasswordResponse` (200) | Request password reset instructions |
+| POST | `/auth/logout` | `RefreshTokenRequest` (JSON, optional) | `MessageResponse` (200) | Revoke refresh token & session |
+| POST | `/auth/forgot-password` | `ForgotPasswordRequest` (JSON) | `ForgotPasswordResponse` (200) | Request password reset OTP (5-min TTL) |
+| POST | `/auth/verify-otp` | `VerifyOtpRequest` (JSON) | `TokenResponse` (200) | Verify password reset OTP code |
 | POST | `/auth/reset-password` | `ResetPasswordRequest` (JSON) | `MessageResponse` (200) | Set new password with reset token |
 | POST | `/auth/change-password` | `ChangePasswordRequest` (JSON) | `MessageResponse` (200) | Update password for current user |
 
@@ -24,6 +27,7 @@
 
 | Method | Path | Request Body / Params | Response Model | Description |
 |---|---|---|---|---|
+| GET | `/users/check-username` | Query param `username` | `CheckUsernameResponse` (200) | Check real-time username availability |
 | GET | `/users/{username}` | Path param `username` | `UserPublicResponse` (200) | Get user profile and stats |
 | POST | `/users/{user_id}/follow` | Path param `user_id` | `FollowActionResponse` (200) | Follow a user |
 | DELETE | `/users/{user_id}/follow` | Path param `user_id` | `FollowActionResponse` (200) | Unfollow a user |
