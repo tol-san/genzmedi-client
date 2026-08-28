@@ -22,6 +22,7 @@ void main() {
   setUpAll(() {
     registerFallbackValue(const LoginRequest(username: '', password: ''));
     registerFallbackValue(const RegisterRequest(username: '', email: '', password: ''));
+    registerFallbackValue(const VerifyOtpRequest(email: '', otp: ''));
   });
 
   setUp(() {
@@ -131,6 +132,71 @@ void main() {
       await notifier.logout();
       expect(notifier.state, isA<AuthUnauthenticated>());
       verify(() => mockStorage.clearAll()).called(1);
+    });
+
+    test('verifyOtp saves tokens and transitions to AuthAuthenticated when interests exist', () async {
+      const mockToken = TokenModel(
+        accessToken: 'otp_access_token',
+        refreshToken: 'otp_refresh_token',
+        tokenType: 'Bearer',
+      );
+      const mockUser = UserModel(
+        id: '1',
+        username: 'sovandara',
+        email: 's@genz.media',
+        interests: ['Gaming'],
+      );
+
+      when(() => mockRepository.verifyOtp(any())).thenAnswer((_) async => mockToken);
+      when(() => mockStorage.saveTokens(
+            accessToken: any(named: 'accessToken'),
+            refreshToken: any(named: 'refreshToken'),
+          )).thenAnswer((_) async {});
+      when(() => mockRepository.getMyProfile()).thenAnswer((_) async => mockUser);
+
+      final notifier = AuthNotifier(
+        repository: mockRepository,
+        storage: mockStorage,
+        prefs: mockPrefs,
+      );
+
+      final res = await notifier.verifyOtp(email: 's@genz.media', otp: '123456');
+
+      expect(res.accessToken, 'otp_access_token');
+      expect(notifier.state, isA<AuthAuthenticated>());
+      verify(() => mockStorage.saveTokens(accessToken: 'otp_access_token', refreshToken: 'otp_refresh_token')).called(1);
+    });
+
+    test('verifyOtp transitions to AuthNeedsOnboarding when interests are empty', () async {
+      const mockToken = TokenModel(
+        accessToken: 'otp_access_token',
+        refreshToken: 'otp_refresh_token',
+        tokenType: 'Bearer',
+      );
+      const mockUser = UserModel(
+        id: '1',
+        username: 'sovandara',
+        email: 's@genz.media',
+        interests: [],
+      );
+
+      when(() => mockPrefs.isOnboardingCompleted()).thenReturn(false);
+      when(() => mockRepository.verifyOtp(any())).thenAnswer((_) async => mockToken);
+      when(() => mockStorage.saveTokens(
+            accessToken: any(named: 'accessToken'),
+            refreshToken: any(named: 'refreshToken'),
+          )).thenAnswer((_) async {});
+      when(() => mockRepository.getMyProfile()).thenAnswer((_) async => mockUser);
+
+      final notifier = AuthNotifier(
+        repository: mockRepository,
+        storage: mockStorage,
+        prefs: mockPrefs,
+      );
+
+      await notifier.verifyOtp(email: 's@genz.media', otp: '123456');
+
+      expect(notifier.state, isA<AuthNeedsOnboarding>());
     });
   });
 }

@@ -48,7 +48,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       return;
     }
 
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,}$');
     if (!emailRegex.hasMatch(email)) {
       setState(() {
         _emailError = 'Please enter a valid email address.';
@@ -71,7 +71,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           _isLoading = false;
           _isSuccess = true;
         });
-        context.pushNamed(
+        context.goNamed(
           RouteNames.verifyOtp,
           queryParameters: {'email': email},
         );

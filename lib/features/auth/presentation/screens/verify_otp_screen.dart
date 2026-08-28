@@ -232,7 +232,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
         AppButton(
           text: 'Update Password Now',
           onPressed: () {
-            context.pushReplacementNamed(
+            context.goNamed(
               RouteNames.resetPassword,
               queryParameters: {
                 'email': widget.email,

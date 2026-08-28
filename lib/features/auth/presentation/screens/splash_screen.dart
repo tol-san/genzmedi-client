@@ -1,41 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:client/core/auth/auth_notifier.dart';
-import 'package:client/core/auth/auth_state.dart';
 import 'package:client/core/theme/app_colors.dart';
 import 'package:client/core/widgets/app_logo.dart';
 
-class SplashScreen extends ConsumerWidget {
+class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen<AuthState>(authNotifierProvider, (_, next) {
-      if (next is AuthUnauthenticated) {
-        context.go('/login');
-      } else if (next is AuthAuthenticated) {
-        context.go('/feed');
-      } else if (next is AuthNeedsOnboarding) {
-        context.go('/onboarding');
-      }
-    });
-
-    final authState = ref.watch(authNotifierProvider);
-    if (authState is AuthUnauthenticated) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) context.go('/login');
-      });
-    } else if (authState is AuthAuthenticated) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) context.go('/feed');
-      });
-    } else if (authState is AuthNeedsOnboarding) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) context.go('/onboarding');
-      });
-    }
-
+  Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
