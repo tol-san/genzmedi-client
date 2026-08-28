@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:client/app/router/route_names.dart';
+import 'package:client/core/auth/auth_notifier.dart';
+import 'package:client/core/auth/auth_state.dart';
 import 'package:client/core/errors/app_exception.dart';
 import 'package:client/core/theme/app_colors.dart';
 import 'package:client/core/theme/app_spacing.dart';
@@ -41,6 +43,15 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     _newPasswordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  void _navigateToNextScreen() {
+    final authState = ref.read(authNotifierProvider);
+    if (authState is AuthNeedsOnboarding) {
+      context.goNamed(RouteNames.onboarding);
+    } else {
+      context.goNamed(RouteNames.homeFeed);
+    }
   }
 
   Future<void> _handleSubmit() async {
@@ -93,8 +104,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
       if (mounted) {
         setState(() => _isLoading = false);
-        // Password successfully updated -> navigate directly to feed
-        context.goNamed(RouteNames.homeFeed);
+        _navigateToNextScreen();
       }
     } catch (e) {
       if (!mounted) return;
@@ -129,11 +139,11 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                 ? AppColors.textPrimaryDark
                 : AppColors.textPrimaryLight,
           ),
-          onPressed: () => context.goNamed(RouteNames.homeFeed),
+          onPressed: _navigateToNextScreen,
         ),
         actions: [
           TextButton(
-            onPressed: () => context.goNamed(RouteNames.homeFeed),
+            onPressed: _navigateToNextScreen,
             child: Text(
               'Skip',
               style: AppTypography.bodySmall.copyWith(

@@ -32,39 +32,39 @@ class RouterNotifier extends ChangeNotifier {
     final authState = _ref.read(authNotifierProvider);
     final matched = state.matchedLocation;
 
-    final isPublicAuthRoute = matched == '/login' ||
-        matched == '/register' ||
-        matched == '/forgot-password' ||
-        matched == '/verify-otp' ||
-        matched == '/reset-password';
-
     // 1. While initial session checking, stay on splash screen
     if (authState is AuthInitial) {
       return matched == '/splash' ? null : '/splash';
     }
 
-    // 2. While AuthLoading (e.g. logging in / registering), stay on current auth screen
+    // 2. Allow OTP verification and password reset flows without interruption
+    if (matched == '/verify-otp' || matched == '/reset-password') {
+      return null;
+    }
+
+    final isPublicAuthRoute = matched == '/login' ||
+        matched == '/register' ||
+        matched == '/forgot-password';
+
+    // 3. While AuthLoading (e.g. logging in / registering), stay on current auth screen
     if (authState is AuthLoading) {
       if (isPublicAuthRoute) return null;
       if (matched == '/splash') return null;
       return null;
     }
 
-    // 2. User needs interest onboarding
+    // 4. User needs interest onboarding
     if (authState is AuthNeedsOnboarding) {
       return matched == '/onboarding' ? null : '/onboarding';
     }
 
-    // 3. Unauthenticated user attempting to access protected routes
+    // 5. Unauthenticated user attempting to access protected routes
     if (authState is AuthUnauthenticated) {
       return isPublicAuthRoute ? null : '/login';
     }
 
-    // 4. Authenticated user attempting to access auth, onboarding, or splash
+    // 6. Authenticated user attempting to access auth, onboarding, or splash
     if (authState is AuthAuthenticated) {
-      if (matched == '/reset-password') {
-        return null;
-      }
       if (isPublicAuthRoute || matched == '/onboarding' || matched == '/splash') {
         return '/feed';
       }

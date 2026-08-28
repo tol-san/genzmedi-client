@@ -122,5 +122,70 @@ void main() {
       final redirect = notifier.redirect(mockContext, mockRouterState);
       expect(redirect, '/feed');
     });
+
+    test('Does NOT redirect away from /verify-otp when AuthAuthenticated', () {
+      testAuthNotifier.setTestState(
+        const AuthAuthenticated(
+          UserModel(id: '1', username: 'alex', email: 'alex@example.com'),
+        ),
+      );
+      final notifier = container.read(routerNotifierProvider);
+      when(() => mockRouterState.matchedLocation).thenReturn('/verify-otp');
+
+      final redirect = notifier.redirect(mockContext, mockRouterState);
+      expect(redirect, isNull);
+    });
+
+    test('Does NOT redirect away from /verify-otp when AuthNeedsOnboarding', () {
+      testAuthNotifier.setTestState(
+        const AuthNeedsOnboarding(
+          UserModel(id: '1', username: 'alex', email: 'alex@example.com'),
+        ),
+      );
+      final notifier = container.read(routerNotifierProvider);
+      when(() => mockRouterState.matchedLocation).thenReturn('/verify-otp');
+
+      final redirect = notifier.redirect(mockContext, mockRouterState);
+      expect(redirect, isNull);
+    });
+
+    test('Does NOT redirect away from /reset-password when AuthAuthenticated', () {
+      testAuthNotifier.setTestState(
+        const AuthAuthenticated(
+          UserModel(id: '1', username: 'alex', email: 'alex@example.com'),
+        ),
+      );
+      final notifier = container.read(routerNotifierProvider);
+      when(() => mockRouterState.matchedLocation).thenReturn('/reset-password');
+
+      final redirect = notifier.redirect(mockContext, mockRouterState);
+      expect(redirect, isNull);
+    });
+
+    test('Does NOT redirect away from /reset-password when AuthNeedsOnboarding', () {
+      testAuthNotifier.setTestState(
+        const AuthNeedsOnboarding(
+          UserModel(id: '1', username: 'alex', email: 'alex@example.com'),
+        ),
+      );
+      final notifier = container.read(routerNotifierProvider);
+      when(() => mockRouterState.matchedLocation).thenReturn('/reset-password');
+
+      final redirect = notifier.redirect(mockContext, mockRouterState);
+      expect(redirect, isNull);
+    });
+
+    test('Redirects to /onboarding when AuthNeedsOnboarding and on other protected routes', () {
+      testAuthNotifier.setTestState(
+        const AuthNeedsOnboarding(
+          UserModel(id: '1', username: 'alex', email: 'alex@example.com'),
+        ),
+      );
+      final notifier = container.read(routerNotifierProvider);
+      when(() => mockRouterState.matchedLocation).thenReturn('/feed');
+
+      final redirect = notifier.redirect(mockContext, mockRouterState);
+      expect(redirect, '/onboarding');
+    });
   });
 }
