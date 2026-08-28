@@ -57,19 +57,22 @@ class ForgotPasswordRequest extends Equatable {
 class ResetPasswordRequest extends Equatable {
   final String token;
   final String newPassword;
+  final String? email;
 
   const ResetPasswordRequest({
     required this.token,
     required this.newPassword,
+    this.email,
   });
 
   Map<String, dynamic> toJson() => {
         'token': token,
         'new_password': newPassword,
+        if (email != null && email!.isNotEmpty) 'email': email,
       };
 
   @override
-  List<Object?> get props => [token, newPassword];
+  List<Object?> get props => [token, newPassword, email];
 }
 
 /// Category/Topic interest model for onboarding and user personalization

@@ -9,6 +9,7 @@ import 'package:client/features/auth/presentation/screens/forgot_password_screen
 import 'package:client/features/auth/presentation/screens/interest_onboarding_screen.dart';
 import 'package:client/features/auth/presentation/screens/login_screen.dart';
 import 'package:client/features/auth/presentation/screens/register_screen.dart';
+import 'package:client/features/auth/presentation/screens/reset_password_screen.dart';
 import 'package:client/features/auth/presentation/screens/splash_screen.dart';
 import 'package:client/features/feeds/presentation/screens/home_feed_screen.dart';
 import 'package:client/features/feeds/presentation/screens/shorts_feed_screen.dart';
@@ -32,7 +33,8 @@ class RouterNotifier extends ChangeNotifier {
 
     final isPublicAuthRoute = matched == '/login' ||
         matched == '/register' ||
-        matched == '/forgot-password';
+        matched == '/forgot-password' ||
+        matched == '/reset-password';
 
     // 1. While initial session checking, stay on splash screen
     if (authState is AuthInitial) {
@@ -102,6 +104,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/forgot-password',
         name: RouteNames.forgotPassword,
         builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/reset-password',
+        name: RouteNames.resetPassword,
+        builder: (context, state) {
+          final token = state.uri.queryParameters['token'];
+          final email = state.uri.queryParameters['email'];
+          return ResetPasswordScreen(
+            initialToken: token,
+            initialEmail: email,
+          );
+        },
       ),
       GoRoute(
         path: '/onboarding',

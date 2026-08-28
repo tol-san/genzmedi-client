@@ -12,60 +12,107 @@ import 'package:client/core/widgets/app_text_field.dart';
 import 'package:client/features/auth/data/models/auth_models.dart';
 import 'package:client/features/auth/data/repositories/auth_repository.dart';
 
-class ForgotPasswordScreen extends ConsumerStatefulWidget {
-  const ForgotPasswordScreen({super.key});
+class ResetPasswordScreen extends ConsumerStatefulWidget {
+  final String? initialToken;
+  final String? initialEmail;
+
+  const ResetPasswordScreen({
+    super.key,
+    this.initialToken,
+    this.initialEmail,
+  });
 
   @override
-  ConsumerState<ForgotPasswordScreen> createState() =>
-      _ForgotPasswordScreenState();
+  ConsumerState<ResetPasswordScreen> createState() =>
+      _ResetPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
-  final _emailController = TextEditingController();
+class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
+  late final TextEditingController _tokenController;
+  late final TextEditingController _emailController;
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
   bool _isLoading = false;
   bool _isSuccess = false;
+
   String? _errorMessage;
-  String? _emailError;
+  String? _tokenError;
+  String? _newPasswordError;
+  String? _confirmPasswordError;
+
+  @override
+  void initState() {
+    super.initState();
+    _tokenController = TextEditingController(text: widget.initialToken ?? '');
+    _emailController = TextEditingController(text: widget.initialEmail ?? '');
+  }
 
   @override
   void dispose() {
+    _tokenController.dispose();
     _emailController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
   Future<void> _handleSubmit() async {
     setState(() {
       _errorMessage = null;
-      _emailError = null;
+      _tokenError = null;
+      _newPasswordError = null;
+      _confirmPasswordError = null;
     });
 
+    final token = _tokenController.text.trim();
     final email = _emailController.text.trim();
-    if (email.isEmpty) {
-      setState(() {
-        _emailError = 'Please enter your email address.';
-        _errorMessage = 'Please enter your email address.';
-      });
-      return;
+    final newPassword = _newPasswordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    bool hasError = false;
+
+    if (token.isEmpty) {
+      _tokenError = 'Please enter your 6-digit code or reset token.';
+      hasError = true;
     }
 
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(email)) {
-      setState(() {
-        _emailError = 'Please enter a valid email address.';
-        _errorMessage = 'Please enter a valid email address.';
-      });
+    if (newPassword.isEmpty) {
+      _newPasswordError = 'Please enter your new password.';
+      hasError = true;
+    } else if (newPassword.length < 8) {
+      _newPasswordError = 'Password must be at least 8 characters long.';
+      hasError = true;
+    }
+
+    if (confirmPassword.isEmpty) {
+      _confirmPasswordError = 'Please confirm your new password.';
+      hasError = true;
+    } else if (newPassword != confirmPassword) {
+      _confirmPasswordError = 'Passwords do not match.';
+      hasError = true;
+    }
+
+    if (hasError) {
+      setState(() {});
       return;
     }
 
     setState(() {
       _isLoading = true;
       _errorMessage = null;
-      _emailError = null;
     });
 
     try {
       final repository = ref.read(authRepositoryProvider);
-      await repository.forgotPassword(ForgotPasswordRequest(email: email));
+      await repository.resetPassword(
+        ResetPasswordRequest(
+          token: token,
+          email: email.isNotEmpty ? email : null,
+          newPassword: newPassword,
+        ),
+      );
+
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -84,7 +131,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       setState(() {
         _isLoading = false;
         _errorMessage = cleanMessage;
-        _emailError = cleanMessage;
       });
     }
   }
@@ -99,7 +145,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark
+                ? AppColors.textPrimaryDark
+                : AppColors.textPrimaryLight,
+          ),
           onPressed: () => context.pop(),
         ),
       ),
@@ -117,14 +169,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     children: [
                       const Center(
                         child: Icon(
-                          Icons.mark_email_read_outlined,
+                          Icons.check_circle_outline_rounded,
                           size: 64,
                           color: AppColors.success,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.space24),
                       Text(
-                        'Verification code sent',
+                        'Password Reset Complete',
                         textAlign: TextAlign.center,
                         style: AppTypography.headingLarge.copyWith(
                           color: isDark
@@ -135,7 +187,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       ),
                       const SizedBox(height: AppSpacing.space12),
                       Text(
-                        'We sent a 6-digit verification code to ${_emailController.text}. Enter the code to reset your account password.',
+                        'Your password has been successfully updated. You can now log in with your new password.',
                         textAlign: TextAlign.center,
                         style: AppTypography.bodySmall.copyWith(
                           color: isDark
@@ -145,15 +197,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       ),
                       const SizedBox(height: AppSpacing.space32),
                       AppButton(
-                        text: 'Enter Verification Code',
-                        onPressed: () => context.pushNamed(
-                          RouteNames.resetPassword,
-                          queryParameters: {'email': _emailController.text.trim()},
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.space12),
-                      AppButton.secondary(
-                        text: 'Back to Sign In',
+                        text: 'Sign In',
                         onPressed: () => context.goNamed(RouteNames.login),
                       ),
                     ],
@@ -167,7 +211,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       ),
                       const SizedBox(height: AppSpacing.space20),
                       Text(
-                        'Reset Password',
+                        'Enter Verification Code',
                         textAlign: TextAlign.center,
                         style: AppTypography.headingLarge.copyWith(
                           color: isDark
@@ -178,7 +222,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       ),
                       const SizedBox(height: AppSpacing.space8),
                       Text(
-                        'Enter your account email and we\'ll send you a 6-digit verification code to reset your password.',
+                        widget.initialEmail != null && widget.initialEmail!.isNotEmpty
+                            ? 'Enter the 6-digit code sent to ${widget.initialEmail} and choose a new password.'
+                            : 'Enter the 6-digit code from your email and set your new password.',
                         textAlign: TextAlign.center,
                         style: AppTypography.bodySmall.copyWith(
                           color: isDark
@@ -220,19 +266,49 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         const SizedBox(height: AppSpacing.space16),
                       ],
 
+                      // 6-digit OTP / Code Input Field
                       AppTextField(
-                        controller: _emailController,
-                        label: 'Email',
-                        hintText: 'Enter your registered email',
-                        errorText: _emailError,
-                        keyboardType: TextInputType.emailAddress,
+                        controller: _tokenController,
+                        label: 'Verification Code',
+                        hintText: 'Enter 6-digit code (e.g. 482910)',
+                        errorText: _tokenError,
+                        keyboardType: TextInputType.text,
+                        textInputAction: TextInputAction.next,
+                        onChanged: (_) {
+                          if (_tokenError != null) {
+                            setState(() => _tokenError = null);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: AppSpacing.space16),
+
+                      // New Password Field
+                      AppTextField(
+                        controller: _newPasswordController,
+                        label: 'New Password',
+                        hintText: 'Enter new password (min. 8 characters)',
+                        errorText: _newPasswordError,
+                        isPassword: true,
+                        textInputAction: TextInputAction.next,
+                        onChanged: (_) {
+                          if (_newPasswordError != null) {
+                            setState(() => _newPasswordError = null);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: AppSpacing.space16),
+
+                      // Confirm Password Field
+                      AppTextField(
+                        controller: _confirmPasswordController,
+                        label: 'Confirm Password',
+                        hintText: 'Re-enter your new password',
+                        errorText: _confirmPasswordError,
+                        isPassword: true,
                         textInputAction: TextInputAction.done,
                         onChanged: (_) {
-                          if (_emailError != null || _errorMessage != null) {
-                            setState(() {
-                              _emailError = null;
-                              _errorMessage = null;
-                            });
+                          if (_confirmPasswordError != null) {
+                            setState(() => _confirmPasswordError = null);
                           }
                         },
                         onSubmitted: (_) => _handleSubmit(),
@@ -240,22 +316,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       const SizedBox(height: AppSpacing.space24),
 
                       AppButton(
-                        text: 'Send Verification Code',
+                        text: 'Update Password',
                         isLoading: _isLoading,
                         onPressed: _isLoading ? null : _handleSubmit,
-                      ),
-                      const SizedBox(height: AppSpacing.space16),
-
-                      TextButton(
-                        onPressed: () => context.pop(),
-                        child: Text(
-                          'Cancel',
-                          style: AppTypography.bodySmall.copyWith(
-                            color: isDark
-                                ? AppColors.textSecondaryDark
-                                : AppColors.textSecondaryLight,
-                          ),
-                        ),
                       ),
                     ],
                   ),
