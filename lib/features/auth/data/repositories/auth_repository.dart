@@ -61,9 +61,12 @@ class AuthRepository {
   }
 
   /// Revoke session and logout
-  Future<void> logout() async {
+  Future<void> logout({String? refreshToken}) async {
     try {
-      await dio.post(ApiEndpoints.logout);
+      await dio.post(
+        ApiEndpoints.logout,
+        data: refreshToken != null ? {'refresh_token': refreshToken} : null,
+      );
     } on DioException catch (e) {
       // Non-fatal if session is already expired
       ErrorMapper.fromDioException(e);

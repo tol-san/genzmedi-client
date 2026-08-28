@@ -200,7 +200,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// Revoke credentials and reset local state
   Future<void> logout() async {
     try {
-      await repository.logout();
+      final refreshToken = await storage.getRefreshToken();
+      await repository.logout(refreshToken: refreshToken);
     } catch (_) {
       // Ignore network failure on logout
     } finally {
