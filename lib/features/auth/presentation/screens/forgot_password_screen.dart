@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:client/app/router/route_names.dart';
+import 'package:client/core/errors/app_exception.dart';
 import 'package:client/core/theme/app_colors.dart';
 import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/theme/app_typography.dart';
@@ -24,6 +25,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   bool _isLoading = false;
   bool _isSuccess = false;
   String? _errorMessage;
+  String? _emailError;
 
   @override
   void dispose() {
@@ -32,9 +34,15 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   }
 
   Future<void> _handleSubmit() async {
+    setState(() {
+      _errorMessage = null;
+      _emailError = null;
+    });
+
     final email = _emailController.text.trim();
     if (email.isEmpty) {
       setState(() {
+        _emailError = 'Please enter your email address.';
         _errorMessage = 'Please enter your email address.';
       });
       return;
@@ -43,6 +51,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(email)) {
       setState(() {
+        _emailError = 'Please enter a valid email address.';
         _errorMessage = 'Please enter a valid email address.';
       });
       return;
@@ -51,6 +60,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
+      _emailError = null;
     });
 
     try {
@@ -64,12 +74,17 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       }
     } catch (e) {
       if (!mounted) return;
+      final cleanMessage = e is AppException
+          ? e.message
+          : e
+              .toString()
+              .replaceFirst(RegExp(r'^[A-Za-z_]+Exception:\s*'), '')
+              .replaceFirst(RegExp(r'\s*\(statusCode:\s*\d+\)'), '');
+
       setState(() {
         _isLoading = false;
-        _errorMessage = e
-            .toString()
-            .replaceFirst('ApiException: ', '')
-            .replaceFirst('Exception: ', '');
+        _errorMessage = cleanMessage;
+        _emailError = cleanMessage;
       });
     }
   }
@@ -201,8 +216,17 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         controller: _emailController,
                         label: 'Email',
                         hintText: 'Enter your registered email',
+                        errorText: _emailError,
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.done,
+                        onChanged: (_) {
+                          if (_emailError != null || _errorMessage != null) {
+                            setState(() {
+                              _emailError = null;
+                              _errorMessage = null;
+                            });
+                          }
+                        },
                         onSubmitted: (_) => _handleSubmit(),
                       ),
                       const SizedBox(height: AppSpacing.space24),

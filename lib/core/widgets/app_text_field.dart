@@ -79,7 +79,9 @@ class _AppTextFieldState extends State<AppTextField> {
           Text(
             widget.label!,
             style: AppTypography.label.copyWith(
-              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+              color: widget.errorText != null
+                  ? AppColors.error
+                  : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
             ),
           ),
           const SizedBox(height: AppSpacing.space8),

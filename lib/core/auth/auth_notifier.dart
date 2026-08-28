@@ -35,21 +35,41 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   /// Verifies whether an existing stored session is valid and loads the profile
   Future<void> checkSession() async {
+    // 1. Instant check: If no active session recorded in SharedPreferences, transition immediately
+    if (!prefs.hasSession()) {
+      state = const AuthUnauthenticated();
+      return;
+    }
+
+    // 2. Verify stored token and fetch user profile
     try {
-      final token = await storage.getAccessToken();
+      String? token;
+      try {
+        token = await storage.getAccessToken();
+      } catch (_) {
+        token = null;
+      }
+
       if (token == null || token.isEmpty) {
+        await prefs.setHasSession(false);
         state = const AuthUnauthenticated();
         return;
       }
 
-      final user = await repository.getMyProfile();
-      if (user.interests.isEmpty && !prefs.isOnboardingCompleted()) {
-        state = AuthNeedsOnboarding(user);
-      } else {
-        state = AuthAuthenticated(user);
+      try {
+        final user = await repository.getMyProfile().timeout(
+              const Duration(seconds: 4),
+            );
+        if (user.interests.isEmpty && !prefs.isOnboardingCompleted()) {
+          state = AuthNeedsOnboarding(user);
+        } else {
+          state = AuthAuthenticated(user);
+        }
+      } catch (_) {
+        state = const AuthUnauthenticated();
       }
     } catch (_) {
-      // In case session is expired or network fails, transition cleanly
+      await prefs.setHasSession(false);
       state = const AuthUnauthenticated();
     }
   }
@@ -69,6 +89,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         accessToken: tokenModel.accessToken,
         refreshToken: tokenModel.refreshToken,
       );
+      await prefs.setHasSession(true);
 
       final user = await repository.getMyProfile();
 
@@ -108,6 +129,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
           accessToken: tokenModel.accessToken,
           refreshToken: tokenModel.refreshToken,
         );
+        await prefs.setHasSession(true);
 
         UserModel user;
         try {
@@ -158,6 +180,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       // Ignore network failure on logout
     } finally {
       await storage.clearAll();
+      await prefs.setHasSession(false);
       state = const AuthUnauthenticated();
     }
   }

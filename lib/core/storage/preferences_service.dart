@@ -18,6 +18,15 @@ class PreferencesService {
 
   static const String _themeModeKey = 'app_theme_mode';
   static const String _isOnboardedKey = 'has_completed_interest_onboarding';
+  static const String _hasSessionKey = 'has_active_session';
+
+  Future<void> setHasSession(bool hasSession) async {
+    await _prefs.setBool(_hasSessionKey, hasSession);
+  }
+
+  bool hasSession() {
+    return _prefs.getBool(_hasSessionKey) ?? false;
+  }
 
   Future<void> setThemeMode(String mode) async {
     await _prefs.setString(_themeModeKey, mode);

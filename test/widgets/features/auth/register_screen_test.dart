@@ -29,6 +29,7 @@ void main() {
     mockPrefs = MockPreferencesService();
 
     when(() => mockStorage.getAccessToken()).thenAnswer((_) async => null);
+    when(() => mockPrefs.hasSession()).thenReturn(false);
     when(() => mockPrefs.isOnboardingCompleted()).thenReturn(false);
   });
 

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:client/app/router/route_names.dart';
 import 'package:client/core/auth/auth_notifier.dart';
 import 'package:client/core/auth/auth_state.dart';
+import 'package:client/core/errors/app_exception.dart';
 import 'package:client/core/theme/app_colors.dart';
 import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/theme/app_typography.dart';
@@ -23,6 +24,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   String? _errorMessage;
+  String? _usernameError;
+  String? _passwordError;
 
   @override
   void dispose() {
@@ -35,14 +38,43 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     // Clear previous error
     setState(() {
       _errorMessage = null;
+      _usernameError = null;
+      _passwordError = null;
     });
 
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
 
-    if (username.isEmpty || password.isEmpty) {
+    bool hasValidationError = false;
+    if (username.isEmpty) {
+      _usernameError = 'Please enter your username or email';
+      hasValidationError = true;
+    } else if (username.contains('@')) {
+      final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+      if (!emailRegex.hasMatch(username)) {
+        _usernameError = 'Please enter a valid email address';
+        hasValidationError = true;
+      }
+    } else if (username.length < 3) {
+      _usernameError = 'Username must be at least 3 characters';
+      hasValidationError = true;
+    }
+
+    if (password.isEmpty) {
+      _passwordError = 'Please enter your password';
+      hasValidationError = true;
+    } else if (password.length < 6) {
+      _passwordError = 'Password must be at least 6 characters';
+      hasValidationError = true;
+    }
+
+    if (hasValidationError) {
       setState(() {
-        _errorMessage = 'Please enter both your username/email and password.';
+        if (username.isEmpty && password.isEmpty) {
+          _errorMessage = 'Please enter both your username/email and password.';
+        } else {
+          _errorMessage = 'Please fix the errors above.';
+        }
       });
       return;
     }
@@ -55,11 +87,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       // Navigation is automatically handled by GoRouter redirect
     } catch (e) {
       if (!mounted) return;
+      final String cleanMessage = e is AppException
+          ? e.message
+          : e
+              .toString()
+              .replaceFirst(RegExp(r'^[A-Za-z_]+Exception:\s*'), '')
+              .replaceFirst(RegExp(r'\s*\(statusCode:\s*\d+\)'), '');
+
       setState(() {
-        _errorMessage = e
-            .toString()
-            .replaceFirst('ApiException: ', '')
-            .replaceFirst('Exception: ', '');
+        _errorMessage = cleanMessage;
+        _usernameError = 'Invalid username or email';
+        _passwordError = 'Invalid password';
       });
     }
   }
@@ -142,7 +180,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     controller: _usernameController,
                     label: 'Username or Email',
                     hintText: 'Enter your username or email',
+                    errorText: _usernameError,
                     textInputAction: TextInputAction.next,
+                    onChanged: (_) {
+                      if (_usernameError != null || _errorMessage != null) {
+                        setState(() {
+                          _usernameError = null;
+                          _errorMessage = null;
+                        });
+                      }
+                    },
                   ),
                   const SizedBox(height: AppSpacing.space16),
 
@@ -152,8 +199,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     controller: _passwordController,
                     label: 'Password',
                     hintText: 'Enter your password',
+                    errorText: _passwordError,
                     isPassword: true,
                     textInputAction: TextInputAction.done,
+                    onChanged: (_) {
+                      if (_passwordError != null || _errorMessage != null) {
+                        setState(() {
+                          _passwordError = null;
+                          _errorMessage = null;
+                        });
+                      }
+                    },
                     onSubmitted: (_) => _handleLogin(),
                   ),
                   const SizedBox(height: AppSpacing.space8),

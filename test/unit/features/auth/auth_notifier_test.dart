@@ -31,6 +31,8 @@ void main() {
 
     // Default mock behaviors
     when(() => mockStorage.getAccessToken()).thenAnswer((_) async => null);
+    when(() => mockPrefs.hasSession()).thenReturn(true);
+    when(() => mockPrefs.setHasSession(any())).thenAnswer((_) async => true);
     when(() => mockPrefs.isOnboardingCompleted()).thenReturn(true);
   });
 

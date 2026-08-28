@@ -13,7 +13,8 @@ class SecureStorageService {
       : _storage = storage ??
             const FlutterSecureStorage(
               aOptions: AndroidOptions(
-                encryptedSharedPreferences: true,
+                encryptedSharedPreferences: false,
+                resetOnError: true,
               ),
               iOptions: IOSOptions(
                 accessibility: KeychainAccessibility.first_unlock,
@@ -28,27 +29,51 @@ class SecureStorageService {
     required String accessToken,
     required String refreshToken,
   }) async {
-    await _storage.write(key: _accessTokenKey, value: accessToken);
-    await _storage.write(key: _refreshTokenKey, value: refreshToken);
+    try {
+      await _storage.write(key: _accessTokenKey, value: accessToken);
+      await _storage.write(key: _refreshTokenKey, value: refreshToken);
+    } catch (_) {}
   }
 
   Future<String?> getAccessToken() async {
-    return _storage.read(key: _accessTokenKey);
+    try {
+      return await _storage
+          .read(key: _accessTokenKey)
+          .timeout(const Duration(seconds: 2), onTimeout: () => null);
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<String?> getRefreshToken() async {
-    return _storage.read(key: _refreshTokenKey);
+    try {
+      return await _storage
+          .read(key: _refreshTokenKey)
+          .timeout(const Duration(seconds: 2), onTimeout: () => null);
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> saveUserId(String userId) async {
-    await _storage.write(key: _userIdKey, value: userId);
+    try {
+      await _storage.write(key: _userIdKey, value: userId);
+    } catch (_) {}
   }
 
   Future<String?> getUserId() async {
-    return _storage.read(key: _userIdKey);
+    try {
+      return await _storage
+          .read(key: _userIdKey)
+          .timeout(const Duration(seconds: 2), onTimeout: () => null);
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> clearAll() async {
-    await _storage.deleteAll();
+    try {
+      await _storage.deleteAll();
+    } catch (_) {}
   }
 }

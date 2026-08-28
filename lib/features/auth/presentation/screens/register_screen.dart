@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:client/app/router/route_names.dart';
 import 'package:client/core/auth/auth_notifier.dart';
 import 'package:client/core/auth/auth_state.dart';
+import 'package:client/core/errors/app_exception.dart';
 import 'package:client/core/theme/app_colors.dart';
 import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/theme/app_typography.dart';
@@ -25,6 +26,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   String? _errorMessage;
+  String? _usernameError;
+  String? _emailError;
+  String? _passwordError;
+  String? _confirmPasswordError;
 
   @override
   void dispose() {
@@ -38,6 +43,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Future<void> _handleRegister() async {
     setState(() {
       _errorMessage = null;
+      _usernameError = null;
+      _emailError = null;
+      _passwordError = null;
+      _confirmPasswordError = null;
     });
 
     final username = _usernameController.text.trim();
@@ -45,42 +54,45 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final password = _passwordController.text;
     final confirmPassword = _confirmPasswordController.text;
 
-    // Field-level validation
-    if (username.isEmpty ||
-        email.isEmpty ||
-        password.isEmpty ||
-        confirmPassword.isEmpty) {
-      setState(() {
-        _errorMessage = 'Please fill out all required fields.';
-      });
-      return;
-    }
+    bool hasError = false;
 
-    if (username.length < 3) {
-      setState(() {
-        _errorMessage = 'Username must be at least 3 characters long.';
-      });
-      return;
+    // Field-level validation
+    if (username.isEmpty) {
+      _usernameError = 'Please enter a username.';
+      hasError = true;
+    } else if (username.length < 3) {
+      _usernameError = 'Username must be at least 3 characters long.';
+      hasError = true;
     }
 
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(email)) {
-      setState(() {
-        _errorMessage = 'Please enter a valid email address.';
-      });
-      return;
+    if (email.isEmpty) {
+      _emailError = 'Please enter an email address.';
+      hasError = true;
+    } else if (!emailRegex.hasMatch(email)) {
+      _emailError = 'Please enter a valid email address.';
+      hasError = true;
     }
 
-    if (password.length < 8) {
-      setState(() {
-        _errorMessage = 'Password must be at least 8 characters long.';
-      });
-      return;
+    if (password.isEmpty) {
+      _passwordError = 'Please enter a password.';
+      hasError = true;
+    } else if (password.length < 8) {
+      _passwordError = 'Password must be at least 8 characters long.';
+      hasError = true;
     }
 
-    if (password != confirmPassword) {
+    if (confirmPassword.isEmpty) {
+      _confirmPasswordError = 'Please confirm your password.';
+      hasError = true;
+    } else if (password != confirmPassword) {
+      _confirmPasswordError = 'Passwords do not match.';
+      hasError = true;
+    }
+
+    if (hasError) {
       setState(() {
-        _errorMessage = 'Passwords do not match.';
+        _errorMessage = 'Please fix the errors above.';
       });
       return;
     }
@@ -94,11 +106,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       // If server requires login or directs to onboarding, GoRouter handles redirection
     } catch (e) {
       if (!mounted) return;
+      final cleanMessage = e is AppException
+          ? e.message
+          : e
+              .toString()
+              .replaceFirst(RegExp(r'^[A-Za-z_]+Exception:\s*'), '')
+              .replaceFirst(RegExp(r'\s*\(statusCode:\s*\d+\)'), '');
+
       setState(() {
-        _errorMessage = e
-            .toString()
-            .replaceFirst('ApiException: ', '')
-            .replaceFirst('Exception: ', '');
+        _errorMessage = cleanMessage;
+        final msgLower = cleanMessage.toLowerCase();
+        if (msgLower.contains('username')) {
+          _usernameError = cleanMessage;
+        } else if (msgLower.contains('email')) {
+          _emailError = cleanMessage;
+        } else if (msgLower.contains('password')) {
+          _passwordError = cleanMessage;
+        }
       });
     }
   }
@@ -199,7 +223,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     controller: _usernameController,
                     label: 'Username',
                     hintText: 'e.g. sovandara',
+                    errorText: _usernameError,
                     textInputAction: TextInputAction.next,
+                    onChanged: (_) {
+                      if (_usernameError != null || _errorMessage != null) {
+                        setState(() {
+                          _usernameError = null;
+                          _errorMessage = null;
+                        });
+                      }
+                    },
                   ),
                   const SizedBox(height: AppSpacing.space16),
 
@@ -209,8 +242,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     controller: _emailController,
                     label: 'Email',
                     hintText: 'e.g. sovandara@example.com',
+                    errorText: _emailError,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
+                    onChanged: (_) {
+                      if (_emailError != null || _errorMessage != null) {
+                        setState(() {
+                          _emailError = null;
+                          _errorMessage = null;
+                        });
+                      }
+                    },
                   ),
                   const SizedBox(height: AppSpacing.space16),
 
@@ -220,8 +262,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     controller: _passwordController,
                     label: 'Password',
                     hintText: 'Minimum 8 characters',
+                    errorText: _passwordError,
                     isPassword: true,
                     textInputAction: TextInputAction.next,
+                    onChanged: (_) {
+                      if (_passwordError != null || _errorMessage != null) {
+                        setState(() {
+                          _passwordError = null;
+                          _errorMessage = null;
+                        });
+                      }
+                    },
                   ),
                   const SizedBox(height: AppSpacing.space16),
 
@@ -231,8 +282,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     controller: _confirmPasswordController,
                     label: 'Confirm Password',
                     hintText: 'Re-enter your password',
+                    errorText: _confirmPasswordError,
                     isPassword: true,
                     textInputAction: TextInputAction.done,
+                    onChanged: (_) {
+                      if (_confirmPasswordError != null || _errorMessage != null) {
+                        setState(() {
+                          _confirmPasswordError = null;
+                          _errorMessage = null;
+                        });
+                      }
+                    },
                     onSubmitted: (_) => _handleRegister(),
                   ),
                   const SizedBox(height: AppSpacing.space24),

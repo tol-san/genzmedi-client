@@ -16,59 +16,69 @@ import 'package:client/features/posts/presentation/screens/create_hub_screen.dar
 import 'package:client/features/profiles/presentation/screens/my_profile_screen.dart';
 import 'package:client/features/search/presentation/screens/discover_screen.dart';
 
+class RouterNotifier extends ChangeNotifier {
+  final Ref _ref;
+
+  RouterNotifier(this._ref) {
+    _ref.listen<AuthState>(
+      authNotifierProvider,
+      (_, _) => notifyListeners(),
+    );
+  }
+
+  String? redirect(BuildContext context, GoRouterState state) {
+    final authState = _ref.read(authNotifierProvider);
+    final matched = state.matchedLocation;
+
+    final isPublicAuthRoute = matched == '/login' ||
+        matched == '/register' ||
+        matched == '/forgot-password';
+
+    // 1. While initial session checking, stay on splash screen
+    if (authState is AuthInitial) {
+      return matched == '/splash' ? null : '/splash';
+    }
+
+    // 2. While AuthLoading (e.g. logging in / registering), stay on current auth screen
+    if (authState is AuthLoading) {
+      if (isPublicAuthRoute) return null;
+      if (matched == '/splash') return null;
+      return null;
+    }
+
+    // 2. User needs interest onboarding
+    if (authState is AuthNeedsOnboarding) {
+      return matched == '/onboarding' ? null : '/onboarding';
+    }
+
+    // 3. Unauthenticated user attempting to access protected routes
+    if (authState is AuthUnauthenticated) {
+      return isPublicAuthRoute ? null : '/login';
+    }
+
+    // 4. Authenticated user attempting to access auth, onboarding, or splash
+    if (authState is AuthAuthenticated) {
+      if (isPublicAuthRoute || matched == '/onboarding' || matched == '/splash') {
+        return '/feed';
+      }
+    }
+
+    return null;
+  }
+}
+
+final routerNotifierProvider = ChangeNotifierProvider<RouterNotifier>((ref) {
+  return RouterNotifier(ref);
+});
+
 final routerProvider = Provider<GoRouter>((ref) {
-  // A plain ChangeNotifier used as GoRouter's refreshListenable.
-  // ref.listen fires notifyListeners on every auth state change, so
-  // GoRouter re-evaluates its redirect guard automatically.
-  final listenable = ChangeNotifier();
-
-  ref.listen(authNotifierProvider, (_, _) {
-    // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
-    listenable.notifyListeners();
-  });
-
-  // Dispose the ChangeNotifier when the provider scope closes.
-  ref.onDispose(listenable.dispose);
+  final notifier = ref.watch(routerNotifierProvider);
 
   return GoRouter(
     initialLocation: '/splash',
     debugLogDiagnostics: false,
-    refreshListenable: listenable,
-    redirect: (BuildContext context, GoRouterState state) {
-      final authState = ref.read(authNotifierProvider);
-      final matched = state.matchedLocation;
-
-      final isAuthLoading =
-          authState is AuthInitial || authState is AuthLoading;
-
-      // 1. While loading session, keep on splash screen
-      if (isAuthLoading) {
-        return matched == '/splash' ? null : '/splash';
-      }
-
-      final isPublicAuthRoute = matched == '/login' ||
-          matched == '/register' ||
-          matched == '/forgot-password';
-
-      // 2. User needs interest onboarding
-      if (authState is AuthNeedsOnboarding) {
-        return matched == '/onboarding' ? null : '/onboarding';
-      }
-
-      // 3. Unauthenticated user attempting to access protected routes
-      if (authState is AuthUnauthenticated) {
-        return isPublicAuthRoute ? null : '/login';
-      }
-
-      // 4. Authenticated user attempting to access auth, onboarding, or splash
-      if (authState is AuthAuthenticated) {
-        if (isPublicAuthRoute || matched == '/onboarding' || matched == '/splash') {
-          return '/feed';
-        }
-      }
-
-      return null;
-    },
+    refreshListenable: notifier,
+    redirect: notifier.redirect,
     routes: [
       // Splash Route
       GoRoute(
