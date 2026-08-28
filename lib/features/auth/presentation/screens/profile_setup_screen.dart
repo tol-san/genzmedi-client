@@ -30,7 +30,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   String? _usernameStatus;
   bool _isCheckingUsername = false;
 
-  // DiceBear avatar styles catalog with valid v7 API keys
+  // DiceBear avatar styles catalog with valid v9 API keys
   static const List<Map<String, String>> _dicebearStyles = [
     {'name': 'Critters', 'style': 'croodles'},
     {'name': 'Bottts', 'style': 'bottts'},
@@ -69,7 +69,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         : (_displayNameController.text.trim().isNotEmpty
             ? _displayNameController.text.trim().toLowerCase()
             : 'GenZ');
-    return 'https://api.dicebear.com/7.x/$style/png?seed=$seed';
+    return 'https://api.dicebear.com/9.x/$style/png?seed=$seed';
   }
 
   Future<void> _pickCustomImage() async {

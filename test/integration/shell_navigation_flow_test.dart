@@ -9,7 +9,11 @@ import 'package:client/core/storage/preferences_service.dart';
 import 'package:client/core/storage/secure_storage_service.dart';
 import 'package:client/features/auth/data/repositories/auth_repository.dart';
 
+import 'package:client/features/posts/data/models/post_models.dart';
+import 'package:client/features/profiles/data/repositories/profile_repository.dart';
+
 class MockAuthRepository extends Mock implements AuthRepository {}
+class MockProfileRepository extends Mock implements ProfileRepository {}
 class MockSecureStorageService extends Mock implements SecureStorageService {}
 class MockPreferencesService extends Mock implements PreferencesService {}
 
@@ -19,11 +23,13 @@ void main() {
   });
 
   late MockAuthRepository mockRepository;
+  late MockProfileRepository mockProfileRepository;
   late MockSecureStorageService mockStorage;
   late MockPreferencesService mockPrefs;
 
   setUp(() {
     mockRepository = MockAuthRepository();
+    mockProfileRepository = MockProfileRepository();
     mockStorage = MockSecureStorageService();
     mockPrefs = MockPreferencesService();
 
@@ -31,14 +37,17 @@ void main() {
     when(() => mockPrefs.hasSession()).thenReturn(true);
     when(() => mockPrefs.isOnboardingCompleted()).thenReturn(true);
 
-    when(() => mockRepository.getMyProfile()).thenAnswer(
-      (_) async => const UserModel(
-        id: '123',
-        username: 'alex',
-        email: 'alex@genz.media',
-        interests: ['Tech', 'Gaming'],
-      ),
+    const user = UserModel(
+      id: '123',
+      username: 'alex',
+      email: 'alex@genz.media',
+      interests: ['Tech', 'Gaming'],
     );
+
+    when(() => mockRepository.getMyProfile()).thenAnswer((_) async => user);
+    when(() => mockProfileRepository.getMyProfile()).thenAnswer((_) async => user);
+    when(() => mockProfileRepository.getUserPosts(authorId: '123')).thenAnswer((_) async => <PostModel>[]);
+    when(() => mockProfileRepository.getSavedPosts()).thenAnswer((_) async => <PostModel>[]);
   });
 
   group('Full E2E Shell Navigation Flow Integration Test', () {
@@ -47,6 +56,7 @@ void main() {
         ProviderScope(
           overrides: [
             authRepositoryProvider.overrideWithValue(mockRepository),
+            profileRepositoryProvider.overrideWithValue(mockProfileRepository),
             secureStorageServiceProvider.overrideWithValue(mockStorage),
             preferencesServiceProvider.overrideWithValue(mockPrefs),
             authNotifierProvider.overrideWith(

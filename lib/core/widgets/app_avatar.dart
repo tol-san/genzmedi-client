@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:client/core/theme/app_colors.dart';
 import 'package:client/core/theme/app_typography.dart';
@@ -31,14 +32,30 @@ class AppAvatar extends StatelessWidget {
     return parts[0][0].toUpperCase();
   }
 
+  String? get _cleanUrl {
+    if (imageUrl == null || imageUrl!.trim().isEmpty) return null;
+    var trimmed = imageUrl!.trim();
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      if (trimmed.contains('http://localhost:9000')) {
+        trimmed = trimmed.replaceAll('http://localhost:9000', 'http://10.0.2.2:9000');
+      } else if (trimmed.contains('http://127.0.0.1:9000')) {
+        trimmed = trimmed.replaceAll('http://127.0.0.1:9000', 'http://10.0.2.2:9000');
+      } else if (trimmed.contains('http://localhost:8000')) {
+        trimmed = trimmed.replaceAll('http://localhost:8000', 'http://10.0.2.2:8000');
+      }
+    }
+    return trimmed;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final url = _cleanUrl;
 
     Widget avatarChild;
-    if (imageUrl != null && imageUrl!.isNotEmpty) {
+    if (url != null && url.isNotEmpty) {
       avatarChild = CachedNetworkImage(
-        imageUrl: imageUrl!,
+        imageUrl: url,
         fit: BoxFit.cover,
         width: size,
         height: size,

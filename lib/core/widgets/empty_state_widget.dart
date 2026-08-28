@@ -26,24 +26,28 @@ class EmptyStateWidget extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.space32),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.space24,
+          vertical: AppSpacing.space16,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(AppSpacing.space20),
+              padding: const EdgeInsets.all(AppSpacing.space16),
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkSurface : AppColors.lightBorder.withValues(alpha: 0.5),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
-                size: 40,
+                size: 36,
                 color: AppColors.textMuted,
               ),
             ),
-            const SizedBox(height: AppSpacing.space16),
+            const SizedBox(height: AppSpacing.space12),
             Text(
               title,
               textAlign: TextAlign.center,
@@ -62,7 +66,7 @@ class EmptyStateWidget extends StatelessWidget {
               ),
             ],
             if (actionText != null && onAction != null) ...[
-              const SizedBox(height: AppSpacing.space24),
+              const SizedBox(height: AppSpacing.space20),
               AppButton(
                 text: actionText!,
                 onPressed: onAction,

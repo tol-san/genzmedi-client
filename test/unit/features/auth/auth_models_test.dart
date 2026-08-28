@@ -91,18 +91,30 @@ void main() {
       expect(token.toJson(), json);
     });
 
-    test('UserModel serializes and deserializes correctly', () {
+    test('UserModel serializes and deserializes correctly with metrics', () {
       final json = {
         'id': 'user_1',
         'email': 'user@example.com',
         'username': 'genzuser',
+        'display_name': 'GenZ Star',
+        'bio': 'Creating cool content',
         'interests': ['gaming', 'music'],
+        'follower_count': 150,
+        'following_count': 42,
+        'post_count': 12,
+        'is_verified': true,
       };
       final user = UserModel.fromJson(json);
       expect(user.id, 'user_1');
       expect(user.email, 'user@example.com');
       expect(user.username, 'genzuser');
+      expect(user.displayName, 'GenZ Star');
+      expect(user.bio, 'Creating cool content');
       expect(user.interests, ['gaming', 'music']);
+      expect(user.followersCount, 150);
+      expect(user.followingCount, 42);
+      expect(user.postCount, 12);
+      expect(user.isVerified, true);
     });
   });
 }
