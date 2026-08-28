@@ -75,18 +75,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               children: [
                 // Minimal Logo Wordmark
                 const Center(
-                  child: AppLogo.wordmark(width: 220, height: 34),
+                  child: AppLogo.wordmark(width: 220, height: 40),
                 ),
-                const SizedBox(height: AppSpacing.space8),
+                const SizedBox(height: AppSpacing.space20),
                 Text(
                   'Sign in to your account',
                   textAlign: TextAlign.center,
                   style: AppTypography.body.copyWith(
                     color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                    fontSize: 14,
+                    fontSize: 16,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.space32),
+                const SizedBox(height: AppSpacing.space64),
 
                 // Error Message Banner
                 if (_errorMessage != null) ...[
