@@ -12,3 +12,11 @@ This workspace is the Flutter mobile client for GenZ Media.
 
 3. **GitHub MCP (`github`)**:
    - Creating/reviewing PRs, checking commits, and managing GitHub issues.
+
+---
+
+## Development & Testing Workflow Rules
+- **Implement Tests on Changes**: Always implement relevant tests (Unit, Widget, or Integration test where appropriate) after implementing a new feature or making changes to prevent regressions.
+- **Pragmatic Testing**: Focus on critical business logic, API error handling, state transitions, and core UI user journeys. It is not necessary to write exhaustive or redundant tests for every single detail.
+- **Verification**: Always run `flutter test` & `flutter analyze` for the Flutter client before wrapping up changes.
+
