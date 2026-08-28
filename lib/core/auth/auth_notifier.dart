@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/core/auth/auth_state.dart';
 import 'package:client/core/auth/token_model.dart';
@@ -210,6 +211,25 @@ class AuthNotifier extends StateNotifier<AuthState> {
         bio: bio,
         avatarUrl: avatarUrl,
       );
+
+      if (state is AuthAuthenticated) {
+        state = AuthAuthenticated(updatedUser);
+      } else if (state is AuthNeedsOnboarding) {
+        state = AuthNeedsOnboarding(updatedUser);
+      }
+
+      return updatedUser;
+    } on AppException {
+      rethrow;
+    } catch (e) {
+      throw UnknownException(e.toString());
+    }
+  }
+
+  /// Upload custom avatar file and update current state
+  Future<UserModel> uploadAvatar(File imageFile) async {
+    try {
+      final updatedUser = await repository.uploadAvatar(imageFile);
 
       if (state is AuthAuthenticated) {
         state = AuthAuthenticated(updatedUser);

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/core/auth/token_model.dart';
@@ -119,6 +120,34 @@ class AuthRepository {
       throw ErrorMapper.fromStatusCode(
         response.statusCode,
         'Failed to update profile.',
+      );
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
+
+  /// Upload custom avatar file for current user
+  Future<UserModel> uploadAvatar(File imageFile) async {
+    try {
+      final fileName = imageFile.path.split('/').last.split('\\').last;
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          imageFile.path,
+          filename: fileName,
+        ),
+      });
+
+      final response = await dio.post(
+        ApiEndpoints.myAvatar,
+        data: formData,
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return UserModel.fromJson(response.data as Map<String, dynamic>);
+      }
+      throw ErrorMapper.fromStatusCode(
+        response.statusCode,
+        'Failed to upload avatar.',
       );
     } on DioException catch (e) {
       throw ErrorMapper.fromDioException(e);

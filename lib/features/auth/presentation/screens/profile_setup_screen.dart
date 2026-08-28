@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:client/app/router/route_names.dart';
 import 'package:client/core/auth/auth_notifier.dart';
 import 'package:client/core/auth/auth_state.dart';
@@ -20,15 +22,17 @@ class ProfileSetupScreen extends ConsumerStatefulWidget {
 class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   final _displayNameController = TextEditingController();
   final _usernameController = TextEditingController();
+  final _picker = ImagePicker();
   int _selectedPresetIndex = 0;
+  File? _customImageFile;
   bool _isLoading = false;
   String? _errorMessage;
   String? _usernameStatus;
   bool _isCheckingUsername = false;
 
-  // DiceBear avatar styles catalog
+  // DiceBear avatar styles catalog with valid v7 API keys
   static const List<Map<String, String>> _dicebearStyles = [
-    {'name': 'Critters', 'style': 'critters'},
+    {'name': 'Critters', 'style': 'croodles'},
     {'name': 'Bottts', 'style': 'bottts'},
     {'name': 'Lorelei', 'style': 'lorelei'},
     {'name': 'Fun Emoji', 'style': 'fun-emoji'},
@@ -68,6 +72,27 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     return 'https://api.dicebear.com/7.x/$style/png?seed=$seed';
   }
 
+  Future<void> _pickCustomImage() async {
+    try {
+      final XFile? picked = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1080,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+      if (picked != null) {
+        setState(() {
+          _customImageFile = File(picked.path);
+          _errorMessage = null;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Could not access gallery. Please try again.';
+      });
+    }
+  }
+
   Future<void> _checkUsernameAvailability(String username) async {
     final clean = username.trim().toLowerCase();
     if (clean.length < 3) {
@@ -95,7 +120,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   Future<void> _handleSave() async {
     final displayName = _displayNameController.text.trim();
     final username = _usernameController.text.trim().toLowerCase();
-    final avatarUrl = _getDicebearUrl(_selectedPresetIndex);
 
     setState(() {
       _isLoading = true;
@@ -103,11 +127,20 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     });
 
     try {
-      await ref.read(authNotifierProvider.notifier).updateProfile(
-            displayName: displayName.isNotEmpty ? displayName : null,
-            username: username.isNotEmpty ? username : null,
-            avatarUrl: avatarUrl,
-          );
+      if (_customImageFile != null) {
+        await ref.read(authNotifierProvider.notifier).uploadAvatar(_customImageFile!);
+        await ref.read(authNotifierProvider.notifier).updateProfile(
+              displayName: displayName.isNotEmpty ? displayName : null,
+              username: username.isNotEmpty ? username : null,
+            );
+      } else {
+        final avatarUrl = _getDicebearUrl(_selectedPresetIndex);
+        await ref.read(authNotifierProvider.notifier).updateProfile(
+              displayName: displayName.isNotEmpty ? displayName : null,
+              username: username.isNotEmpty ? username : null,
+              avatarUrl: avatarUrl,
+            );
+      }
 
       if (mounted) {
         context.goNamed(RouteNames.onboarding);
@@ -163,61 +196,118 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 ),
                 const SizedBox(height: AppSpacing.space24),
 
-                // Main DiceBear Avatar Preview
+                // Main Avatar Preview with Camera Overlay
                 Center(
-                  child: Container(
-                    width: 96,
-                    height: 96,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isDark ? AppColors.darkSurface : AppColors.lightSurfaceElevated,
-                      border: Border.all(
-                        color: AppColors.primaryCrimson.withValues(alpha: 0.4),
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primaryCrimson.withValues(alpha: 0.2),
-                          blurRadius: 16,
-                          offset: const Offset(0, 6),
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: 104,
+                        height: 104,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isDark ? AppColors.darkSurface : AppColors.lightSurfaceElevated,
+                          border: Border.all(
+                            color: AppColors.primaryCrimson.withValues(alpha: 0.5),
+                            width: 2.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primaryCrimson.withValues(alpha: 0.25),
+                              blurRadius: 18,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: ClipOval(
-                      child: Image.network(
-                        currentAvatarUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Center(
-                          child: Icon(
-                            Icons.person_rounded,
-                            size: 48,
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        child: ClipOval(
+                          child: _customImageFile != null
+                              ? Image.file(
+                                  _customImageFile!,
+                                  fit: BoxFit.cover,
+                                )
+                              : Image.network(
+                                  currentAvatarUrl,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => Center(
+                                    child: Icon(
+                                      Icons.person_rounded,
+                                      size: 48,
+                                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                                    ),
+                                  ),
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return const Center(
+                                      child: SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                      ),
+                                    );
+                                  },
+                                ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: GestureDetector(
+                          onTap: _pickCustomImage,
+                          child: Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.primaryCrimson,
+                              border: Border.all(
+                                color: isDark ? AppColors.midnightNavy : Colors.white,
+                                width: 2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.3),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt_rounded,
+                              color: Colors.white,
+                              size: 18,
+                            ),
                           ),
                         ),
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return const Center(
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          );
-                        },
                       ),
-                    ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: AppSpacing.space16),
 
-                // Avatar Presets Title
-                Text(
-                  'Choose Avatar Style',
-                  textAlign: TextAlign.center,
-                  style: AppTypography.caption.copyWith(
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                    fontWeight: FontWeight.w600,
-                  ),
+                // Upload or Select Style Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      _customImageFile != null ? 'Custom Photo Selected' : 'Choose Avatar Style',
+                      style: AppTypography.caption.copyWith(
+                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (_customImageFile != null) ...[
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () => setState(() => _customImageFile = null),
+                        child: Text(
+                          'Reset',
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.primaryCrimson,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: AppSpacing.space12),
 
@@ -227,7 +317,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   spacing: 8,
                   runSpacing: 8,
                   children: List.generate(_dicebearStyles.length, (index) {
-                    final isSelected = _selectedPresetIndex == index;
+                    final isSelected = _customImageFile == null && _selectedPresetIndex == index;
                     final name = _dicebearStyles[index]['name']!;
                     return FilterChip(
                       selected: isSelected,
@@ -242,7 +332,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurfaceElevated,
                       checkmarkColor: Colors.white,
                       onSelected: (_) {
-                        setState(() => _selectedPresetIndex = index);
+                        setState(() {
+                          _customImageFile = null;
+                          _selectedPresetIndex = index;
+                        });
                       },
                     );
                   }),
