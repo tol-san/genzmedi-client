@@ -16,7 +16,9 @@ import 'package:client/features/auth/presentation/screens/verify_otp_screen.dart
 import 'package:client/features/feeds/presentation/screens/home_feed_screen.dart';
 import 'package:client/features/feeds/presentation/screens/shorts_feed_screen.dart';
 import 'package:client/features/posts/presentation/screens/create_hub_screen.dart';
+import 'package:client/features/profiles/presentation/screens/edit_profile_screen.dart';
 import 'package:client/features/profiles/presentation/screens/my_profile_screen.dart';
+import 'package:client/features/profiles/presentation/screens/public_profile_screen.dart';
 import 'package:client/features/search/presentation/screens/discover_screen.dart';
 
 class RouterNotifier extends ChangeNotifier {
@@ -151,6 +153,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/onboarding',
         name: RouteNames.onboarding,
         builder: (context, state) => const InterestOnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/profile/edit',
+        name: RouteNames.editProfile,
+        builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: '/user/:username',
+        name: RouteNames.publicProfile,
+        builder: (context, state) {
+          final username = state.pathParameters['username'] ?? '';
+          return PublicProfileScreen(username: username);
+        },
       ),
 
       // 5-Tab Shell Route

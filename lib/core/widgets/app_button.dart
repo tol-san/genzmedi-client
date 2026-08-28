@@ -26,6 +26,8 @@ class AppButton extends StatelessWidget {
   final bool isFullWidth;
   final Widget? prefixIcon;
   final Widget? suffixIcon;
+  final IconData? icon;
+  final BorderRadius? borderRadius;
 
   const AppButton({
     super.key,
@@ -37,6 +39,8 @@ class AppButton extends StatelessWidget {
     this.isFullWidth = true,
     this.prefixIcon,
     this.suffixIcon,
+    this.icon,
+    this.borderRadius,
   });
 
   const AppButton.secondary({
@@ -48,6 +52,8 @@ class AppButton extends StatelessWidget {
     this.isFullWidth = true,
     this.prefixIcon,
     this.suffixIcon,
+    this.icon,
+    this.borderRadius,
   }) : variant = AppButtonVariant.secondary;
 
   const AppButton.ghost({
@@ -59,6 +65,8 @@ class AppButton extends StatelessWidget {
     this.isFullWidth = false,
     this.prefixIcon,
     this.suffixIcon,
+    this.icon,
+    this.borderRadius,
   }) : variant = AppButtonVariant.ghost;
 
   const AppButton.destructive({
@@ -70,12 +78,14 @@ class AppButton extends StatelessWidget {
     this.isFullWidth = true,
     this.prefixIcon,
     this.suffixIcon,
+    this.icon,
+    this.borderRadius,
   }) : variant = AppButtonVariant.destructive;
 
   double get _height {
     switch (size) {
       case AppButtonSize.small:
-        return 38.0;
+        return 40.0;
       case AppButtonSize.medium:
         return 48.0;
       case AppButtonSize.large:
@@ -125,6 +135,17 @@ class AppButton extends StatelessWidget {
         break;
     }
 
+    final effectivePrefixIcon = prefixIcon ??
+        (icon != null
+            ? Icon(
+                icon,
+                size: size == AppButtonSize.small ? 18.0 : 20.0,
+                color: foregroundColor,
+              )
+            : null);
+
+    final effectiveRadius = borderRadius ?? AppSpacing.roundedSm;
+
     final buttonChild = Row(
       mainAxisSize: isFullWidth ? MainAxisSize.max : MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -140,8 +161,8 @@ class AppButton extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.space8),
         ] else ...[
-          if (prefixIcon != null) ...[
-            prefixIcon!,
+          if (effectivePrefixIcon != null) ...[
+            effectivePrefixIcon,
             const SizedBox(width: AppSpacing.space8),
           ],
           Text(
@@ -164,15 +185,15 @@ class AppButton extends StatelessWidget {
       width: isFullWidth ? double.infinity : null,
       child: Material(
         color: onPressed == null ? backgroundColor.withValues(alpha: 0.4) : backgroundColor,
-        borderRadius: AppSpacing.roundedSm,
+        borderRadius: effectiveRadius,
         child: InkWell(
           onTap: isLoading ? null : onPressed,
-          borderRadius: AppSpacing.roundedSm,
+          borderRadius: effectiveRadius,
           splashColor: foregroundColor.withValues(alpha: 0.1),
           child: Container(
             padding: _padding,
             decoration: BoxDecoration(
-              borderRadius: AppSpacing.roundedSm,
+              borderRadius: effectiveRadius,
               border: borderSide != null ? Border.fromBorderSide(borderSide) : null,
             ),
             alignment: Alignment.center,

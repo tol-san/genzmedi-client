@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:client/app/router/route_names.dart';
 import 'package:client/core/auth/auth_notifier.dart';
 import 'package:client/core/theme/app_colors.dart';
 import 'package:client/core/theme/app_spacing.dart';
@@ -182,10 +184,9 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                                   child: AppButton.secondary(
                                     text: 'Edit Profile',
                                     size: AppButtonSize.small,
+                                    borderRadius: AppSpacing.roundedMd,
                                     onPressed: () {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Edit Profile coming next!')),
-                                      );
+                                      context.pushNamed(RouteNames.editProfile);
                                     },
                                   ),
                                 ),

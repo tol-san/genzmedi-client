@@ -5,7 +5,9 @@ import 'package:client/core/auth/user_model.dart';
 import 'package:client/core/errors/error_mapper.dart';
 import 'package:client/core/network/api_client.dart';
 import 'package:client/core/network/api_endpoints.dart';
+import 'package:client/features/auth/data/models/auth_models.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
+import 'package:client/features/profiles/data/models/relationship_model.dart';
 
 final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
   final dio = ref.watch(dioClientProvider);
@@ -33,6 +35,87 @@ class ProfileRepository {
     }
   }
 
+  /// Fetch public profile of another user by username
+  Future<UserModel> getPublicProfile(String username) async {
+    try {
+      final response = await dio.get(ApiEndpoints.userProfile(username));
+      if (response.statusCode == 200 && response.data != null) {
+        return UserModel.fromJson(response.data as Map<String, dynamic>);
+      }
+      throw ErrorMapper.fromStatusCode(
+        response.statusCode,
+        'User profile not found.',
+      );
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
+
+  /// Get directional follow and block relationship status
+  Future<RelationshipModel> getRelationship(String userId) async {
+    try {
+      final response = await dio.get(ApiEndpoints.userRelationship(userId));
+      if (response.statusCode == 200 && response.data != null) {
+        return RelationshipModel.fromJson(response.data as Map<String, dynamic>);
+      }
+      return const RelationshipModel();
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
+
+  /// Follow a user
+  Future<bool> followUser(String userId) async {
+    try {
+      final response = await dio.post(ApiEndpoints.followUser(userId));
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data['is_following'] as bool? ?? true;
+      }
+      return true;
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
+
+  /// Unfollow a user
+  Future<bool> unfollowUser(String userId) async {
+    try {
+      final response = await dio.delete(ApiEndpoints.followUser(userId));
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data['is_following'] as bool? ?? false;
+      }
+      return false;
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
+
+  /// Block a user
+  Future<bool> blockUser(String userId) async {
+    try {
+      final response = await dio.post(ApiEndpoints.blockUser(userId));
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data['is_blocking'] as bool? ?? true;
+      }
+      return true;
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
+
+  /// Unblock a user
+  Future<bool> unblockUser(String userId) async {
+    try {
+      final response = await dio.delete(ApiEndpoints.blockUser(userId));
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data['is_blocking'] as bool? ?? false;
+      }
+      return false;
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
+
   /// Update user display name, bio, and avatar
   Future<UserModel> updateProfile({
     String? username,
@@ -42,9 +125,9 @@ class ProfileRepository {
   }) async {
     try {
       final data = <String, dynamic>{};
-      if (username != null) data['username'] = username;
-      if (displayName != null) data['display_name'] = displayName;
-      if (bio != null) data['bio'] = bio;
+      if (username != null) data['username'] = username.trim().toLowerCase();
+      if (displayName != null) data['display_name'] = displayName.trim();
+      if (bio != null) data['bio'] = bio.trim();
       if (avatarUrl != null) data['avatar_url'] = avatarUrl;
 
       final response = await dio.patch(
@@ -87,6 +170,47 @@ class ProfileRepository {
         response.statusCode,
         'Failed to upload avatar.',
       );
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
+
+  /// Fetch interest catalog
+  Future<List<InterestModel>> getInterests() async {
+    try {
+      final response = await dio.get(ApiEndpoints.interests);
+      if (response.statusCode == 200 && response.data != null) {
+        final list = response.data;
+        if (list is List) {
+          return list
+              .map((item) => InterestModel.fromJson(item as Map<String, dynamic>))
+              .toList();
+        } else if (list is Map && list['items'] is List) {
+          return (list['items'] as List)
+              .map((item) => InterestModel.fromJson(item as Map<String, dynamic>))
+              .toList();
+        }
+      }
+      return const [];
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
+
+  /// Update selected interests for authenticated user
+  Future<void> updateMyInterests(List<String> interests) async {
+    try {
+      final response = await dio.put(
+        ApiEndpoints.myInterests,
+        data: {'interest_ids': interests},
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw ErrorMapper.fromStatusCode(
+          response.statusCode,
+          'Failed to update user interests.',
+        );
+      }
     } on DioException catch (e) {
       throw ErrorMapper.fromDioException(e);
     }

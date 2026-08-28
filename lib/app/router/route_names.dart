@@ -9,6 +9,10 @@ abstract class RouteNames {
   static const String verifyOtp = 'verifyOtp';
   static const String resetPassword = 'resetPassword';
 
+  // Profile Routes
+  static const String editProfile = 'editProfile';
+  static const String publicProfile = 'publicProfile';
+
   // Shell Tabs
   static const String homeFeed = 'homeFeed';
   static const String shortsFeed = 'shortsFeed';
