@@ -1,41 +1,39 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../errors/app_exception.dart';
-import '../errors/error_mapper.dart';
-import '../network/api_client.dart';
-import '../network/api_endpoints.dart';
-import '../storage/preferences_service.dart';
-import '../storage/secure_storage_service.dart';
-import 'auth_state.dart';
-import 'token_model.dart';
-import 'user_model.dart';
+import 'package:client/core/auth/auth_state.dart';
+import 'package:client/core/auth/user_model.dart';
+import 'package:client/core/errors/app_exception.dart';
+import 'package:client/core/storage/preferences_service.dart';
+import 'package:client/core/storage/secure_storage_service.dart';
+import 'package:client/features/auth/data/models/auth_models.dart';
+import 'package:client/features/auth/data/repositories/auth_repository.dart';
 
-final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  final dio = ref.watch(dioClientProvider);
+final authNotifierProvider =
+    StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+  final repository = ref.watch(authRepositoryProvider);
   final storage = ref.watch(secureStorageServiceProvider);
   final prefs = ref.watch(preferencesServiceProvider);
 
   return AuthNotifier(
-    dio: dio,
+    repository: repository,
     storage: storage,
     prefs: prefs,
   );
 });
 
 class AuthNotifier extends StateNotifier<AuthState> {
-  final Dio dio;
+  final AuthRepository repository;
   final SecureStorageService storage;
   final PreferencesService prefs;
 
   AuthNotifier({
-    required this.dio,
+    required this.repository,
     required this.storage,
     required this.prefs,
   }) : super(const AuthInitial()) {
     checkSession();
   }
 
-  /// Verifies if a stored session exists and loads profile.
+  /// Verifies whether an existing stored session is valid and loads the profile
   Future<void> checkSession() async {
     try {
       final token = await storage.getAccessToken();
@@ -44,65 +42,48 @@ class AuthNotifier extends StateNotifier<AuthState> {
         return;
       }
 
-      // Fetch active user profile
-      final response = await dio.get(ApiEndpoints.myProfile);
-      if (response.statusCode == 200 && response.data != null) {
-        final user = UserModel.fromJson(response.data as Map<String, dynamic>);
-        if (user.interests.isEmpty && !prefs.isOnboardingCompleted()) {
-          state = AuthNeedsOnboarding(user);
-        } else {
-          state = AuthAuthenticated(user);
-        }
+      final user = await repository.getMyProfile();
+      if (user.interests.isEmpty && !prefs.isOnboardingCompleted()) {
+        state = AuthNeedsOnboarding(user);
       } else {
-        state = const AuthUnauthenticated();
+        state = AuthAuthenticated(user);
       }
     } catch (_) {
-      // In case offline, try to rely on stored user or unauthenticated
+      // In case session is expired or network fails, transition cleanly
       state = const AuthUnauthenticated();
     }
   }
 
-  /// Login with email/username and password
+  /// Login with email or username and password
   Future<void> login({
-    required String email,
+    required String username,
     required String password,
   }) async {
     state = const AuthLoading();
     try {
-      final response = await dio.post(
-        ApiEndpoints.login,
-        data: {
-          'username': email,
-          'password': password,
-        },
+      final tokenModel = await repository.login(
+        LoginRequest(username: username, password: password),
       );
 
-      if (response.statusCode == 200 && response.data != null) {
-        final tokenModel = TokenModel.fromJson(response.data as Map<String, dynamic>);
-        await storage.saveTokens(
-          accessToken: tokenModel.accessToken,
-          refreshToken: tokenModel.refreshToken,
-        );
+      await storage.saveTokens(
+        accessToken: tokenModel.accessToken,
+        refreshToken: tokenModel.refreshToken,
+      );
 
-        // Fetch user profile after authentication
-        final profileRes = await dio.get(ApiEndpoints.myProfile);
-        final user = UserModel.fromJson(profileRes.data as Map<String, dynamic>);
+      final user = await repository.getMyProfile();
 
-        if (user.interests.isEmpty && !prefs.isOnboardingCompleted()) {
-          state = AuthNeedsOnboarding(user);
-        } else {
-          state = AuthAuthenticated(user);
-        }
+      if (user.interests.isEmpty && !prefs.isOnboardingCompleted()) {
+        state = AuthNeedsOnboarding(user);
       } else {
-        state = const AuthUnauthenticated(message: 'Invalid credentials.');
+        state = AuthAuthenticated(user);
       }
-    } on DioException catch (e) {
-      final appEx = ErrorMapper.fromDioException(e);
-      state = AuthUnauthenticated(message: appEx.message);
-      throw appEx;
+    } on AppException catch (e) {
+      state = AuthUnauthenticated(message: e.message);
+      rethrow;
     } catch (e) {
-      state = AuthUnauthenticated(message: e.toString());
-      throw ApiException(message: e.toString());
+      final ex = UnknownException(e.toString());
+      state = AuthUnauthenticated(message: ex.message);
+      throw ex;
     }
   }
 
@@ -114,47 +95,49 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }) async {
     state = const AuthLoading();
     try {
-      final response = await dio.post(
-        ApiEndpoints.register,
-        data: {
-          'username': username,
-          'email': email,
-          'password': password,
-        },
+      final tokenModel = await repository.register(
+        RegisterRequest(
+          username: username,
+          email: email,
+          password: password,
+        ),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        if (response.data != null && response.data['access_token'] != null) {
-          final tokenModel = TokenModel.fromJson(response.data as Map<String, dynamic>);
-          await storage.saveTokens(
-            accessToken: tokenModel.accessToken,
-            refreshToken: tokenModel.refreshToken,
-          );
-          final user = UserModel(id: username, username: username, email: email);
-          state = AuthNeedsOnboarding(user);
-        } else {
-          state = const AuthUnauthenticated(message: 'Account created. Please log in.');
+      if (tokenModel != null) {
+        await storage.saveTokens(
+          accessToken: tokenModel.accessToken,
+          refreshToken: tokenModel.refreshToken,
+        );
+
+        UserModel user;
+        try {
+          user = await repository.getMyProfile();
+        } catch (_) {
+          user = UserModel(id: username, username: username, email: email);
         }
+
+        state = AuthNeedsOnboarding(user);
+      } else {
+        state = const AuthUnauthenticated(
+          message: 'Account created successfully! Please sign in.',
+        );
       }
-    } on DioException catch (e) {
-      final appEx = ErrorMapper.fromDioException(e);
-      state = AuthUnauthenticated(message: appEx.message);
-      throw appEx;
+    } on AppException catch (e) {
+      state = AuthUnauthenticated(message: e.message);
+      rethrow;
     } catch (e) {
-      state = AuthUnauthenticated(message: e.toString());
-      throw ApiException(message: e.toString());
+      final ex = UnknownException(e.toString());
+      state = AuthUnauthenticated(message: ex.message);
+      throw ex;
     }
   }
 
-  /// Complete interest onboarding
+  /// Save selected onboarding interests and complete onboarding gate
   Future<void> completeOnboarding(List<String> interests) async {
     if (state is! AuthNeedsOnboarding && state is! AuthAuthenticated) return;
 
     try {
-      await dio.put(
-        ApiEndpoints.myInterests,
-        data: {'interests': interests},
-      );
+      await repository.updateMyInterests(interests);
       await prefs.setOnboardingCompleted(true);
 
       final currentUser = (state is AuthNeedsOnboarding)
@@ -162,15 +145,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
           : (state as AuthAuthenticated).user;
 
       state = AuthAuthenticated(currentUser.copyWith(interests: interests));
-    } on DioException catch (e) {
-      throw ErrorMapper.fromDioException(e);
+    } catch (e) {
+      rethrow;
     }
   }
 
-  /// Clear all stored tokens and session state
+  /// Revoke credentials and reset local state
   Future<void> logout() async {
     try {
-      await dio.post(ApiEndpoints.logout);
+      await repository.logout();
     } catch (_) {
       // Ignore network failure on logout
     } finally {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'app_colors.dart';
-import 'app_spacing.dart';
-import 'app_typography.dart';
+import 'package:client/core/theme/app_colors.dart';
+import 'package:client/core/theme/app_spacing.dart';
+import 'package:client/core/theme/app_typography.dart';
 
 /// Central theme definitions for GenZ Media.
 abstract class AppTheme {

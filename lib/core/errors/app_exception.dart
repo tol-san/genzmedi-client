@@ -35,26 +35,32 @@ class ApiException extends AppException {
 
 /// 401 Unauthorized — Session expired or invalid credentials
 class UnauthorizedException extends AppException {
-  const UnauthorizedException({
-    super.message = 'Your session has expired. Please sign in again.',
-    super.statusCode = 401,
-  });
+  const UnauthorizedException([
+    String message = 'Your session has expired. Please sign in again.',
+  ]) : super(
+          message: message,
+          statusCode: 401,
+        );
 }
 
 /// 403 Forbidden — Insufficient permissions
 class ForbiddenException extends AppException {
-  const ForbiddenException({
-    super.message = 'You do not have permission to perform this action.',
-    super.statusCode = 403,
-  });
+  const ForbiddenException([
+    String message = 'You do not have permission to perform this action.',
+  ]) : super(
+          message: message,
+          statusCode: 403,
+        );
 }
 
 /// 404 Not Found — Entity deleted or not found
 class NotFoundException extends AppException {
-  const NotFoundException({
-    super.message = 'The requested content was not found.',
-    super.statusCode = 404,
-  });
+  const NotFoundException([
+    String message = 'The requested content was not found.',
+  ]) : super(
+          message: message,
+          statusCode: 404,
+        );
 }
 
 /// 422 Unprocessable Entity — Field-level validation failure
@@ -69,4 +75,11 @@ class ValidationException extends AppException {
 
   @override
   List<Object?> get props => [message, statusCode, fieldErrors];
+}
+
+/// Unhandled or generic runtime exception
+class UnknownException extends AppException {
+  const UnknownException([
+    String message = 'An unexpected error occurred.',
+  ]) : super(message: message);
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'bottom_nav_bar.dart';
+import 'package:client/app/shell/bottom_nav_bar.dart';
 
 class MainShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;

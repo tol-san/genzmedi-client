@@ -1,8 +1,23 @@
 import 'package:dio/dio.dart';
-import 'app_exception.dart';
+import 'package:client/core/errors/app_exception.dart';
 
 /// Maps Dio and backend errors into friendly, typed [AppException] objects.
 abstract class ErrorMapper {
+  static AppException fromStatusCode(int? statusCode, [String defaultMessage = 'An unexpected server error occurred.']) {
+    switch (statusCode) {
+      case 401:
+        return UnauthorizedException(defaultMessage);
+      case 403:
+        return ForbiddenException(defaultMessage);
+      case 404:
+        return NotFoundException(defaultMessage);
+      case 422:
+        return ValidationException(message: defaultMessage);
+      default:
+        return ApiException(message: defaultMessage, statusCode: statusCode);
+    }
+  }
+
   static AppException fromDioException(DioException dioException) {
     switch (dioException.type) {
       case DioExceptionType.connectionTimeout:
@@ -33,11 +48,11 @@ abstract class ErrorMapper {
 
         switch (statusCode) {
           case 401:
-            return UnauthorizedException(message: serverMessage);
+            return UnauthorizedException(serverMessage);
           case 403:
-            return ForbiddenException(message: serverMessage);
+            return ForbiddenException(serverMessage);
           case 404:
-            return NotFoundException(message: serverMessage);
+            return NotFoundException(serverMessage);
           case 422:
             return ValidationException(message: serverMessage, fieldErrors: fieldErrors);
           default:

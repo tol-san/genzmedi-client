@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../app/router/route_names.dart';
-import '../../../../core/auth/auth_notifier.dart';
-import '../../../../core/auth/auth_state.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/app_button.dart';
-import '../../../../core/widgets/app_logo.dart';
-import '../../../../core/widgets/app_text_field.dart';
+import 'package:client/app/router/route_names.dart';
+import 'package:client/core/auth/auth_notifier.dart';
+import 'package:client/core/auth/auth_state.dart';
+import 'package:client/core/theme/app_colors.dart';
+import 'package:client/core/theme/app_spacing.dart';
+import 'package:client/core/theme/app_typography.dart';
+import 'package:client/core/widgets/app_button.dart';
+import 'package:client/core/widgets/app_logo.dart';
+import 'package:client/core/widgets/app_text_field.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -19,40 +19,47 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _emailController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   String? _errorMessage;
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   Future<void> _handleLogin() async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text;
-
-    if (email.isEmpty || password.isEmpty) {
-      setState(() {
-        _errorMessage = 'Please enter your username/email and password.';
-      });
-      return;
-    }
-
+    // Clear previous error
     setState(() {
       _errorMessage = null;
     });
 
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text;
+
+    if (username.isEmpty || password.isEmpty) {
+      setState(() {
+        _errorMessage = 'Please enter both your username/email and password.';
+      });
+      return;
+    }
+
     try {
       await ref.read(authNotifierProvider.notifier).login(
-            email: email,
+            username: username,
             password: password,
           );
+      // Navigation is automatically handled by GoRouter redirect
     } catch (e) {
+      if (!mounted) return;
       setState(() {
-        _errorMessage = e.toString().replaceFirst('ApiException: ', '');
+        _errorMessage = e
+            .toString()
+            .replaceFirst('ApiException: ', '')
+            .replaceFirst('Exception: ', '');
       });
     }
   }
@@ -68,120 +75,144 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space24, vertical: AppSpacing.space32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Minimal Logo Wordmark
-                const Center(
-                  child: AppLogo.wordmark(width: 220, height: 40),
-                ),
-                const SizedBox(height: AppSpacing.space20),
-                Text(
-                  'Sign in to your account',
-                  textAlign: TextAlign.center,
-                  style: AppTypography.body.copyWith(
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                    fontSize: 16,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.space24,
+              vertical: AppSpacing.space32,
+            ),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Minimal Logo Wordmark
+                  const Center(
+                    child: AppLogo.wordmark(width: 220, height: 40),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.space64),
-
-                // Error Message Banner
-                if (_errorMessage != null) ...[
-                  Container(
-                    padding: const EdgeInsets.all(AppSpacing.space12),
-                    decoration: BoxDecoration(
-                      color: AppColors.error.withValues(alpha: 0.08),
-                      borderRadius: AppSpacing.roundedSm,
-                      border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                  const SizedBox(height: AppSpacing.space16),
+                  Text(
+                    'Sign in to your account',
+                    textAlign: TextAlign.center,
+                    style: AppTypography.body.copyWith(
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                      fontSize: 16,
                     ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 18),
-                        const SizedBox(width: AppSpacing.space8),
-                        Expanded(
-                          child: Text(
-                            _errorMessage!,
-                            style: AppTypography.bodySmall.copyWith(color: AppColors.error),
-                          ),
+                  ),
+                  const SizedBox(height: AppSpacing.space48),
+
+                  // Error Message Banner
+                  if (_errorMessage != null) ...[
+                    Container(
+                      key: const Key('login_error_banner'),
+                      padding: const EdgeInsets.all(AppSpacing.space12),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withValues(alpha: 0.08),
+                        borderRadius: AppSpacing.roundedSm,
+                        border: Border.all(
+                          color: AppColors.error.withValues(alpha: 0.3),
                         ),
-                      ],
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.error_outline_rounded,
+                            color: AppColors.error,
+                            size: 18,
+                          ),
+                          const SizedBox(width: AppSpacing.space8),
+                          Expanded(
+                            child: Text(
+                              _errorMessage!,
+                              style: AppTypography.bodySmall.copyWith(
+                                color: AppColors.error,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.space16),
+                  ],
+
+                  // Username / Email input
+                  AppTextField(
+                    key: const Key('login_username_field'),
+                    controller: _usernameController,
+                    label: 'Username or Email',
+                    hintText: 'Enter your username or email',
+                    textInputAction: TextInputAction.next,
+                  ),
+                  const SizedBox(height: AppSpacing.space16),
+
+                  // Password input
+                  AppTextField(
+                    key: const Key('login_password_field'),
+                    controller: _passwordController,
+                    label: 'Password',
+                    hintText: 'Enter your password',
+                    isPassword: true,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => _handleLogin(),
+                  ),
+                  const SizedBox(height: AppSpacing.space8),
+
+                  // Forgot Password Link
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => context.pushNamed(RouteNames.forgotPassword),
+                      child: Text(
+                        'Forgot password?',
+                        style: AppTypography.caption.copyWith(
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.space16),
-                ],
 
-                // Credentials Inputs
-                AppTextField(
-                  controller: _emailController,
-                  label: 'Username or Email',
-                  hintText: 'Enter your username or email',
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: AppSpacing.space16),
-                AppTextField(
-                  controller: _passwordController,
-                  label: 'Password',
-                  hintText: 'Enter your password',
-                  isPassword: true,
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: (_) => _handleLogin(),
-                ),
-                const SizedBox(height: AppSpacing.space12),
-
-                // Forgot Password link
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Forgot Password flow')),
-                      );
-                    },
-                    child: Text(
-                      'Forgot password?',
-                      style: AppTypography.caption.copyWith(
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                  // Submit Button
+                  AppButton(
+                    key: const Key('login_submit_button'),
+                    text: 'Sign In',
+                    isLoading: isLoading,
+                    onPressed: isLoading ? null : _handleLogin,
                   ),
-                ),
-                const SizedBox(height: AppSpacing.space16),
+                  const SizedBox(height: AppSpacing.space24),
 
-                // Clean Dark/Neutral Primary Button
-                AppButton(
-                  text: 'Sign In',
-                  isLoading: isLoading,
-                  onPressed: isLoading ? null : _handleLogin,
-                ),
-                const SizedBox(height: AppSpacing.space24),
-
-                // Register Link
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Don\'t have an account? ',
-                      style: AppTypography.bodySmall.copyWith(
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => context.goNamed(RouteNames.register),
-                      child: Text(
-                        'Create Account',
+                  // Register Link
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Don\'t have an account? ',
                         style: AppTypography.bodySmall.copyWith(
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                          fontWeight: FontWeight.w700,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      GestureDetector(
+                        onTap: () => context.goNamed(RouteNames.register),
+                        child: Text(
+                          'Create Account',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

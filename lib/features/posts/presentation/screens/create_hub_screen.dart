@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import 'package:client/core/theme/app_colors.dart';
+import 'package:client/core/theme/app_spacing.dart';
+import 'package:client/core/theme/app_typography.dart';
 
 class CreateHubScreen extends StatelessWidget {
   const CreateHubScreen({super.key});

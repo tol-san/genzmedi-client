@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'user_model.dart';
+import 'package:client/core/auth/user_model.dart';
 
 /// Sealed hierarchy of global authentication states.
 sealed class AuthState extends Equatable {

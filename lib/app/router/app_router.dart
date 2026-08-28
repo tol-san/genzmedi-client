@@ -1,46 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/auth/auth_notifier.dart';
-import '../../core/auth/auth_state.dart';
-import '../../features/auth/presentation/screens/login_screen.dart';
-import '../../features/auth/presentation/screens/register_screen.dart';
-import '../../features/feeds/presentation/screens/home_feed_screen.dart';
-import '../../features/feeds/presentation/screens/shorts_feed_screen.dart';
-import '../../features/posts/presentation/screens/create_hub_screen.dart';
-import '../../features/profiles/presentation/screens/my_profile_screen.dart';
-import '../../features/search/presentation/screens/discover_screen.dart';
-import '../shell/main_shell.dart';
-import 'route_names.dart';
+import 'package:client/app/router/route_names.dart';
+import 'package:client/app/shell/main_shell.dart';
+import 'package:client/core/auth/auth_notifier.dart';
+import 'package:client/core/auth/auth_state.dart';
+import 'package:client/features/auth/presentation/screens/forgot_password_screen.dart';
+import 'package:client/features/auth/presentation/screens/interest_onboarding_screen.dart';
+import 'package:client/features/auth/presentation/screens/login_screen.dart';
+import 'package:client/features/auth/presentation/screens/register_screen.dart';
+import 'package:client/features/feeds/presentation/screens/home_feed_screen.dart';
+import 'package:client/features/feeds/presentation/screens/shorts_feed_screen.dart';
+import 'package:client/features/posts/presentation/screens/create_hub_screen.dart';
+import 'package:client/features/profiles/presentation/screens/my_profile_screen.dart';
+import 'package:client/features/search/presentation/screens/discover_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
 
   return GoRouter(
     initialLocation: '/feed',
-    debugLogDiagnostics: true,
+    debugLogDiagnostics: false,
     redirect: (BuildContext context, GoRouterState state) {
-      final isAuthLoading = authState is AuthInitial || authState is AuthLoading;
+      final isAuthLoading =
+          authState is AuthInitial || authState is AuthLoading;
       if (isAuthLoading) return null;
 
-      final isUnauthenticated = authState is AuthUnauthenticated;
-      final isAuthRoute = state.matchedLocation == '/login' ||
-          state.matchedLocation == '/register';
+      final matched = state.matchedLocation;
+      final isPublicAuthRoute = matched == '/login' ||
+          matched == '/register' ||
+          matched == '/forgot-password';
 
-      // If user is not authenticated and not on an auth screen, redirect to login
-      if (isUnauthenticated) {
-        return isAuthRoute ? null : '/login';
+      // 1. User needs interest onboarding
+      if (authState is AuthNeedsOnboarding) {
+        return matched == '/onboarding' ? null : '/onboarding';
       }
 
-      // If authenticated user is on an auth screen, redirect to feed
-      if (authState is AuthAuthenticated && isAuthRoute) {
-        return '/feed';
+      // 2. Unauthenticated user attempting to access protected routes
+      if (authState is AuthUnauthenticated) {
+        return isPublicAuthRoute ? null : '/login';
+      }
+
+      // 3. Authenticated user attempting to access auth or onboarding pages
+      if (authState is AuthAuthenticated) {
+        if (isPublicAuthRoute || matched == '/onboarding') {
+          return '/feed';
+        }
       }
 
       return null;
     },
     routes: [
-      // Auth Routes
+      // Auth & Onboarding Routes
       GoRoute(
         path: '/login',
         name: RouteNames.login,
@@ -50,6 +61,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/register',
         name: RouteNames.register,
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        name: RouteNames.forgotPassword,
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        name: RouteNames.onboarding,
+        builder: (context, state) => const InterestOnboardingScreen(),
       ),
 
       // 5-Tab Shell Route

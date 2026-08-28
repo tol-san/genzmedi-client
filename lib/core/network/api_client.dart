@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../storage/secure_storage_service.dart';
-import 'api_endpoints.dart';
-import 'interceptors/auth_interceptor.dart';
-import 'interceptors/logging_interceptor.dart';
+import 'package:client/core/network/api_endpoints.dart';
+import 'package:client/core/network/interceptors/auth_interceptor.dart';
+import 'package:client/core/network/interceptors/logging_interceptor.dart';
+import 'package:client/core/storage/secure_storage_service.dart';
 
 final dioClientProvider = Provider<Dio>((ref) {
   final storage = ref.watch(secureStorageServiceProvider);

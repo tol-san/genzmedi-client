@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_typography.dart';
+import 'package:client/core/theme/app_colors.dart';
+import 'package:client/core/theme/app_typography.dart';
 
 /// User or community avatar with initials fallback and live/online indicator ring.
 class AppAvatar extends StatelessWidget {

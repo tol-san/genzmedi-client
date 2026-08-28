@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/app_avatar.dart';
+import 'package:client/core/theme/app_colors.dart';
+import 'package:client/core/theme/app_spacing.dart';
+import 'package:client/core/theme/app_typography.dart';
+import 'package:client/core/widgets/app_avatar.dart';
 
 class ShortsFeedScreen extends StatelessWidget {
   const ShortsFeedScreen({super.key});

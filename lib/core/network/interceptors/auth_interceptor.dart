@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import '../../storage/secure_storage_service.dart';
-import '../api_endpoints.dart';
+import 'package:client/core/network/api_endpoints.dart';
+import 'package:client/core/storage/secure_storage_service.dart';
 
 /// Interceptor that attaches the Bearer token to outgoing requests and
 /// coordinates concurrent 401 token refresh with request queueing.

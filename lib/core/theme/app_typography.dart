@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'app_colors.dart';
+import 'package:client/core/theme/app_colors.dart';
 
 /// Standard typography tokens for GenZ Media based on Inter font family.
 abstract class AppTypography {
