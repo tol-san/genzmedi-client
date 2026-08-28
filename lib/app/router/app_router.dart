@@ -16,12 +16,29 @@ import 'package:client/features/profiles/presentation/screens/my_profile_screen.
 import 'package:client/features/search/presentation/screens/discover_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authNotifierProvider);
+  // A plain ChangeNotifier used as GoRouter's refreshListenable.
+  // ref.listen fires notifyListeners on every auth state change, so
+  // GoRouter re-evaluates its redirect guard automatically.
+  final listenable = ChangeNotifier();
+
+  ref.listen(authNotifierProvider, (_, __) {
+    // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+    listenable.notifyListeners();
+  });
+
+  // Dispose the ChangeNotifier when the provider scope closes.
+  ref.onDispose(listenable.dispose);
 
   return GoRouter(
     initialLocation: '/feed',
     debugLogDiagnostics: false,
+    // KEY FIX: GoRouter re-calls redirect every time listenable fires,
+    // which now happens on every auth state change.
+    refreshListenable: listenable,
     redirect: (BuildContext context, GoRouterState state) {
+      // Always read the CURRENT auth state (not a stale closure copy).
+      final authState = ref.read(authNotifierProvider);
+
       final isAuthLoading =
           authState is AuthInitial || authState is AuthLoading;
       if (isAuthLoading) return null;
