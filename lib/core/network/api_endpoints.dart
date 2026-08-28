@@ -1,7 +1,22 @@
+import 'package:flutter/foundation.dart';
+
 /// API route endpoints matching the GenZ Media backend specification.
 abstract class ApiEndpoints {
-  // Base URL (Override with flutter config or environment)
-  static const String defaultBaseUrl = 'http://10.0.2.2:8000/api/v1'; // Android Emulator default
+  // Base URL (Configurable via --dart-define=API_BASE_URL=... with automatic platform defaults)
+  static const String _envBaseUrl = String.fromEnvironment('API_BASE_URL');
+
+  static String get defaultBaseUrl {
+    if (_envBaseUrl.isNotEmpty) {
+      return _envBaseUrl;
+    }
+    if (kIsWeb) {
+      return 'http://localhost:8000/api/v1';
+    }
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return 'http://10.0.2.2:8000/api/v1';
+    }
+    return 'http://localhost:8000/api/v1';
+  }
 
   // Auth & Session
   static const String login = '/auth/login';
