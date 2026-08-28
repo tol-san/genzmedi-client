@@ -33,6 +33,7 @@ void main() {
     when(() => mockStorage.getAccessToken()).thenAnswer((_) async => 'fake_access_token');
     when(() => mockPrefs.hasSession()).thenReturn(true);
     when(() => mockPrefs.isOnboardingCompleted()).thenReturn(false);
+    when(() => mockPrefs.setHasSession(any())).thenAnswer((_) async {});
   });
 
   Widget createWidgetUnderTest({AuthState? initialState}) {

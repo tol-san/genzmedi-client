@@ -28,6 +28,7 @@ This repository (`client/`) contains the Flutter / Dart mobile client for GenZ M
 ---
 
 ## Development & Testing Workflow Rules
+- **Synchronize Documentation on Changes**: Whenever adding a new feature, endpoint, schema, or changing existing architecture/APIs, ALWAYS update the corresponding documentation in `client/docs/` and `server/docs/` immediately to maintain 100% consistency between documentation and code.
 - **Implement Tests on Changes**: Always implement relevant tests (Unit, Widget, or Integration test where appropriate) after implementing a new feature or making changes to prevent regressions.
 - **Pragmatic Testing**: Focus on critical business logic, API error handling, state transitions, and core UI user journeys. It is not necessary to write exhaustive or redundant tests for every single detail.
 - **Verification**: Always run `flutter test` & `flutter analyze` for the Flutter client before wrapping up changes.

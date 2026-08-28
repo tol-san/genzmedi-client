@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/core/auth/auth_state.dart';
@@ -35,6 +36,29 @@ class AuthNotifier extends StateNotifier<AuthState> {
     checkSession();
   }
 
+  /// Helper to persist access and refresh tokens and record active session
+  Future<void> _saveSession(TokenModel tokenModel) async {
+    await storage.saveTokens(
+      accessToken: tokenModel.accessToken,
+      refreshToken: tokenModel.refreshToken,
+    );
+    await prefs.setHasSession(true);
+  }
+
+  /// Helper to fetch user profile and transition to authenticated or onboarding state
+  Future<UserModel> _fetchAndSetUser({bool forceOnboarding = false}) async {
+    final user = await repository.getMyProfile();
+    final needsOnboarding = forceOnboarding ||
+        (user.interests.isEmpty && !prefs.isOnboardingCompleted());
+
+    if (needsOnboarding) {
+      state = AuthNeedsOnboarding(user);
+    } else {
+      state = AuthAuthenticated(user);
+    }
+    return user;
+  }
+
   /// Verifies whether an existing stored session is valid and loads the profile
   Future<void> checkSession() async {
     // 1. Instant check: If no active session recorded in SharedPreferences, transition immediately
@@ -67,7 +91,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
         } else {
           state = AuthAuthenticated(user);
         }
+      } on TimeoutException {
+        // Network timeout — retain unauthenticated state without resetting session flag
+        state = const AuthUnauthenticated(
+          message: 'Connection timed out. Please check your network.',
+        );
+      } on SocketException {
+        // Network offline — retain unauthenticated state without resetting session flag
+        state = const AuthUnauthenticated(
+          message: 'No internet connection. Please check your network.',
+        );
       } catch (_) {
+        // Auth rejection (e.g. 401/expired token) — clear session flag
+        await prefs.setHasSession(false);
         state = const AuthUnauthenticated();
       }
     } catch (_) {
@@ -85,20 +121,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final tokenModel = await repository.login(
         LoginRequest(username: username, password: password),
       );
-
-      await storage.saveTokens(
-        accessToken: tokenModel.accessToken,
-        refreshToken: tokenModel.refreshToken,
-      );
-      await prefs.setHasSession(true);
-
-      final user = await repository.getMyProfile();
-
-      if (user.interests.isEmpty && !prefs.isOnboardingCompleted()) {
-        state = AuthNeedsOnboarding(user);
-      } else {
-        state = AuthAuthenticated(user);
-      }
+      await _saveSession(tokenModel);
+      await _fetchAndSetUser();
     } on AppException {
       rethrow;
     } catch (e) {
@@ -115,21 +139,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final tokenModel = await repository.verifyOtp(
         VerifyOtpRequest(email: email, otp: otp),
       );
-
-      await storage.saveTokens(
-        accessToken: tokenModel.accessToken,
-        refreshToken: tokenModel.refreshToken,
-      );
-      await prefs.setHasSession(true);
-
-      final user = await repository.getMyProfile();
-
-      if (user.interests.isEmpty && !prefs.isOnboardingCompleted()) {
-        state = AuthNeedsOnboarding(user);
-      } else {
-        state = AuthAuthenticated(user);
-      }
-
+      await _saveSession(tokenModel);
+      await _fetchAndSetUser();
       return tokenModel;
     } on AppException {
       rethrow;
@@ -163,27 +174,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final tokenModel = await repository.verifySignupOtp(
         SignupVerifyOtpRequest(email: email, otp: otp),
       );
+      await _saveSession(tokenModel);
 
-      await storage.saveTokens(
-        accessToken: tokenModel.accessToken,
-        refreshToken: tokenModel.refreshToken,
-      );
-      await prefs.setHasSession(true);
-
-      UserModel user;
       try {
-        user = await repository.getMyProfile();
+        await _fetchAndSetUser(forceOnboarding: true);
       } catch (_) {
         final prefix = email.split('@')[0];
-        user = UserModel(
+        final fallbackUser = UserModel(
           id: prefix,
           username: prefix,
           email: email,
           displayName: prefix,
         );
+        state = AuthNeedsOnboarding(fallbackUser);
       }
 
-      state = AuthNeedsOnboarding(user);
       return tokenModel;
     } on AppException {
       rethrow;
@@ -261,21 +266,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
 
       if (tokenModel != null) {
-        await storage.saveTokens(
-          accessToken: tokenModel.accessToken,
-          refreshToken: tokenModel.refreshToken,
-        );
-        await prefs.setHasSession(true);
+        await _saveSession(tokenModel);
 
-        UserModel user;
         try {
-          user = await repository.getMyProfile();
+          await _fetchAndSetUser(forceOnboarding: true);
         } catch (_) {
           final uname = username ?? email.split('@')[0];
-          user = UserModel(id: uname, username: uname, email: email);
+          state = AuthNeedsOnboarding(
+            UserModel(id: uname, username: uname, email: email),
+          );
         }
-
-        state = AuthNeedsOnboarding(user);
       } else {
         state = const AuthUnauthenticated(
           message: 'Account created successfully! Please sign in.',
@@ -292,18 +292,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> completeOnboarding(List<String> interests) async {
     if (state is! AuthNeedsOnboarding && state is! AuthAuthenticated) return;
 
-    try {
-      await repository.updateMyInterests(interests);
-      await prefs.setOnboardingCompleted(true);
+    await repository.updateMyInterests(interests);
+    await prefs.setOnboardingCompleted(true);
 
-      final currentUser = (state is AuthNeedsOnboarding)
-          ? (state as AuthNeedsOnboarding).user
-          : (state as AuthAuthenticated).user;
+    final currentUser = (state is AuthNeedsOnboarding)
+        ? (state as AuthNeedsOnboarding).user
+        : (state as AuthAuthenticated).user;
 
-      state = AuthAuthenticated(currentUser.copyWith(interests: interests));
-    } catch (e) {
-      rethrow;
-    }
+    state = AuthAuthenticated(currentUser.copyWith(interests: interests));
   }
 
   /// Revoke credentials and reset local state

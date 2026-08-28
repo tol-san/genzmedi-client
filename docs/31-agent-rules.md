@@ -118,3 +118,7 @@ Do not add features merely because TikTok/Instagram has them.
 ## 20. Before finishing
 
 Read `29-testing-definition-of-done.md`.
+
+## 21. Synchronize documentation on all changes & new features
+
+Whenever you add a new feature, endpoint, data model, or modify existing architectural/schema contracts, ALWAYS update the corresponding documentation in `client/docs/` and `server/docs/` immediately to maintain 100% consistency with the codebase.
