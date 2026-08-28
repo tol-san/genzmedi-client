@@ -23,15 +23,15 @@ class AppLogo extends StatelessWidget {
 
   const AppLogo.icon({
     super.key,
-    this.width = 40,
-    this.height = 40,
+    this.width = 44,
+    this.height = 34,
     this.color,
   }) : variant = AppLogoVariant.icon;
 
   const AppLogo.wordmark({
     super.key,
-    this.width = 160,
-    this.height = 48,
+    this.width = 170,
+    this.height = 26,
     this.color,
   }) : variant = AppLogoVariant.wordmark;
 

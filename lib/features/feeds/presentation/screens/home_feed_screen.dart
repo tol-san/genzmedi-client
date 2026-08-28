@@ -14,7 +14,7 @@ class HomeFeedScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const AppLogo.wordmark(width: 130, height: 32),
+        title: const AppLogo.wordmark(width: 140, height: 22),
         actions: [
           IconButton(
             icon: Stack(
