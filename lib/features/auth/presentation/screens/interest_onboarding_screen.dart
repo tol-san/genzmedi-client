@@ -29,18 +29,17 @@ class _InterestOnboardingScreenState
 
   // Curated fallback interests if backend catalog is empty or initial network cold start
   static const List<InterestModel> _defaultInterests = [
-    InterestModel(id: '1', name: 'Gaming', slug: 'gaming', icon: '🎮'),
-    InterestModel(id: '2', name: 'Anime & Manga', slug: 'anime', icon: '⚡'),
-    InterestModel(id: '3', name: 'Music & Audio', slug: 'music', icon: '🎵'),
-    InterestModel(id: '4', name: 'Fashion & Style', slug: 'fashion', icon: '✨'),
-    InterestModel(id: '5', name: 'Tech & AI', slug: 'tech', icon: '🤖'),
-    InterestModel(id: '6', name: 'Comedy & Memes', slug: 'comedy', icon: '😂'),
-    InterestModel(id: '7', name: 'Art & Design', slug: 'art', icon: '🎨'),
-    InterestModel(id: '8', name: 'Fitness & Health', slug: 'fitness', icon: '💪'),
-    InterestModel(id: '9', name: 'Movies & TV', slug: 'movies', icon: '🎬'),
-    InterestModel(id: '10', name: 'Food & Cooking', slug: 'food', icon: '🍜'),
-    InterestModel(id: '11', name: 'Photography', slug: 'photography', icon: '📸'),
-    InterestModel(id: '12', name: 'Travel & Lifestyle', slug: 'travel', icon: '✈️'),
+    InterestModel(id: '1', name: 'Technology', slug: 'technology', icon: '💻'),
+    InterestModel(id: '2', name: 'Gaming', slug: 'gaming', icon: '🎮'),
+    InterestModel(id: '3', name: 'Music', slug: 'music', icon: '🎵'),
+    InterestModel(id: '4', name: 'Movies & Anime', slug: 'movies-anime', icon: '🎬'),
+    InterestModel(id: '5', name: 'Sports & Fitness', slug: 'sports-fitness', icon: '💪'),
+    InterestModel(id: '6', name: 'Art & Design', slug: 'art-design', icon: '🎨'),
+    InterestModel(id: '7', name: 'Photography', slug: 'photography', icon: '📸'),
+    InterestModel(id: '8', name: 'Travel & Adventure', slug: 'travel-adventure', icon: '✈️'),
+    InterestModel(id: '9', name: 'Fashion & Lifestyle', slug: 'fashion-lifestyle', icon: '✨'),
+    InterestModel(id: '10', name: 'Food & Cooking', slug: 'food-cooking', icon: '🍜'),
+    InterestModel(id: '11', name: 'Programming & AI', slug: 'programming-ai', icon: '🤖'),
   ];
 
   @override
