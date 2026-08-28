@@ -21,7 +21,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   // GoRouter re-evaluates its redirect guard automatically.
   final listenable = ChangeNotifier();
 
-  ref.listen(authNotifierProvider, (_, __) {
+  ref.listen(authNotifierProvider, (_, _) {
     // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
     listenable.notifyListeners();
   });
