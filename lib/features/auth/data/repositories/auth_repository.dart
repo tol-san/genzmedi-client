@@ -113,7 +113,7 @@ class AuthRepository {
     try {
       final response = await dio.put(
         ApiEndpoints.myInterests,
-        data: {'interests': interests},
+        data: {'interest_ids': interests},
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {

@@ -1,140 +1,195 @@
 # 21 — API Contract Map
 
-**Base:** `/api/v1`  
-**Auth:** `Authorization: Bearer <access_token>`
+**Base URL:** `/api/v1`  
+**Authentication:** `Authorization: Bearer <access_token>`  
+**Detailed Request/Response Model Specs:** See [`33-api-request-response-models.md`](33-api-request-response-models.md) for field-by-field definitions, types, examples, and error codes.
 
-Use running OpenAPI as final authority.
+---
 
-## Authentication
+## 1. Authentication (`/auth`)
 
-| Method | Path | Frontend use |
-|---|---|---|
-| POST | `/auth/register` | Register |
-| POST | `/auth/login` | Login |
-| POST | `/auth/refresh` | Refresh access |
-| POST | `/auth/logout` | Revoke session |
-| POST | `/auth/forgot-password` | Start reset |
-| POST | `/auth/reset-password` | Reset |
-| POST | `/auth/change-password` | Change password |
+| Method | Path | Request Body / Params | Response Model | Description |
+|---|---|---|---|---|
+| POST | `/auth/register` | `UserRegisterRequest` (JSON) | `UserResponse` (201) | Register new user account |
+| POST | `/auth/login` | `LoginRequest` (JSON) | `TokenResponse` (200) | Login via email/username & password |
+| POST | `/auth/refresh` | `RefreshTokenRequest` (JSON) | `TokenRefreshResponse` (200) | Rotate and refresh access token |
+| POST | `/auth/logout` | `RefreshTokenRequest` (JSON) | `MessageResponse` (200) | Revoke refresh token & session |
+| POST | `/auth/forgot-password` | `ForgotPasswordRequest` (JSON) | `ForgotPasswordResponse` (200) | Request password reset instructions |
+| POST | `/auth/reset-password` | `ResetPasswordRequest` (JSON) | `MessageResponse` (200) | Set new password with reset token |
+| POST | `/auth/change-password` | `ChangePasswordRequest` (JSON) | `MessageResponse` (200) | Update password for current user |
 
-## Users / Profiles
+---
 
-| Method | Path |
-|---|---|
-| GET | `/users/{username}` |
-| GET | `/users/{user_id}/followers` |
-| GET | `/users/{user_id}/following` |
-| POST | `/users/{user_id}/follow` |
-| DELETE | `/users/{user_id}/follow` |
-| POST | `/users/{user_id}/block` |
-| DELETE | `/users/{user_id}/block` |
-| GET | `/profiles/me` |
-| PATCH | `/profiles/me` |
-| PUT | `/profiles/me/interests` |
+## 2. Users & Social Graph (`/users`)
 
-## Interests
+| Method | Path | Request Body / Params | Response Model | Description |
+|---|---|---|---|---|
+| GET | `/users/{username}` | Path param `username` | `UserPublicResponse` (200) | Get user profile and stats |
+| POST | `/users/{user_id}/follow` | Path param `user_id` | `FollowActionResponse` (200) | Follow a user |
+| DELETE | `/users/{user_id}/follow` | Path param `user_id` | `FollowActionResponse` (200) | Unfollow a user |
+| POST | `/users/{user_id}/block` | Path param `user_id` | `BlockActionResponse` (200) | Block a user |
+| DELETE | `/users/{user_id}/block` | Path param `user_id` | `BlockActionResponse` (200) | Unblock a user |
+| GET | `/users/{user_id}/followers` | Query `limit`, `offset` | `PaginatedUsersResponse` (200) | List user followers |
+| GET | `/users/{user_id}/following` | Query `limit`, `offset` | `PaginatedUsersResponse` (200) | List following users |
+| GET | `/users/{user_id}/relationship` | Path param `user_id` | `RelationshipResponse` (200) | Directional follow/block status |
+| GET | `/users/me/blocked` | Query `limit`, `offset` | `PaginatedUsersResponse` (200) | List blocked users for auth user |
 
-| Method | Path |
-|---|---|
-| GET | `/interests` |
-| POST | `/interests` — Admin |
+---
 
-## Communities
+## 3. Profiles & Interests (`/profiles`)
 
-| Method | Path |
-|---|---|
-| POST | `/communities` |
-| GET | `/communities/{community_id}` |
-| PATCH | `/communities/{community_id}` |
-| POST | `/communities/{community_id}/join` |
-| DELETE | `/communities/{community_id}/leave` |
-| GET | `/communities/{community_id}/members` |
-| DELETE | `/communities/{community_id}/members/{user_id}` |
-| GET | `/communities/{community_id}/join-requests` |
-| POST | `/communities/{community_id}/join-requests/{request_id}/approve` |
-| POST | `/communities/{community_id}/join-requests/{request_id}/reject` |
+| Method | Path | Request Body / Params | Response Model | Description |
+|---|---|---|---|---|
+| GET | `/profiles/me` | None | `CurrentUserProfileResponse` (200) | Get auth user profile & stats |
+| PATCH | `/profiles/me` | `ProfileUpdateRequest` (JSON) | `CurrentUserProfileResponse` (200) | Update display name, bio, avatar |
+| POST | `/profiles/me/avatar` | Multipart `file` | `CurrentUserProfileResponse` (200) | Upload & auto-convert avatar to WebP |
+| DELETE | `/profiles/me/avatar` | None | `CurrentUserProfileResponse` (200) | Delete avatar (set to null) |
+| GET | `/profiles/me/interests` | None | `UserInterestsResponse` (200) | Get auth user selected interests |
+| PUT | `/profiles/me/interests` | `UserInterestsUpdateRequest` | `UserInterestsResponse` (200) | Atomically replace selected interests |
 
-## Posts
+---
 
-| Method | Path |
-|---|---|
-| POST | `/posts` |
-| GET | `/posts/{post_id}` |
-| DELETE | `/posts/{post_id}` |
-| POST | `/posts/{post_id}/like` |
-| DELETE | `/posts/{post_id}/like` |
-| POST | `/posts/{post_id}/save` |
-| DELETE | `/posts/{post_id}/save` |
+## 4. Interests Catalog (`/interests`)
 
-## Comments
+| Method | Path | Request Body / Params | Response Model | Description |
+|---|---|---|---|---|
+| GET | `/interests` | None | `List[InterestResponse]` (200) | Master catalog of interests |
+| POST | `/interests` | `InterestCreateRequest` (JSON) | `InterestResponse` (201) | Create interest (Admin only) |
 
-| Method | Path |
-|---|---|
-| GET | `/posts/{post_id}/comments` |
-| POST | `/posts/{post_id}/comments` |
-| PATCH | `/comments/{comment_id}` |
-| DELETE | `/comments/{comment_id}` |
+---
 
-## Feeds / Recommendations
+## 5. Communities (`/communities`)
 
-| Method | Path |
-|---|---|
-| GET | `/feeds/home` |
-| GET | `/feeds/discover` |
-| GET | `/feeds/shorts` |
-| GET | `/recommendations/communities` |
-| GET | `/recommendations/users` |
+| Method | Path | Request Body / Params | Response Model | Description |
+|---|---|---|---|---|
+| POST | `/communities` | `CommunityCreateRequest` (JSON) | `CommunityResponse` (201) | Create public/private community |
+| GET | `/communities` | Query `search`, `interest_id`, `is_private`, `limit`, `offset` | `PaginatedCommunitiesResponse` (200) | Explore & filter communities |
+| GET | `/communities/me/joined` | Query `limit`, `offset` | `PaginatedCommunitiesResponse` (200) | List communities user has joined |
+| GET | `/communities/{community_id}` | Path param `community_id` | `CommunityDetailResponse` (200) | Community info & membership context |
+| PATCH | `/communities/{community_id}` | `CommunityUpdateRequest` (JSON) | `CommunityResponse` (200) | Update community settings (Owner) |
+| DELETE | `/communities/{community_id}` | Path param `community_id` | `{"message": "..."}` (200) | Delete community (Owner) |
+| POST | `/communities/{community_id}/cover` | Multipart `file` | `CommunityResponse` (200) | Upload cover banner (Owner) |
+| POST | `/communities/{community_id}/join` | Path param `community_id` | `JoinActionResponse` (200) | Join instant or request approval |
+| DELETE | `/communities/{community_id}/leave` | Path param `community_id` | `{"message": "..."}` (200) | Leave community |
+| GET | `/communities/{community_id}/members` | Query `limit`, `offset` | `PaginatedMembersResponse` (200) | List community members |
+| DELETE | `/communities/{community_id}/members/{user_id}` | Path params | `{"message": "..."}` (200) | Kick member (Owner) |
+| GET | `/communities/{community_id}/join-requests` | Query `limit`, `offset` | `PaginatedJoinRequestsResponse` (200) | List pending join requests (Owner) |
+| POST | `/communities/{community_id}/join-requests/{request_id}/approve` | Path params | `{"message": "..."}` (200) | Approve join request (Owner) |
+| POST | `/communities/{community_id}/join-requests/{request_id}/reject` | Path params | `{"message": "..."}` (200) | Reject join request (Owner) |
 
-## Search
+---
 
-| Method | Path |
-|---|---|
-| GET | `/search` |
-| GET | `/search/users` |
-| GET | `/search/communities` |
-| GET | `/search/posts` |
-| GET | `/search/interests` |
-| POST | `/search/sync` — Admin |
+## 6. Posts & Media (`/posts`)
 
-## Notifications
+| Method | Path | Request Body / Params | Response Model | Description |
+|---|---|---|---|---|
+| POST | `/posts/media` | Multipart `file` | `MediaUploadResponse` (200) | Upload image (max 10MB) or video (max 50MB) |
+| POST | `/posts` | `PostCreateRequest` (JSON) | `PostResponse` (201) | Create text/image/video post |
+| GET | `/posts` | Query `author_id`, `community_id`, `post_type`, `visibility`, `search`, `limit`, `offset` | `PaginatedPostsResponse` (200) | Filter posts by author, community, type |
+| GET | `/posts/{post_id}` | Path param `post_id` | `PostResponse` (200) | Get post details and engagement stats |
+| PATCH | `/posts/{post_id}` | `PostUpdateRequest` (JSON) | `PostResponse` (200) | Update title, content, visibility |
+| DELETE | `/posts/{post_id}` | Path param `post_id` | `{"message": "..."}` (200) | Delete post & media files |
+| POST | `/posts/{post_id}/like` | Path param `post_id` | `PostLikeResponse` (200) | Like post (Idempotent) |
+| DELETE | `/posts/{post_id}/like` | Path param `post_id` | `PostLikeResponse` (200) | Unlike post (Idempotent) |
+| POST | `/posts/{post_id}/save` | Path param `post_id` | `PostSaveResponse` (200) | Bookmark post (Idempotent) |
+| DELETE | `/posts/{post_id}/save` | Path param `post_id` | `PostSaveResponse` (200) | Unsave bookmark (Idempotent) |
+| POST | `/posts/{post_id}/share` | Path param `post_id` | `PostShareResponse` (200) | Increment share count & get link |
 
-| Method | Path |
-|---|---|
-| GET | `/notifications` |
-| GET | `/notifications/unread-count` |
-| PATCH | `/notifications/{notification_id}/read` |
-| POST | `/notifications/read-all` |
-| DELETE | `/notifications/{notification_id}` |
-| GET | `/notifications/stream` — SSE |
-| WS | `/notifications/ws` |
-| POST | `/notifications/typing` |
+---
 
-## Reports
+## 7. Comments (`/posts/{post_id}/comments` & `/comments`)
 
-| Method | Path |
-|---|---|
-| POST | `/reports` |
-| GET | `/reports` |
-| GET | `/reports/{report_id}` |
-| PATCH | `/reports/{report_id}/status` |
+| Method | Path | Request Body / Params | Response Model | Description |
+|---|---|---|---|---|
+| POST | `/posts/{post_id}/comments` | `CommentCreateRequest` (JSON) | `CommentResponse` (201) | Create top-level comment or reply |
+| GET | `/posts/{post_id}/comments` | Query `limit`, `offset` | `PaginatedCommentsResponse` (200) | List top-level comments |
+| GET | `/comments/{comment_id}` | Path param `comment_id` | `CommentResponse` (200) | Get comment details |
+| GET | `/comments/{comment_id}/replies` | Query `limit`, `offset` | `PaginatedCommentsResponse` (200) | List nested replies for comment |
+| PATCH | `/comments/{comment_id}` | `CommentUpdateRequest` (JSON) | `CommentResponse` (200) | Edit comment text |
+| DELETE | `/comments/{comment_id}` | Path param `comment_id` | `{"message": "..."}` (200) | Delete comment and child replies |
 
-## Chat
+---
 
-| Method | Path |
-|---|---|
-| WS | `/chats/ws/{community_id}` |
-| GET | `/chats/{community_id}/messages` |
+## 8. Saved Posts / Bookmarks (`/saved-posts`)
 
-## Live Rooms
+| Method | Path | Request Body / Params | Response Model | Description |
+|---|---|---|---|---|
+| GET | `/saved-posts` | Query `limit`, `offset` | `PaginatedSavedPostsResponse` (200) | List bookmarked posts (ordered by save time) |
 
-| Method | Path |
-|---|---|
-| POST | `/live-rooms` |
-| POST | `/live-rooms/{room_id}/token` |
-| POST | `/live-rooms/{room_id}/end` |
+---
 
-## Strict rule
+## 9. Feeds & Recommendations (`/feeds` & `/recommendations`)
 
-This table mirrors the backend endpoint directory only.
+| Method | Path | Request Body / Params | Response Model | Description |
+|---|---|---|---|---|
+| GET | `/feeds/home` | Query `limit`, `offset` | `PaginatedPostsResponse` (200) | Personalized timeline (following + joined) |
+| GET | `/feeds/discover` | Query `limit`, `offset` | `PaginatedPostsResponse` (200) | Trending & interest-matched posts |
+| GET | `/feeds/shorts` | Query `limit`, `offset` | `PaginatedPostsResponse` (200) | Vertical short video feed |
+| GET | `/recommendations/communities` | Query `limit`, `offset` | `PaginatedRecommendedCommunitiesResponse` (200) | Recommended communities by interest |
+| GET | `/recommendations/users` | Query `limit`, `offset` | `PaginatedRecommendedUsersResponse` (200) | Recommended users by mutual interests |
 
-Additional architecture routes must be verified in OpenAPI before use.
+---
+
+## 10. Search Engine (`/search`)
+
+| Method | Path | Request Body / Params | Response Model | Description |
+|---|---|---|---|---|
+| GET | `/search` | Query `q`, `type` (`all`), `limit`, `offset` | `UnifiedSearchResponse` (200) | Unified search across 4 domains |
+| GET | `/search/users` | Query `q`, `limit`, `offset` | `PaginatedUserSearchResponse` (200) | Search users |
+| GET | `/search/communities` | Query `q`, `limit`, `offset` | `PaginatedCommunitySearchResponse` (200) | Search communities |
+| GET | `/search/posts` | Query `q`, `limit`, `offset` | `PaginatedPostSearchResponse` (200) | Search posts |
+| GET | `/search/interests` | Query `q`, `limit`, `offset` | `PaginatedInterestSearchResponse` (200) | Search interests catalog |
+| POST | `/search/sync` | None | `SyncIndexResponse` (200) | Sync Meilisearch indexes (Admin) |
+
+---
+
+## 11. Notifications & Realtime (`/notifications`)
+
+| Method | Path | Request Body / Params | Response Model | Description |
+|---|---|---|---|---|
+| GET | `/notifications` | Query `unread_only`, `limit`, `offset` | `PaginatedNotificationsResponse` (200) | List user notifications |
+| GET | `/notifications/unread-count` | None | `UnreadCountResponse` (200) | Get unread badge count |
+| PATCH | `/notifications/{notification_id}/read` | Path param | `NotificationResponse` (200) | Mark single notification read |
+| POST | `/notifications/read-all` | None | `{"message": "...", "count": N}` (200) | Mark all notifications read |
+| DELETE | `/notifications/{notification_id}` | Path param | `{"message": "..."}` (200) | Delete notification |
+| GET | `/notifications/stream` | Header `Authorization` | `text/event-stream` (SSE) | Real-time notification SSE stream |
+| POST | `/notifications/typing` | `TypingIndicatorPayload` (JSON) | `{"status": "ok"}` (200) | Ephemeral typing broadcast |
+| WS | `/notifications/ws?token=...` | Query `token` | WebSocket Events | Live notifications WebSocket gateway |
+
+---
+
+## 12. Reports & Moderation (`/reports`)
+
+| Method | Path | Request Body / Params | Response Model | Description |
+|---|---|---|---|---|
+| POST | `/reports` | `ReportCreateRequest` (JSON) | `ReportResponse` (201) | Submit report |
+| GET | `/reports` | Query `status`, `report_type`, `community_id`, `limit`, `offset` | `PaginatedReportsResponse` (200) | List reports (Admin/Owner) |
+| GET | `/reports/{report_id}` | Path param | `ReportResponse` (200) | Get report details |
+| PATCH | `/reports/{report_id}/status` | `ReportStatusUpdateRequest` (JSON) | `ReportResponse` (200) | Update status & apply resolution |
+
+---
+
+## 13. Community Chat (`/chats`)
+
+| Method | Path | Request Body / Params | Response Model | Description |
+|---|---|---|---|---|
+| POST | `/chats/ws-ticket` | Query `community_id` | `WsTicketResponse` (200) | Issue one-time 60s WS ticket |
+| GET | `/chats/{community_id}/messages` | Query `before` (cursor), `limit` | `ChatHistoryResponse` (200) | Cursor-paginated message history |
+| GET | `/chats/{community_id}/presence` | Path param `community_id` | `PresenceResponse` (200) | Online member IDs and count |
+| WS | `/chats/ws/{community_id}?ticket=...` | Query `ticket` | WebSocket Protocol | Real-time chat socket |
+
+---
+
+## 14. Live Streaming Rooms (`/live-rooms`)
+
+| Method | Path | Request Body / Params | Response Model | Description |
+|---|---|---|---|---|
+| POST | `/live-rooms` | Query `community_id`, Body `LiveRoomCreate` | `LiveRoomResponse` (201) | Create room (Owner/Mod) |
+| GET | `/live-rooms/{room_id}` | Path param `room_id` | `LiveRoomResponse` (200) | Room details & viewer count |
+| PATCH | `/live-rooms/{room_id}` | `LiveRoomUpdate` (JSON) | `LiveRoomResponse` (200) | Update title/description |
+| POST | `/live-rooms/{room_id}/start` | Path param `room_id` | `LiveTokenResponse` (200) | Start session & get Host LiveKit token |
+| POST | `/live-rooms/{room_id}/end` | Path param `room_id` | `LiveSessionResponse` (200) | End session & save metrics |
+| POST | `/live-rooms/{room_id}/token` | Path param `room_id` | `LiveTokenResponse` (200) | Get Viewer LiveKit token |
+| GET | `/live-rooms/{room_id}/metrics` | Path param `room_id` | `LiveMetricsResponse` (200) | Real-time / historic session metrics |
+| POST | `/live-rooms/{room_id}/reconcile` | Path param `room_id` | `{"reconciled": N}` (200) | Reconcile viewers (Admin) |
+| POST | `/live-rooms/webhooks/livekit` | LiveKit Webhook Payload | `{"status": "ok"}` (200) | LiveKit internal webhook (Backend only) |

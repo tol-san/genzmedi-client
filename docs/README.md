@@ -94,3 +94,4 @@ Never invent an endpoint, HTTP method, request field, response field, permission
 | `30-development-roadmap.md` | Suggested frontend implementation order |
 | `31-agent-rules.md` | Hard rules for coding agents |
 | `32-backend-source-map.md` | Backend document → frontend concern mapping |
+| `33-api-request-response-models.md` | Complete request & response JSON schemas, query params, errors, and realtime protocols |

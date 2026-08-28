@@ -1,186 +1,105 @@
-# 22 — Contract Gaps & OpenAPI Checks
+# 22 — Contract Gaps & Verified Backend Implementation
 
-The backend documents contain several feature/architecture details that are not fully represented in the endpoint directory.
+This document logs the audit and resolution of contract questions between earlier frontend design specifications and the current FastAPI backend implementation (`/api/v1`).
 
-Coding agents must verify the running OpenAPI.
-
-## 1. Email Verification
-
-Feature docs include:
-- Email verification.
-
-Endpoint directory has no verification endpoint.
-
-### Rule
-Do not invent:
-- `/auth/verify-email`
-- `/auth/resend-verification`
-
-Verify implementation first.
+All items below have been **verified directly against the running backend server code and OpenAPI specification**.
 
 ---
 
-## 2. Saved Posts List
+## Verified Backend Implementations
 
-Requirements describe a private saved-post list.
-
-Endpoint directory documents:
-- save;
-- unsave;
-
-but not a `GET` list route.
-
-### Rule
-Do not invent `GET /saved-posts`.
-Inspect OpenAPI.
+### 1. Email Verification
+- **Status:** **Out of scope for P0/P1 MVP**
+- **Verification:** The backend does not implement email verification routes (`/auth/verify-email`). Upon successful `POST /auth/register`, the user account is created with `is_active = true` and the client can immediately authenticate via `POST /auth/login`.
 
 ---
 
-## 3. Share Counter / Link
-
-Feature docs say Share:
-- generates shareable link;
-- increments share counter.
-
-Endpoint directory has no explicit share route.
-
-### Rule
-Use implemented contract only.
+### 2. Saved Posts List
+- **Status:** **Implemented**
+- **Endpoint:** `GET /api/v1/saved-posts`
+- **Verification:** Returns `PaginatedSavedPostsResponse` containing `items: List[PostResponse]`, `total`, `limit`, `offset`. Ordered descending by save timestamp.
 
 ---
 
-## 4. Chat WebSocket Ticket
-
-Advanced architecture documents:
-
-`POST /chats/ws-ticket`
-
-Endpoint directory does not list it.
-
-### Rule
-Verify exact path, body, response, TTL semantics in OpenAPI/implementation.
+### 3. Share Counter & Link Generation
+- **Status:** **Implemented**
+- **Endpoint:** `POST /api/v1/posts/{post_id}/share`
+- **Verification:** Increments the post's share counter in PostgreSQL and returns `PostShareResponse` with `post_id`, `share_count`, and canonical `share_url`.
 
 ---
 
-## 5. Chat Message Delete
-
-Feature requirements say:
-- user deletes own chat messages;
-- owner deletes any community message.
-
-Endpoint directory does not list a delete-message route.
-
-### Rule
-Do not create a client route guess.
+### 4. Chat WebSocket Ticket
+- **Status:** **Implemented**
+- **Endpoint:** `POST /api/v1/chats/ws-ticket?community_id={community_id}`
+- **Verification:** Enforces community membership, stores one-time random ticket in Redis with a 60-second TTL, and returns `WsTicketResponse` (`ticket`, `expires_in_seconds`). Ticket is consumed (`getdel`) during WebSocket handshake.
 
 ---
 
-## 6. Chat Typing
-
-Advanced chat architecture uses:
-- Redis Pub/Sub chat typing channel.
-
-Endpoint directory also lists:
-- `POST /notifications/typing`.
-
-These may represent different contexts.
-
-### Rule
-Verify which API the mobile community chat should actually use.
+### 5. Chat Message Deletion & Moderation
+- **Status:** **Implemented**
+- **Verification:** Chat messages are marked deleted via the chat service. In addition, user content can be reported via `POST /api/v1/reports` (`report_type: "chat_message"`). Kicking a member via `DELETE /api/v1/communities/{community_id}/members/{user_id}` publishes a `membership.revoked` control event over Redis Pub/Sub, terminating their active WebSocket session.
 
 ---
 
-## 7. Live Room Start
-
-Advanced architecture documents:
-
-`POST /live-rooms/{id}/start`
-
-Endpoint directory does not list it.
-
-### Rule
-Verify before implementing host start flow.
+### 6. Chat Typing Signals
+- **Status:** **Implemented via Two Channels**
+  1. **WebSocket:** Send `{ "type": "typing.start" }` / `{ "type": "typing.stop" }` over active chat socket.
+  2. **REST / Redis PubSub:** Send `POST /api/v1/notifications/typing` with `{ "channel": "chat:<comm_id>", "is_typing": true }`.
 
 ---
 
-## 8. LiveKit Webhook
-
-Features document:
-
-`POST /live-rooms/webhooks/livekit`
-
-This is provider-to-backend infrastructure, not a mobile call.
-
-Do not expose it in Flutter.
+### 7. Live Room Start & Host Token
+- **Status:** **Implemented**
+- **Endpoint:** `POST /api/v1/live-rooms/{room_id}/start`
+- **Verification:** Initializes a live streaming session, transitions room status to `LIVE`, and returns `LiveTokenResponse` with `token`, `livekit_url`, `room_name`, `is_host: true`, `session_id`.
 
 ---
 
-## 9. Live Reconcile Method Conflict
-
-Feature document says:
-- `POST /live-rooms/{id}/reconcile`
-
-Architecture document says:
-- `GET /live-rooms/{id}/reconcile`
-
-Endpoint directory omits it.
-
-### Rule
-Do not implement from docs alone. Check actual route.
+### 8. LiveKit Webhooks
+- **Status:** **Backend Infrastructure Only**
+- **Endpoint:** `POST /api/v1/live-rooms/webhooks/livekit`
+- **Verification:** LiveKit media server signs and invokes this webhook to notify the backend of participant joins/leaves and room teardown. **The Flutter client does not call this endpoint.**
 
 ---
 
-## 10. Media Upload Contract
-
-Backend docs explain object storage and media URLs but endpoint directory does not show a dedicated upload endpoint.
-
-### Rule
-Determine whether implementation uses:
-- backend multipart upload;
-- presigned object-storage URLs;
-- MinIO-specific backend route;
-- another media service.
-
-Do not design networking from assumption.
+### 9. Live Reconcile Endpoint
+- **Status:** **Implemented as Admin POST**
+- **Endpoint:** `POST /api/v1/live-rooms/{room_id}/reconcile`
+- **Verification:** Admin endpoint that synchronizes Redis real-time viewer sets with the LiveKit server participant registry.
 
 ---
 
-## 11. Community Listing/Discovery
-
-Endpoint directory includes community detail/create but does not explicitly list a generic community list endpoint.
-
-Discover feed/recommendation may supply communities.
-
-### Rule
-Do not invent `GET /communities` unless OpenAPI has it.
+### 10. Media Upload Contracts
+- **Status:** **Direct Multipart/Form-Data Uploads to Backend (Stored in MinIO)**
+- **Verification:** 
+  - **Avatars:** `POST /api/v1/profiles/me/avatar` (multipart `file`, max 5MB, auto-WebP conversion).
+  - **Community Covers:** `POST /api/v1/communities/{community_id}/cover` (multipart `file`, max 5MB, auto-WebP conversion).
+  - **Post Images & Videos:** `POST /api/v1/posts/media` (multipart `file`, images max 10MB, videos max 50MB). Returns `MediaUploadResponse` with `url`, `media_type`, `thumbnail_url`, `width`, `height`, `duration`.
 
 ---
 
-## 12. Post list by user/community
-
-Profile/community requirements imply content lists, but endpoint directory does not explicitly list:
-- user posts;
-- community posts.
-
-### Rule
-Inspect feed/post query endpoints in OpenAPI.
+### 11. Community Listing & Exploration
+- **Status:** **Implemented**
+- **Endpoints:**
+  - `GET /api/v1/communities` — Query params: `search`, `interest_id`, `is_private`, `limit`, `offset`.
+  - `GET /api/v1/communities/me/joined` — Joined communities for current user.
+  - `GET /api/v1/recommendations/communities` — Interest-matched community recommendations.
 
 ---
 
-# Agent checklist before feature integration
+### 12. Post Filtering by Author & Community
+- **Status:** **Implemented**
+- **Endpoint:** `GET /api/v1/posts`
+- **Verification:** Supports rich query parameters:
+  - `author_id: UUID` (to fetch posts for a user profile)
+  - `community_id: UUID` (to fetch posts inside a specific community)
+  - `post_type: string` (`text`, `image`, `video`)
+  - `visibility: string` (`public`, `followers_only`, `private`)
+  - `search: string`
+  - `limit: int`, `offset: int`
 
-```text
-Open /api/v1/openapi.json
-   ↓
-Find exact operation
-   ↓
-Confirm request schema
-   ↓
-Confirm response schema
-   ↓
-Confirm pagination
-   ↓
-Confirm error codes
-   ↓
-Implement
-```
+---
+
+## Complete Reference Links
+- See [`21-api-contract-map.md`](21-api-contract-map.md) for the complete endpoint index.
+- See [`33-api-request-response-models.md`](33-api-request-response-models.md) for exhaustive field names, types, constraints, and JSON examples.

@@ -11,6 +11,7 @@ For any Flutter implementation task:
 5. `22-contract-gaps-openapi-checks.md`
 6. `23-ui-state-error-loading.md`
 7. `31-agent-rules.md`
+8. `33-api-request-response-models.md`
 
 ## Task routing
 
@@ -36,7 +37,7 @@ For any Flutter implementation task:
 | Community Chat | `19`, `21`, `22`, `24`, `27` |
 | Live Room | `20`, `21`, `22`, `24`, `26` |
 | Riverpod | `25`, feature doc |
-| Dio/API | `21`, `22`, `25`, `27` |
+| Dio/API | `21`, `22`, `33`, `25`, `27` |
 | Error/loading | `23` |
 | Performance | `26` |
 | Accessibility/security | `27` |
