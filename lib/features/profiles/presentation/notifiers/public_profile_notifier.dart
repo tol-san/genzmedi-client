@@ -161,4 +161,37 @@ class PublicProfileNotifier extends StateNotifier<PublicProfileState> {
       return false;
     }
   }
+
+  /// Submit a moderation report against the target user
+  Future<bool> reportUser({
+    required String reason,
+    String? description,
+  }) async {
+    final targetUser = state.user;
+    if (targetUser == null) return false;
+
+    state = state.copyWith(isActionLoading: true, clearError: true);
+    try {
+      await repository.submitReport(
+        reportType: 'user',
+        targetId: targetUser.id,
+        reason: reason,
+        description: description,
+      );
+      state = state.copyWith(isActionLoading: false);
+      return true;
+    } on AppException catch (e) {
+      state = state.copyWith(
+        isActionLoading: false,
+        errorMessage: e.message,
+      );
+      return false;
+    } catch (_) {
+      state = state.copyWith(
+        isActionLoading: false,
+        errorMessage: 'Report submission failed.',
+      );
+      return false;
+    }
+  }
 }

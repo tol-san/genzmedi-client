@@ -281,4 +281,115 @@ class ProfileRepository {
       throw ErrorMapper.fromDioException(e);
     }
   }
+
+  /// Delete current avatar image
+  Future<UserModel> deleteAvatar() async {
+    try {
+      final response = await dio.delete(ApiEndpoints.myAvatar);
+      if (response.statusCode == 200 && response.data != null) {
+        return UserModel.fromJson(response.data as Map<String, dynamic>);
+      }
+      throw ErrorMapper.fromStatusCode(
+        response.statusCode,
+        'Failed to delete avatar.',
+      );
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
+
+  /// Fetch followers of a specified user
+  Future<List<UserModel>> getFollowers(
+    String userId, {
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    try {
+      final response = await dio.get(
+        ApiEndpoints.userFollowers(userId),
+        queryParameters: {'limit': limit, 'offset': offset},
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data;
+        if (data is Map && data['items'] is List) {
+          return (data['items'] as List)
+              .map((item) => UserModel.fromJson(item as Map<String, dynamic>))
+              .toList();
+        } else if (data is List) {
+          return data
+              .map((item) => UserModel.fromJson(item as Map<String, dynamic>))
+              .toList();
+        }
+      }
+      return const [];
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
+
+  /// Fetch users followed by a specified user
+  Future<List<UserModel>> getFollowing(
+    String userId, {
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    try {
+      final response = await dio.get(
+        ApiEndpoints.userFollowing(userId),
+        queryParameters: {'limit': limit, 'offset': offset},
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data;
+        if (data is Map && data['items'] is List) {
+          return (data['items'] as List)
+              .map((item) => UserModel.fromJson(item as Map<String, dynamic>))
+              .toList();
+        } else if (data is List) {
+          return data
+              .map((item) => UserModel.fromJson(item as Map<String, dynamic>))
+              .toList();
+        }
+      }
+      return const [];
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
+
+  /// Submit a moderation report against a user, post, comment, etc.
+  Future<void> submitReport({
+    required String reportType,
+    required String targetId,
+    required String reason,
+    String? description,
+    String? communityId,
+  }) async {
+    try {
+      final data = <String, dynamic>{
+        'report_type': reportType,
+        'target_id': targetId,
+        'reason': reason,
+      };
+      if (description != null && description.isNotEmpty) {
+        data['description'] = description.trim();
+      }
+      if (communityId != null && communityId.isNotEmpty) {
+        data['community_id'] = communityId;
+      }
+
+      final response = await dio.post(
+        ApiEndpoints.reports,
+        data: data,
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw ErrorMapper.fromStatusCode(
+          response.statusCode,
+          'Failed to submit report.',
+        );
+      }
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
 }

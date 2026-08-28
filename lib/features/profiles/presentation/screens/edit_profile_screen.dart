@@ -28,6 +28,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _picker = ImagePicker();
 
   File? _customImageFile;
+  bool _removeAvatar = false;
   Set<String> _selectedInterests = {};
   List<InterestModel> _availableInterests = [];
   bool _isLoading = false;
@@ -98,6 +99,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       if (picked != null) {
         setState(() {
           _customImageFile = File(picked.path);
+          _removeAvatar = false;
           _errorMessage = null;
         });
       }
@@ -109,6 +111,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   void _showImagePickerSheet(BuildContext context) {
+    final authState = ref.read(authNotifierProvider);
+    final user = authState is AuthAuthenticated
+        ? authState.user
+        : (authState is AuthNeedsOnboarding ? authState.user : null);
+    final hasAvatar = _customImageFile != null || (user?.avatarUrl != null && !_removeAvatar);
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -138,13 +146,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   _pickImage(ImageSource.gallery);
                 },
               ),
-              if (_customImageFile != null)
+              if (hasAvatar)
                 ListTile(
                   leading: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
                   title: const Text('Remove Photo', style: TextStyle(color: AppColors.error)),
                   onTap: () {
                     Navigator.pop(ctx);
-                    setState(() => _customImageFile = null);
+                    setState(() {
+                      _customImageFile = null;
+                      _removeAvatar = true;
+                    });
                   },
                 ),
             ],
@@ -289,9 +300,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       final repository = ref.read(profileRepositoryProvider);
       final authNotifier = ref.read(authNotifierProvider.notifier);
 
-      // 1. Upload custom avatar if chosen
+      // 1. Upload custom avatar if chosen or delete if removed
       if (_customImageFile != null) {
         await authNotifier.uploadAvatar(_customImageFile!);
+      } else if (_removeAvatar) {
+        await repository.deleteAvatar();
+        await authNotifier.updateProfile(avatarUrl: '');
       }
 
       // 2. Update profile text details
@@ -384,11 +398,17 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   child: ClipOval(
                     child: _customImageFile != null
                         ? Image.file(_customImageFile!, fit: BoxFit.cover)
-                        : AppAvatar(
-                            size: 96,
-                            name: user?.displayName ?? user?.username ?? 'User',
-                            imageUrl: user?.avatarUrl,
-                          ),
+                        : (_removeAvatar
+                            ? AppAvatar(
+                                size: 96,
+                                name: user?.displayName ?? user?.username ?? 'User',
+                                imageUrl: null,
+                              )
+                            : AppAvatar(
+                                size: 96,
+                                name: user?.displayName ?? user?.username ?? 'User',
+                                imageUrl: user?.avatarUrl,
+                              )),
                   ),
                 ),
                 Positioned(
@@ -448,6 +468,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               controller: _displayNameController,
               label: 'Display Name',
               hintText: 'Your name or creator alias',
+              maxLength: 50,
               textInputAction: TextInputAction.next,
             ),
             const SizedBox(height: AppSpacing.space16),
@@ -486,7 +507,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               controller: _bioController,
               label: 'Bio',
               hintText: 'Tell creators what you love building and sharing...',
-              maxLines: 3,
+              maxLength: 160,
+              maxLines: 4,
               textInputAction: TextInputAction.done,
             ),
             const SizedBox(height: AppSpacing.space24),

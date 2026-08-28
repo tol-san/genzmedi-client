@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:client/app/router/route_names.dart';
@@ -137,18 +138,26 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                                         count: _formatCount(user?.followersCount ?? 0),
                                         label: 'Followers',
                                         onTap: () {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Followers list (Next phase)')),
-                                          );
+                                          if (user != null) {
+                                            context.pushNamed(
+                                              RouteNames.followList,
+                                              pathParameters: {'userId': user.id},
+                                              queryParameters: {'username': user.username, 'tab': '0'},
+                                            );
+                                          }
                                         },
                                       ),
                                       ProfileStatWidget(
                                         count: _formatCount(user?.followingCount ?? 0),
                                         label: 'Following',
                                         onTap: () {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Following list (Next phase)')),
-                                          );
+                                          if (user != null) {
+                                            context.pushNamed(
+                                              RouteNames.followList,
+                                              pathParameters: {'userId': user.id},
+                                              queryParameters: {'username': user.username, 'tab': '1'},
+                                            );
+                                          }
                                         },
                                       ),
                                     ],
@@ -205,8 +214,14 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                                     padding: EdgeInsets.zero,
                                     icon: const Icon(Icons.share_outlined, size: 18),
                                     onPressed: () {
+                                      final uname = user?.username ?? '';
+                                      final link = 'https://genzmedia.app/profile/@$uname';
+                                      Clipboard.setData(ClipboardData(text: link));
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Profile link copied!')),
+                                        SnackBar(
+                                          content: Text('Profile link copied: $link'),
+                                          backgroundColor: AppColors.success,
+                                        ),
                                       );
                                     },
                                   ),

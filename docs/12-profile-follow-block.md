@@ -1,89 +1,61 @@
 # 12 — Profile, Follow & Block
 
-## Profile fields documented
+## Overview
+The profile and social relationship architecture powers user identity, discovery, social graphs (followers & following lists), moderation reporting, and account security.
 
-- `username`
-- `display_name`
-- `bio`
-- `avatar_url`
-- selected interests
-- `follower_count`
-- `following_count`
-- `post_count`
+---
 
-## Public profile
+## 1. Routes & Screens
 
-```text
-Avatar
-Display Name
-@username
-Bio
-Interest chips
+| Route | Route Name | Screen | Description |
+|---|---|---|---|
+| `/profile` | `RouteNames.myProfile` | `MyProfileScreen` | Current user profile with interactive stats, post tabs, saved posts, and profile link copy |
+| `/profile/edit` | `RouteNames.editProfile` | `EditProfileScreen` | Avatar picker/remover, Display Name (max 50 chars), Bio (max 160 chars), Dynamic Interests selector |
+| `/profile/:username` | `RouteNames.publicProfile` | `PublicProfileScreen` | Public profile view, optimistic follow toggle, report bottom sheet, block modal |
+| `/user/:username` | Alias | `PublicProfileScreen` | Canonical user handle alias route |
+| `/user/:userId/follow-list` | `RouteNames.followList` | `FollowListScreen` | Tabbed followers/following list with search filtering, pull-to-refresh, and inline follow toggles |
 
-Posts · Followers · Following
+---
 
-[ Follow / Following ]
-Content
-```
+## 2. Profile Models & Fields
 
-Overflow:
-- Block / Unblock
-- Report
+- `id`: User UUID
+- `username`: Unique lowercase user handle (3–30 characters)
+- `email`: Authenticated user email
+- `display_name`: Creator alias (max 50 characters)
+- `avatar_url`: CDN/MinIO hosted avatar image path
+- `bio`: Creator biography (max 160 characters)
+- `interests`: List of selected interest category slugs/IDs
+- `followers_count`: Total users following this account
+- `following_count`: Total users followed by this account
+- `post_count`: Total posts published
+- `is_verified`: Creator verification status
 
-## My profile
+---
 
-Replace Follow with:
-- Edit Profile
+## 3. Social Graph & Moderation API Flow
 
-Provide entry points:
-- Manage Interests
-- Saved Posts
-- Followers
-- Following
-- Communities
-- Change Password
-- Logout
+### Follow / Unfollow
+- **Follow**: `POST /api/v1/users/{user_id}/follow`
+- **Unfollow**: `DELETE /api/v1/users/{user_id}/follow`
+- **Followers List**: `GET /api/v1/users/{user_id}/followers?limit=20&offset=0`
+- **Following List**: `GET /api/v1/users/{user_id}/following?limit=20&offset=0`
+- **Relationship**: `GET /api/v1/users/{user_id}/relationship`
 
-## Follow
+### Block / Unblock
+- **Block**: `POST /api/v1/users/{user_id}/block`
+- **Unblock**: `DELETE /api/v1/users/{user_id}/block`
+- Confirmed via confirmation dialog; severs any mutual follow relationships and updates relationship state.
 
-Backend:
-- directional;
-- no approval;
-- no self-follow;
-- unique relationship.
-
-Button states:
-```text
-Follow
-Submitting
-Following
-```
-
-Update visible follower counts after success.
-
-Follow event can produce notification to target user.
-
-## Block
-
-Confirmation recommended.
-
-```text
-Block user?
-   ↓
-Confirm
-   ↓
-POST block
-   ↓
-Refresh relationship/content state
-```
-
-Backend effects include:
-- sever follow relationships;
-- prevent target from following blocker;
-- prevent interaction with blocker's content.
-
-Do not recreate all blocking logic in Flutter. Render server-authorized state.
-
-## Profile content
-
-Avoid fake local tabs for text/image/shorts unless backend provides efficient server filtering.
+### Moderation Reporting
+- **Endpoint**: `POST /api/v1/reports`
+- **Payload**:
+  ```json
+  {
+    "report_type": "user",
+    "target_id": "<uuid>",
+    "reason": "spam | harassment | inappropriate_content | hate_speech | violence | copyright | other",
+    "description": "Optional notes provided by reporter"
+  }
+  ```
+- Handled via `ReportUserSheet` modal widget.

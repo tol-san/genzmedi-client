@@ -128,5 +128,39 @@ void main() {
       expect(notifier.state.relationship.isBlocking, isTrue);
       verify(() => mockRepository.blockUser('u-target-123')).called(1);
     });
+
+    test('reportUser calls repository submitReport', () async {
+      when(() => mockRepository.getPublicProfile('creator_jane'))
+          .thenAnswer((_) async => mockTargetUser);
+      when(() => mockRepository.getRelationship('u-target-123'))
+          .thenAnswer((_) async => mockRelationship);
+      when(() => mockRepository.getUserPosts(authorId: 'u-target-123'))
+          .thenAnswer((_) async => [mockPost]);
+      when(() => mockRepository.submitReport(
+            reportType: 'user',
+            targetId: 'u-target-123',
+            reason: 'spam',
+            description: 'Spamming bots',
+          )).thenAnswer((_) async {});
+
+      final notifier = PublicProfileNotifier(
+        username: 'creator_jane',
+        repository: mockRepository,
+      );
+      await pumpEventQueue();
+
+      final success = await notifier.reportUser(
+        reason: 'spam',
+        description: 'Spamming bots',
+      );
+
+      expect(success, isTrue);
+      verify(() => mockRepository.submitReport(
+            reportType: 'user',
+            targetId: 'u-target-123',
+            reason: 'spam',
+            description: 'Spamming bots',
+          )).called(1);
+    });
   });
 }

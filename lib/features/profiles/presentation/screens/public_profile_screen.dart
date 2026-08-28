@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:client/app/router/route_names.dart';
@@ -13,6 +14,7 @@ import 'package:client/core/widgets/empty_state_widget.dart';
 import 'package:client/features/profiles/presentation/notifiers/public_profile_notifier.dart';
 import 'package:client/features/profiles/presentation/widgets/profile_post_card.dart';
 import 'package:client/features/profiles/presentation/widgets/profile_stat_widget.dart';
+import 'package:client/features/profiles/presentation/widgets/report_user_sheet.dart';
 
 class PublicProfileScreen extends ConsumerWidget {
   final String username;
@@ -130,15 +132,19 @@ class PublicProfileScreen extends ConsumerWidget {
                 if (value == 'block') {
                   _showBlockConfirmationDialog(context, ref, relationship.isBlocking);
                 } else if (value == 'report') {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Report submitted for moderation review.')),
+                  ReportUserSheet.show(
+                    context,
+                    username: username,
+                    onReport: (reason, desc) => ref
+                        .read(publicProfileNotifierProvider(username).notifier)
+                        .reportUser(reason: reason, description: desc),
                   );
                 }
               },
               itemBuilder: (context) => [
-                PopupMenuItem(
+                const PopupMenuItem(
                   value: 'report',
-                  child: const Row(
+                  child: Row(
                     children: [
                       Icon(Icons.flag_outlined, size: 18, color: AppColors.warning),
                       SizedBox(width: 8),
@@ -192,10 +198,24 @@ class PublicProfileScreen extends ConsumerWidget {
                         ProfileStatWidget(
                           count: _formatCount(user.followersCount),
                           label: 'Followers',
+                          onTap: () {
+                            context.pushNamed(
+                              RouteNames.followList,
+                              pathParameters: {'userId': user.id},
+                              queryParameters: {'username': user.username, 'tab': '0'},
+                            );
+                          },
                         ),
                         ProfileStatWidget(
                           count: _formatCount(user.followingCount),
                           label: 'Following',
+                          onTap: () {
+                            context.pushNamed(
+                              RouteNames.followList,
+                              pathParameters: {'userId': user.id},
+                              queryParameters: {'username': user.username, 'tab': '1'},
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -273,8 +293,13 @@ class PublicProfileScreen extends ConsumerWidget {
                       padding: EdgeInsets.zero,
                       icon: const Icon(Icons.share_outlined, size: 18),
                       onPressed: () {
+                        final link = 'https://genzmedia.app/profile/@${user.username}';
+                        Clipboard.setData(ClipboardData(text: link));
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Profile link copied!')),
+                          SnackBar(
+                            content: Text('Profile link copied: $link'),
+                            backgroundColor: AppColors.success,
+                          ),
                         );
                       },
                     ),

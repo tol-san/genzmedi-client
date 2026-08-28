@@ -114,6 +114,26 @@ void main() {
 
       expect(find.text('Edit Profile'), findsOneWidget);
     });
+
+    testWidgets('opens report user sheet from overflow menu', (tester) async {
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      final overflowBtn = find.byIcon(Icons.more_vert_rounded);
+      expect(overflowBtn, findsOneWidget);
+
+      await tester.tap(overflowBtn);
+      await tester.pumpAndSettle();
+
+      final reportOption = find.text('Report User');
+      expect(reportOption, findsOneWidget);
+
+      await tester.tap(reportOption);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Report @public_creator'), findsOneWidget);
+      expect(find.text('Submit Report'), findsOneWidget);
+    });
   });
 }
 

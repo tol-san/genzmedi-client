@@ -18,6 +18,9 @@ class AppTextField extends StatefulWidget {
   final Widget? suffixIcon;
   final bool enabled;
   final int maxLines;
+  final int? maxLength;
+  final bool showCounter;
+  final TextCapitalization textCapitalization;
   final FocusNode? focusNode;
 
   const AppTextField({
@@ -35,6 +38,9 @@ class AppTextField extends StatefulWidget {
     this.suffixIcon,
     this.enabled = true,
     this.maxLines = 1,
+    this.maxLength,
+    this.showCounter = true,
+    this.textCapitalization = TextCapitalization.none,
     this.focusNode,
   });
 
@@ -92,9 +98,11 @@ class _AppTextFieldState extends State<AppTextField> {
           obscureText: _obscureText,
           keyboardType: widget.keyboardType,
           textInputAction: widget.textInputAction,
+          textCapitalization: widget.textCapitalization,
           onChanged: widget.onChanged,
           onSubmitted: widget.onSubmitted,
           enabled: widget.enabled,
+          maxLength: widget.maxLength,
           maxLines: widget.isPassword ? 1 : widget.maxLines,
           style: AppTypography.body.copyWith(
             color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
@@ -104,6 +112,8 @@ class _AppTextFieldState extends State<AppTextField> {
             errorText: widget.errorText,
             prefixIcon: widget.prefixIcon,
             suffixIcon: suffix,
+            counterText: widget.showCounter ? null : '',
+            counterStyle: AppTypography.caption.copyWith(color: AppColors.textMuted),
           ),
         ),
       ],

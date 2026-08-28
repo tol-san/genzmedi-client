@@ -96,7 +96,7 @@ class AppButton extends StatelessWidget {
   EdgeInsets get _padding {
     switch (size) {
       case AppButtonSize.small:
-        return const EdgeInsets.symmetric(horizontal: AppSpacing.space12);
+        return const EdgeInsets.symmetric(horizontal: AppSpacing.space8);
       case AppButtonSize.medium:
         return const EdgeInsets.symmetric(horizontal: AppSpacing.space20);
       case AppButtonSize.large:
@@ -139,7 +139,7 @@ class AppButton extends StatelessWidget {
         (icon != null
             ? Icon(
                 icon,
-                size: size == AppButtonSize.small ? 18.0 : 20.0,
+                size: size == AppButtonSize.small ? 16.0 : 20.0,
                 color: foregroundColor,
               )
             : null);
@@ -163,17 +163,22 @@ class AppButton extends StatelessWidget {
         ] else ...[
           if (effectivePrefixIcon != null) ...[
             effectivePrefixIcon,
-            const SizedBox(width: AppSpacing.space8),
+            const SizedBox(width: AppSpacing.space4),
           ],
-          Text(
-            text,
-            style: AppTypography.buttonText.copyWith(
-              color: foregroundColor,
-              fontWeight: FontWeight.w600,
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.buttonText.copyWith(
+                fontSize: size == AppButtonSize.small ? 13.0 : 16.0,
+                color: foregroundColor,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           if (suffixIcon != null) ...[
-            const SizedBox(width: AppSpacing.space8),
+            const SizedBox(width: AppSpacing.space4),
             suffixIcon!,
           ],
         ],

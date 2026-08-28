@@ -72,11 +72,26 @@ void main() {
       final addInterestsBtn = find.text('+ Add / Edit');
       expect(addInterestsBtn, findsOneWidget);
 
+      await tester.ensureVisible(addInterestsBtn);
       await tester.tap(addInterestsBtn);
       await tester.pumpAndSettle();
 
       expect(find.text('Select Interests'), findsOneWidget);
       expect(find.text('Done'), findsOneWidget);
+    });
+
+    testWidgets('enforces maxLength on Display Name and Bio fields', (tester) async {
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      final textFields = find.byType(TextField);
+      expect(textFields, findsNWidgets(3)); // Display name, Username, Bio
+
+      final displayNameField = tester.widget<TextField>(textFields.at(0));
+      expect(displayNameField.maxLength, 50);
+
+      final bioField = tester.widget<TextField>(textFields.at(2));
+      expect(bioField.maxLength, 160);
     });
   });
 }
