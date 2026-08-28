@@ -8,6 +8,7 @@ import 'package:client/core/auth/auth_state.dart';
 import 'package:client/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:client/features/auth/presentation/screens/interest_onboarding_screen.dart';
 import 'package:client/features/auth/presentation/screens/login_screen.dart';
+import 'package:client/features/auth/presentation/screens/profile_setup_screen.dart';
 import 'package:client/features/auth/presentation/screens/register_screen.dart';
 import 'package:client/features/auth/presentation/screens/reset_password_screen.dart';
 import 'package:client/features/auth/presentation/screens/splash_screen.dart';
@@ -37,8 +38,10 @@ class RouterNotifier extends ChangeNotifier {
       return matched == '/splash' ? null : '/splash';
     }
 
-    // 2. Allow OTP verification and password reset flows without interruption
-    if (matched == '/verify-otp' || matched == '/reset-password') {
+    // 2. Allow OTP verification, password reset, and profile setup flows without interruption
+    if (matched == '/verify-otp' ||
+        matched == '/reset-password' ||
+        matched == '/profile-setup') {
       return null;
     }
 
@@ -53,9 +56,12 @@ class RouterNotifier extends ChangeNotifier {
       return null;
     }
 
-    // 4. User needs interest onboarding
+    // 4. User needs interest onboarding or profile setup
     if (authState is AuthNeedsOnboarding) {
-      return matched == '/onboarding' ? null : '/onboarding';
+      if (matched == '/profile-setup' || matched == '/onboarding') {
+        return null;
+      }
+      return '/onboarding';
     }
 
     // 5. Unauthenticated user attempting to access protected routes
@@ -65,7 +71,7 @@ class RouterNotifier extends ChangeNotifier {
 
     // 6. Authenticated user attempting to access auth, onboarding, or splash
     if (authState is AuthAuthenticated) {
-      if (isPublicAuthRoute || matched == '/onboarding' || matched == '/splash') {
+      if (isPublicAuthRoute || matched == '/onboarding' || matched == '/splash' || matched == '/profile-setup') {
         return '/feed';
       }
     }
@@ -106,6 +112,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const RegisterScreen(),
       ),
       GoRoute(
+        path: '/profile-setup',
+        name: RouteNames.profileSetup,
+        builder: (context, state) => const ProfileSetupScreen(),
+      ),
+      GoRoute(
         path: '/forgot-password',
         name: RouteNames.forgotPassword,
         builder: (context, state) => const ForgotPasswordScreen(),
@@ -116,9 +127,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final email = state.uri.queryParameters['email'] ?? '';
           final otp = state.uri.queryParameters['otp'];
+          final flow = state.uri.queryParameters['flow'];
           return VerifyOtpScreen(
             email: email,
             initialOtp: otp,
+            flow: flow,
           );
         },
       ),

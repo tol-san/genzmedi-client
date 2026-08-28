@@ -37,7 +37,95 @@ class AuthRepository {
     }
   }
 
-  /// Register a new account
+  /// Request registration OTP code
+  Future<void> requestSignupOtp(SignupOtpRequest request) async {
+    try {
+      final response = await dio.post(
+        ApiEndpoints.registerRequestOtp,
+        data: request.toJson(),
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw ErrorMapper.fromStatusCode(
+          response.statusCode,
+          'Failed to send registration verification code.',
+        );
+      }
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
+
+  /// Verify signup OTP code and create user account
+  Future<TokenModel> verifySignupOtp(SignupVerifyOtpRequest request) async {
+    try {
+      final response = await dio.post(
+        ApiEndpoints.registerVerifyOtp,
+        data: request.toJson(),
+      );
+
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          response.data != null) {
+        return TokenModel.fromJson(response.data as Map<String, dynamic>);
+      }
+      throw ErrorMapper.fromStatusCode(
+        response.statusCode,
+        'Invalid or expired registration code.',
+      );
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
+
+  /// Check username availability in real time
+  Future<bool> checkUsername(String username) async {
+    try {
+      final response = await dio.get(
+        ApiEndpoints.checkUsername,
+        queryParameters: {'username': username.trim().toLowerCase()},
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return (response.data['available'] as bool?) ?? false;
+      }
+      return false;
+    } on DioException catch (_) {
+      return false;
+    }
+  }
+
+  /// Update current user profile (display name, avatar URL, bio, or username)
+  Future<UserModel> updateProfile({
+    String? username,
+    String? displayName,
+    String? bio,
+    String? avatarUrl,
+  }) async {
+    try {
+      final data = <String, dynamic>{};
+      if (username != null) data['username'] = username.trim().toLowerCase();
+      if (displayName != null) data['display_name'] = displayName.trim();
+      if (bio != null) data['bio'] = bio.trim();
+      if (avatarUrl != null) data['avatar_url'] = avatarUrl;
+
+      final response = await dio.patch(
+        ApiEndpoints.myProfile,
+        data: data,
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return UserModel.fromJson(response.data as Map<String, dynamic>);
+      }
+      throw ErrorMapper.fromStatusCode(
+        response.statusCode,
+        'Failed to update profile.',
+      );
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
+
+  /// Register a new account (direct)
   Future<TokenModel?> register(RegisterRequest request) async {
     try {
       final response = await dio.post(

@@ -3,6 +3,7 @@ abstract class RouteNames {
   static const String splash = 'splash';
   static const String login = 'login';
   static const String register = 'register';
+  static const String profileSetup = 'profileSetup';
   static const String onboarding = 'onboarding';
   static const String forgotPassword = 'forgotPassword';
   static const String verifyOtp = 'verifyOtp';

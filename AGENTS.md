@@ -9,6 +9,11 @@ This repository (`client/`) contains the Flutter / Dart mobile client for GenZ M
 - **Networking**: `dio`
 - **Storage**: `flutter_secure_storage`, `shared_preferences`
 
+## Client Navigation & Auth Architecture
+- **Registration Flow**: `RegisterScreen` (`/register`) accepts ONLY Email & Password ➔ Requests OTP ➔ Navigates to `VerifyOtpScreen` (`/verify-otp?flow=signup`) ➔ Upon valid OTP, creates account and transitions to `ProfileSetupScreen` (`/profile-setup`) ➔ User selects avatar style / display name or skips ➔ Transitions to `InterestOnboardingScreen` (`/onboarding`) ➔ Main Shell Feed (`/feed`).
+- **Password Reset Flow**: `ForgotPasswordScreen` (`/forgot-password`) ➔ `VerifyOtpScreen` (`/verify-otp`) ➔ Decision Prompt (Update Password Now vs. Skip to Feed) ➔ `ResetPasswordScreen` (`/reset-password`).
+- **Router Guard**: `GoRouter` prevents state loss, safely allows `/verify-otp`, `/reset-password`, and `/profile-setup` with bypass rules.
+
 ---
 
 ## Active & Available MCP Tools

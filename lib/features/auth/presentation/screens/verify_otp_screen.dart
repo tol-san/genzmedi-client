@@ -18,11 +18,13 @@ import 'package:client/features/auth/data/repositories/auth_repository.dart';
 class VerifyOtpScreen extends ConsumerStatefulWidget {
   final String email;
   final String? initialOtp;
+  final String? flow;
 
   const VerifyOtpScreen({
     super.key,
     required this.email,
     this.initialOtp,
+    this.flow,
   });
 
   @override
@@ -120,18 +122,29 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final tokenModel =
-          await ref.read(authNotifierProvider.notifier).verifyOtp(
-                email: widget.email,
-                otp: otp,
-              );
+      if (widget.flow == 'signup') {
+        await ref.read(authNotifierProvider.notifier).verifySignupOtp(
+              email: widget.email,
+              otp: otp,
+            );
 
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _isVerified = true;
-          _resetToken = tokenModel.accessToken;
-        });
+        if (mounted) {
+          context.goNamed(RouteNames.profileSetup);
+        }
+      } else {
+        final tokenModel =
+            await ref.read(authNotifierProvider.notifier).verifyOtp(
+                  email: widget.email,
+                  otp: otp,
+                );
+
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _isVerified = true;
+            _resetToken = tokenModel.accessToken;
+          });
+        }
       }
     } catch (e) {
       if (!mounted) return;

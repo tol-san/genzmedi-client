@@ -55,20 +55,17 @@ void main() {
   }
 
   group('RegisterScreen Widget Tests', () {
-    testWidgets('Renders all registration fields and submit button', (tester) async {
+    testWidgets('Renders email and password fields and submit button', (tester) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
       expect(find.text('Create Account'), findsNWidgets(2)); // Title and Button
-      expect(find.byKey(const Key('register_username_field')), findsOneWidget);
       expect(find.byKey(const Key('register_email_field')), findsOneWidget);
       expect(find.byKey(const Key('register_password_field')), findsOneWidget);
-      expect(find.byKey(const Key('register_confirm_password_field')), findsOneWidget);
       expect(find.byKey(const Key('register_submit_button')), findsOneWidget);
     });
 
-    testWidgets('Shows error if passwords do not match', (tester) async {
-      // Set test viewport large enough for mobile scroll views
+    testWidgets('Shows error if email is invalid or password is too short', (tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -77,20 +74,12 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(
-        find.byKey(const Key('register_username_field')),
-        'sovandara',
-      );
-      await tester.enterText(
         find.byKey(const Key('register_email_field')),
-        'sovandara@example.com',
+        'invalid-email',
       );
       await tester.enterText(
         find.byKey(const Key('register_password_field')),
-        'password123',
-      );
-      await tester.enterText(
-        find.byKey(const Key('register_confirm_password_field')),
-        'differentpassword',
+        'short',
       );
 
       final submitFinder = find.byKey(const Key('register_submit_button'));
@@ -98,7 +87,8 @@ void main() {
       await tester.tap(submitFinder);
       await tester.pumpAndSettle();
 
-      expect(find.text('Passwords do not match.'), findsOneWidget);
+      expect(find.text('Please enter a valid email address.'), findsOneWidget);
+      expect(find.text('Password must be at least 8 characters long.'), findsOneWidget);
     });
   });
 }

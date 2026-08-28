@@ -19,26 +19,84 @@ class LoginRequest extends Equatable {
   List<Object?> get props => [username, password];
 }
 
-/// Request payload for user registration
+/// Request payload for user registration (legacy / direct)
 class RegisterRequest extends Equatable {
-  final String username;
+  final String? username;
   final String email;
   final String password;
 
   const RegisterRequest({
-    required this.username,
+    this.username,
     required this.email,
     required this.password,
   });
 
   Map<String, dynamic> toJson() => {
-        'username': username,
+        if (username != null) 'username': username,
         'email': email,
         'password': password,
       };
 
   @override
   List<Object?> get props => [username, email, password];
+}
+
+/// Request payload for requesting a signup OTP verification code
+class SignupOtpRequest extends Equatable {
+  final String email;
+  final String password;
+
+  const SignupOtpRequest({
+    required this.email,
+    required this.password,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'email': email,
+        'password': password,
+      };
+
+  @override
+  List<Object?> get props => [email, password];
+}
+
+/// Request payload for verifying signup OTP code
+class SignupVerifyOtpRequest extends Equatable {
+  final String email;
+  final String otp;
+
+  const SignupVerifyOtpRequest({
+    required this.email,
+    required this.otp,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'email': email,
+        'otp': otp,
+      };
+
+  @override
+  List<Object?> get props => [email, otp];
+}
+
+/// Response payload for checking username availability
+class CheckUsernameResponse extends Equatable {
+  final bool available;
+  final String username;
+
+  const CheckUsernameResponse({
+    required this.available,
+    required this.username,
+  });
+
+  factory CheckUsernameResponse.fromJson(Map<String, dynamic> json) =>
+      CheckUsernameResponse(
+        available: json['available'] as bool? ?? false,
+        username: json['username'] as String? ?? '',
+      );
+
+  @override
+  List<Object?> get props => [available, username];
 }
 
 /// Request payload for initiating password reset

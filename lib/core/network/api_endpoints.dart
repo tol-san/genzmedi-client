@@ -22,6 +22,8 @@ abstract class ApiEndpoints {
   // 1. Auth & Session (`/auth`)
   // ─────────────────────────────────────────────────────────────────────────────
   static const String register = '/auth/register';
+  static const String registerRequestOtp = '/auth/register/request-otp';
+  static const String registerVerifyOtp = '/auth/register/verify-otp';
   static const String login = '/auth/login';
   static const String refresh = '/auth/refresh';
   static const String logout = '/auth/logout';
@@ -33,6 +35,7 @@ abstract class ApiEndpoints {
   // ─────────────────────────────────────────────────────────────────────────────
   // 2. Users & Social Graph (`/users`)
   // ─────────────────────────────────────────────────────────────────────────────
+  static const String checkUsername = '/users/check-username';
   static String userProfile(String username) => '/users/$username';
   static String followUser(String userId) => '/users/$userId/follow';
   static String blockUser(String userId) => '/users/$userId/block';

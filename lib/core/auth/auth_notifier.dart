@@ -137,9 +137,97 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  /// Register a new account
+  /// Request a 6-digit verification code to register a new account
+  Future<void> requestSignupOtp({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      await repository.requestSignupOtp(
+        SignupOtpRequest(email: email, password: password),
+      );
+    } on AppException {
+      rethrow;
+    } catch (e) {
+      throw UnknownException(e.toString());
+    }
+  }
+
+  /// Verify signup OTP code, save session tokens, and transition to AuthNeedsOnboarding
+  Future<TokenModel> verifySignupOtp({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      final tokenModel = await repository.verifySignupOtp(
+        SignupVerifyOtpRequest(email: email, otp: otp),
+      );
+
+      await storage.saveTokens(
+        accessToken: tokenModel.accessToken,
+        refreshToken: tokenModel.refreshToken,
+      );
+      await prefs.setHasSession(true);
+
+      UserModel user;
+      try {
+        user = await repository.getMyProfile();
+      } catch (_) {
+        final prefix = email.split('@')[0];
+        user = UserModel(
+          id: prefix,
+          username: prefix,
+          email: email,
+          displayName: prefix,
+        );
+      }
+
+      state = AuthNeedsOnboarding(user);
+      return tokenModel;
+    } on AppException {
+      rethrow;
+    } catch (e) {
+      throw UnknownException(e.toString());
+    }
+  }
+
+  /// Check whether candidate username is available
+  Future<bool> checkUsername(String username) async {
+    return await repository.checkUsername(username);
+  }
+
+  /// Update user profile information (display name, avatar, bio, or username)
+  Future<UserModel> updateProfile({
+    String? username,
+    String? displayName,
+    String? bio,
+    String? avatarUrl,
+  }) async {
+    try {
+      final updatedUser = await repository.updateProfile(
+        username: username,
+        displayName: displayName,
+        bio: bio,
+        avatarUrl: avatarUrl,
+      );
+
+      if (state is AuthAuthenticated) {
+        state = AuthAuthenticated(updatedUser);
+      } else if (state is AuthNeedsOnboarding) {
+        state = AuthNeedsOnboarding(updatedUser);
+      }
+
+      return updatedUser;
+    } on AppException {
+      rethrow;
+    } catch (e) {
+      throw UnknownException(e.toString());
+    }
+  }
+
+  /// Register a new account (direct / legacy)
   Future<void> register({
-    required String username,
+    String? username,
     required String email,
     required String password,
   }) async {
@@ -163,7 +251,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         try {
           user = await repository.getMyProfile();
         } catch (_) {
-          user = UserModel(id: username, username: username, email: email);
+          final uname = username ?? email.split('@')[0];
+          user = UserModel(id: uname, username: uname, email: email);
         }
 
         state = AuthNeedsOnboarding(user);

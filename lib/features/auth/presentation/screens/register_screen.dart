@@ -20,51 +20,33 @@ class RegisterScreen extends ConsumerStatefulWidget {
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
-  String? _usernameError;
   String? _emailError;
   String? _passwordError;
-  String? _confirmPasswordError;
 
   @override
   void dispose() {
-    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
   }
 
   Future<void> _handleRegister() async {
     setState(() {
       _errorMessage = null;
-      _usernameError = null;
       _emailError = null;
       _passwordError = null;
-      _confirmPasswordError = null;
     });
 
-    final username = _usernameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text;
-    final confirmPassword = _confirmPasswordController.text;
 
     bool hasError = false;
 
-    // Field-level validation
-    if (username.isEmpty) {
-      _usernameError = 'Please enter a username.';
-      hasError = true;
-    } else if (username.length < 3) {
-      _usernameError = 'Username must be at least 3 characters long.';
-      hasError = true;
-    }
-
+    // Email validation
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,}$');
     if (email.isEmpty) {
       _emailError = 'Please enter an email address.';
@@ -74,19 +56,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       hasError = true;
     }
 
+    // Password validation
     if (password.isEmpty) {
       _passwordError = 'Please enter a password.';
       hasError = true;
     } else if (password.length < 8) {
       _passwordError = 'Password must be at least 8 characters long.';
-      hasError = true;
-    }
-
-    if (confirmPassword.isEmpty) {
-      _confirmPasswordError = 'Please confirm your password.';
-      hasError = true;
-    } else if (password != confirmPassword) {
-      _confirmPasswordError = 'Passwords do not match.';
       hasError = true;
     }
 
@@ -102,12 +77,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     });
 
     try {
-      await ref.read(authNotifierProvider.notifier).register(
-            username: username,
+      await ref.read(authNotifierProvider.notifier).requestSignupOtp(
             email: email,
             password: password,
           );
-      // If server requires login or directs to onboarding, GoRouter handles redirection
+
+      if (mounted) {
+        context.goNamed(
+          RouteNames.verifyOtp,
+          queryParameters: {
+            'email': email,
+            'flow': 'signup',
+          },
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       final cleanMessage = e is AppException
@@ -121,9 +104,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         _isLoading = false;
         _errorMessage = cleanMessage;
         final msgLower = cleanMessage.toLowerCase();
-        if (msgLower.contains('username')) {
-          _usernameError = cleanMessage;
-        } else if (msgLower.contains('email')) {
+        if (msgLower.contains('email')) {
           _emailError = cleanMessage;
         } else if (msgLower.contains('password')) {
           _passwordError = cleanMessage;
@@ -226,25 +207,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     const SizedBox(height: AppSpacing.space16),
                   ],
 
-                  // Username field
-                  AppTextField(
-                    key: const Key('register_username_field'),
-                    controller: _usernameController,
-                    label: 'Username',
-                    hintText: 'e.g. sovandara',
-                    errorText: _usernameError,
-                    textInputAction: TextInputAction.next,
-                    onChanged: (_) {
-                      if (_usernameError != null || _errorMessage != null) {
-                        setState(() {
-                          _usernameError = null;
-                          _errorMessage = null;
-                        });
-                      }
-                    },
-                  ),
-                  const SizedBox(height: AppSpacing.space16),
-
                   // Email field
                   AppTextField(
                     key: const Key('register_email_field'),
@@ -273,31 +235,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     hintText: 'Minimum 8 characters',
                     errorText: _passwordError,
                     isPassword: true,
-                    textInputAction: TextInputAction.next,
+                    textInputAction: TextInputAction.done,
                     onChanged: (_) {
                       if (_passwordError != null || _errorMessage != null) {
                         setState(() {
                           _passwordError = null;
-                          _errorMessage = null;
-                        });
-                      }
-                    },
-                  ),
-                  const SizedBox(height: AppSpacing.space16),
-
-                  // Confirm Password field
-                  AppTextField(
-                    key: const Key('register_confirm_password_field'),
-                    controller: _confirmPasswordController,
-                    label: 'Confirm Password',
-                    hintText: 'Re-enter your password',
-                    errorText: _confirmPasswordError,
-                    isPassword: true,
-                    textInputAction: TextInputAction.done,
-                    onChanged: (_) {
-                      if (_confirmPasswordError != null || _errorMessage != null) {
-                        setState(() {
-                          _confirmPasswordError = null;
                           _errorMessage = null;
                         });
                       }
