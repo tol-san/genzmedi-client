@@ -1,26 +1,7 @@
-# AGENTS.md - Flutter Client Instructions & MCP Tools Guide
+# Flutter Client Development & Testing Guidelines
 
-This repository (`client/`) contains the Flutter / Dart mobile client for GenZ Media.
-
-## Technology Stack
-- **Framework**: Flutter 3.x / Dart 3.13+
-- **State Management**: `flutter_riverpod`
-- **Routing**: `go_router`
-- **Networking**: `dio`
-- **Storage**: `flutter_secure_storage`, `shared_preferences`
-
----
-
-## Active & Available MCP Tools
-
-1. **Dart MCP Server (`dart-mcp-server`)**:
-   - `analyze_files`: Run static analysis on Dart code.
-   - `pub_dev_search`: Search pub.dev for packages and dependencies.
-   - `widget_inspector`: Inspect Flutter widget trees.
-   - `flutter_driver_command` & testing utilities.
-
-2. **Context7 MCP (`context7`)**:
-   - Query latest official documentation and code snippets for Flutter, Riverpod, GoRouter, Dio, and pub.dev packages.
-
-3. **GitHub MCP (`github`)**:
-   - Manage pull requests, issues, commits, and code review for the client repository.
+## Guidelines for Agents
+- **Implement Tests on Changes**: Always implement relevant tests (Unit, Widget, or Integration test where appropriate) after implementing a new feature or making changes.
+- **Pragmatic Testing**: Focus on critical business logic, state transitions, API error handling, and core UI user flows. Exhaustive/redundant tests are not required.
+- **Verification**: Run `flutter test` and `flutter analyze` to ensure 0 errors/warnings.
+- **Commit & Push**: After verification passes, commit and push changes with conventional commit messages.
