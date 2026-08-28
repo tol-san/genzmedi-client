@@ -9,6 +9,7 @@ import 'package:client/features/auth/presentation/screens/forgot_password_screen
 import 'package:client/features/auth/presentation/screens/interest_onboarding_screen.dart';
 import 'package:client/features/auth/presentation/screens/login_screen.dart';
 import 'package:client/features/auth/presentation/screens/register_screen.dart';
+import 'package:client/features/auth/presentation/screens/splash_screen.dart';
 import 'package:client/features/feeds/presentation/screens/home_feed_screen.dart';
 import 'package:client/features/feeds/presentation/screens/shorts_feed_screen.dart';
 import 'package:client/features/posts/presentation/screens/create_hub_screen.dart';
@@ -30,37 +31,38 @@ final routerProvider = Provider<GoRouter>((ref) {
   ref.onDispose(listenable.dispose);
 
   return GoRouter(
-    initialLocation: '/feed',
+    initialLocation: '/splash',
     debugLogDiagnostics: false,
-    // KEY FIX: GoRouter re-calls redirect every time listenable fires,
-    // which now happens on every auth state change.
     refreshListenable: listenable,
     redirect: (BuildContext context, GoRouterState state) {
-      // Always read the CURRENT auth state (not a stale closure copy).
       final authState = ref.read(authNotifierProvider);
+      final matched = state.matchedLocation;
 
       final isAuthLoading =
           authState is AuthInitial || authState is AuthLoading;
-      if (isAuthLoading) return null;
 
-      final matched = state.matchedLocation;
+      // 1. While loading session, keep on splash screen
+      if (isAuthLoading) {
+        return matched == '/splash' ? null : '/splash';
+      }
+
       final isPublicAuthRoute = matched == '/login' ||
           matched == '/register' ||
           matched == '/forgot-password';
 
-      // 1. User needs interest onboarding
+      // 2. User needs interest onboarding
       if (authState is AuthNeedsOnboarding) {
         return matched == '/onboarding' ? null : '/onboarding';
       }
 
-      // 2. Unauthenticated user attempting to access protected routes
+      // 3. Unauthenticated user attempting to access protected routes
       if (authState is AuthUnauthenticated) {
         return isPublicAuthRoute ? null : '/login';
       }
 
-      // 3. Authenticated user attempting to access auth or onboarding pages
+      // 4. Authenticated user attempting to access auth, onboarding, or splash
       if (authState is AuthAuthenticated) {
-        if (isPublicAuthRoute || matched == '/onboarding') {
+        if (isPublicAuthRoute || matched == '/onboarding' || matched == '/splash') {
           return '/feed';
         }
       }
@@ -68,6 +70,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      // Splash Route
+      GoRoute(
+        path: '/splash',
+        name: RouteNames.splash,
+        builder: (context, state) => const SplashScreen(),
+      ),
+
       // Auth & Onboarding Routes
       GoRoute(
         path: '/login',
