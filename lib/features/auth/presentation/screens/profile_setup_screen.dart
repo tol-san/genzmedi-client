@@ -26,14 +26,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   String? _usernameStatus;
   bool _isCheckingUsername = false;
 
-  // Preset avatar colors for instant personalization
-  static const List<List<Color>> _avatarGradients = [
-    [AppColors.primaryCrimson, AppColors.primaryPressed],
-    [AppColors.midnightNavy, AppColors.darkSurface],
-    [Color(0xFF8B5CF6), Color(0xFF6D28D9)], // Purple
-    [Color(0xFF06B6D4), Color(0xFF0891B2)], // Cyan
-    [Color(0xFF10B981), Color(0xFF059669)], // Emerald
-    [Color(0xFFF59E0B), Color(0xFFD97706)], // Amber
+  // DiceBear avatar styles catalog
+  static const List<Map<String, String>> _dicebearStyles = [
+    {'name': 'Critters', 'style': 'critters'},
+    {'name': 'Bottts', 'style': 'bottts'},
+    {'name': 'Lorelei', 'style': 'lorelei'},
+    {'name': 'Fun Emoji', 'style': 'fun-emoji'},
+    {'name': 'Adventurer', 'style': 'adventurer'},
+    {'name': 'Personas', 'style': 'personas'},
   ];
 
   @override
@@ -56,6 +56,16 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     _displayNameController.dispose();
     _usernameController.dispose();
     super.dispose();
+  }
+
+  String _getDicebearUrl(int index) {
+    final style = _dicebearStyles[index]['style']!;
+    final seed = _usernameController.text.trim().isNotEmpty
+        ? _usernameController.text.trim().toLowerCase()
+        : (_displayNameController.text.trim().isNotEmpty
+            ? _displayNameController.text.trim().toLowerCase()
+            : 'GenZ');
+    return 'https://api.dicebear.com/7.x/$style/png?seed=$seed';
   }
 
   Future<void> _checkUsernameAvailability(String username) async {
@@ -85,6 +95,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   Future<void> _handleSave() async {
     final displayName = _displayNameController.text.trim();
     final username = _usernameController.text.trim().toLowerCase();
+    final avatarUrl = _getDicebearUrl(_selectedPresetIndex);
 
     setState(() {
       _isLoading = true;
@@ -95,6 +106,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       await ref.read(authNotifierProvider.notifier).updateProfile(
             displayName: displayName.isNotEmpty ? displayName : null,
             username: username.isNotEmpty ? username : null,
+            avatarUrl: avatarUrl,
           );
 
       if (mounted) {
@@ -113,16 +125,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     }
   }
 
-  void _handleSkip() {
-    context.goNamed(RouteNames.onboarding);
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final initialLetter = _displayNameController.text.isNotEmpty
-        ? _displayNameController.text.trim()[0].toUpperCase()
-        : 'G';
+    final currentAvatarUrl = _getDicebearUrl(_selectedPresetIndex);
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.midnightNavy : AppColors.lightCanvas,
@@ -157,41 +163,54 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 ),
                 const SizedBox(height: AppSpacing.space24),
 
-                // Main Avatar Preview
+                // Main DiceBear Avatar Preview
                 Center(
                   child: Container(
                     width: 96,
                     height: 96,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: _avatarGradients[_selectedPresetIndex],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                      color: isDark ? AppColors.darkSurface : AppColors.lightSurfaceElevated,
+                      border: Border.all(
+                        color: AppColors.primaryCrimson.withValues(alpha: 0.4),
+                        width: 2,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: _avatarGradients[_selectedPresetIndex][0].withValues(alpha: 0.35),
+                          color: AppColors.primaryCrimson.withValues(alpha: 0.2),
                           blurRadius: 16,
                           offset: const Offset(0, 6),
                         ),
                       ],
                     ),
-                    child: Center(
-                      child: Text(
-                        initialLetter,
-                        style: const TextStyle(
-                          fontSize: 38,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
+                    child: ClipOval(
+                      child: Image.network(
+                        currentAvatarUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Center(
+                          child: Icon(
+                            Icons.person_rounded,
+                            size: 48,
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                          ),
                         ),
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return const Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.space16),
 
-                // Avatar Presets Row
+                // Avatar Presets Title
                 Text(
                   'Choose Avatar Style',
                   textAlign: TextAlign.center,
@@ -201,34 +220,30 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.space12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(_avatarGradients.length, (index) {
+
+                // DiceBear Avatar Styles Selector Grid / Chips
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: List.generate(_dicebearStyles.length, (index) {
                     final isSelected = _selectedPresetIndex == index;
-                    return GestureDetector(
-                      onTap: () => setState(() => _selectedPresetIndex = index),
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 6),
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: _avatarGradients[index],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          border: isSelected
-                              ? Border.all(
-                                  color: isDark ? Colors.white : AppColors.midnightNavy,
-                                  width: 2.5,
-                                )
-                              : null,
-                        ),
-                        child: isSelected
-                            ? const Icon(Icons.check_rounded, color: Colors.white, size: 18)
-                            : null,
+                    final name = _dicebearStyles[index]['name']!;
+                    return FilterChip(
+                      selected: isSelected,
+                      label: Text(name),
+                      labelStyle: AppTypography.caption.copyWith(
+                        color: isSelected
+                            ? Colors.white
+                            : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
                       ),
+                      selectedColor: AppColors.primaryCrimson,
+                      backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurfaceElevated,
+                      checkmarkColor: Colors.white,
+                      onSelected: (_) {
+                        setState(() => _selectedPresetIndex = index);
+                      },
                     );
                   }),
                 ),
@@ -270,6 +285,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   hintText: 'e.g. alex_rivera',
                   textInputAction: TextInputAction.done,
                   onChanged: (val) {
+                    setState(() {});
                     if (val.trim().length >= 3) {
                       _checkUsernameAvailability(val);
                     }
@@ -289,21 +305,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 ],
                 const SizedBox(height: AppSpacing.space24),
 
-                // Save & Continue Button
+                // Continue Button
                 AppButton(
                   key: const Key('profile_setup_continue_button'),
-                  text: 'Save & Continue',
+                  text: 'Continue',
                   isLoading: _isLoading,
                   onPressed: _isLoading ? null : _handleSave,
-                ),
-                const SizedBox(height: AppSpacing.space12),
-
-                // Skip for Now Button
-                AppButton(
-                  key: const Key('profile_setup_skip_button'),
-                  text: 'Skip for Now',
-                  variant: AppButtonVariant.secondary,
-                  onPressed: _handleSkip,
                 ),
               ],
             ),

@@ -80,10 +80,12 @@ void main() {
 
       expect(find.text('Set Up Your Profile'), findsOneWidget);
       expect(find.text('Choose Avatar Style'), findsOneWidget);
+      expect(find.text('Critters'), findsOneWidget);
+      expect(find.text('Bottts'), findsOneWidget);
       expect(find.byKey(const Key('profile_setup_display_name_field')), findsOneWidget);
       expect(find.byKey(const Key('profile_setup_username_field')), findsOneWidget);
       expect(find.byKey(const Key('profile_setup_continue_button')), findsOneWidget);
-      expect(find.byKey(const Key('profile_setup_skip_button')), findsOneWidget);
+      expect(find.byKey(const Key('profile_setup_skip_button')), findsNothing);
     });
 
     testWidgets('Allows selecting avatar preset and editing display name', (tester) async {
