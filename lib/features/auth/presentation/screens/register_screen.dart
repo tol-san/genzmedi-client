@@ -44,9 +44,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return;
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       setState(() {
-        _errorMessage = 'Password must be at least 6 characters long.';
+        _errorMessage = 'Password must be at least 8 characters long.';
       });
       return;
     }
@@ -140,14 +140,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 AppTextField(
                   controller: _usernameController,
                   label: 'Username',
-                  hintText: 'e.g. alex_rivera',
+                  hintText: 'e.g. sovandara',
                   textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: AppSpacing.space16),
                 AppTextField(
                   controller: _emailController,
                   label: 'Email',
-                  hintText: 'e.g. alex@example.com',
+                  hintText: 'e.g. sovandara@example.com',
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
                 ),
@@ -155,7 +155,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 AppTextField(
                   controller: _passwordController,
                   label: 'Password',
-                  hintText: 'Minimum 6 characters',
+                  hintText: 'Minimum 8 characters',
                   isPassword: true,
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) => _handleRegister(),
