@@ -328,7 +328,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                             : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
                         fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
                       ),
-                      selectedColor: AppColors.primaryCrimson,
+                      selectedColor: isDark ? AppColors.darkSurfaceElevated : AppColors.midnightNavy,
                       backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurfaceElevated,
                       checkmarkColor: Colors.white,
                       onSelected: (_) {

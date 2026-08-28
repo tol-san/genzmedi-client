@@ -228,15 +228,17 @@ class _InterestOnboardingScreenState
                                 decoration: BoxDecoration(
                                   color: isSelected
                                       ? (isDark
-                                          ? AppColors.primaryCrimson
-                                          : AppColors.primaryCrimson)
+                                          ? AppColors.darkSurfaceElevated
+                                          : AppColors.midnightNavy)
                                       : (isDark
                                           ? AppColors.darkSurface
                                           : AppColors.lightSurface),
                                   borderRadius: AppSpacing.roundedFull,
                                   border: Border.all(
                                     color: isSelected
-                                        ? AppColors.primaryCrimson
+                                        ? (isDark
+                                            ? AppColors.primaryCrimson
+                                            : AppColors.midnightNavy)
                                         : (isDark
                                             ? AppColors.navyBorder
                                             : AppColors.lightBorder),
@@ -245,9 +247,11 @@ class _InterestOnboardingScreenState
                                   boxShadow: isSelected
                                       ? [
                                           BoxShadow(
-                                            color: AppColors.primaryCrimson
-                                                .withValues(alpha: 0.3),
-                                            blurRadius: 8,
+                                            color: (isDark
+                                                    ? AppColors.primaryCrimson
+                                                    : AppColors.midnightNavy)
+                                                .withValues(alpha: 0.15),
+                                            blurRadius: 6,
                                             offset: const Offset(0, 2),
                                           )
                                         ]
