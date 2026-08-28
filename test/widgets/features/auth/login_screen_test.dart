@@ -69,7 +69,7 @@ void main() {
       expect(find.text('Create Account'), findsOneWidget);
     });
 
-    testWidgets('Displays error labels and banner when submitted with empty fields', (tester) async {
+    testWidgets('Displays error banner in one place when submitted with empty fields', (tester) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -80,11 +80,25 @@ void main() {
         find.text('Please enter both your username/email and password.'),
         findsOneWidget,
       );
-      expect(find.text('Please enter your username or email'), findsOneWidget);
-      expect(find.text('Please enter your password'), findsOneWidget);
+      expect(find.byKey(const Key('login_error_banner')), findsOneWidget);
     });
 
-    testWidgets('Displays error labels on incorrect username or password failure', (tester) async {
+    testWidgets('Displays error when only password is empty', (tester) async {
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('login_username_field')),
+        'sovandara',
+      );
+      await tester.tap(find.byKey(const Key('login_submit_button')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Please enter your password.'), findsOneWidget);
+      expect(find.byKey(const Key('login_error_banner')), findsOneWidget);
+    });
+
+    testWidgets('Displays error in one place on incorrect credentials from server', (tester) async {
       when(() => mockRepository.login(any())).thenThrow(
         const UnauthorizedException('Invalid email/username or password.'),
       );
@@ -105,65 +119,17 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Invalid email/username or password.'), findsOneWidget);
-      expect(find.text('Invalid username or email'), findsOneWidget);
-      expect(find.text('Invalid password'), findsOneWidget);
+      expect(find.byKey(const Key('login_error_banner')), findsOneWidget);
     });
 
-    testWidgets('Displays error label when username is too short or invalid email', (tester) async {
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
-
-      // Username too short (< 3 chars)
-      await tester.enterText(
-        find.byKey(const Key('login_username_field')),
-        'ab',
-      );
-      await tester.enterText(
-        find.byKey(const Key('login_password_field')),
-        'password123',
-      );
-      await tester.tap(find.byKey(const Key('login_submit_button')));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Username must be at least 3 characters'), findsOneWidget);
-
-      // Invalid email format
-      await tester.enterText(
-        find.byKey(const Key('login_username_field')),
-        'notanemail@',
-      );
-      await tester.tap(find.byKey(const Key('login_submit_button')));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Please enter a valid email address'), findsOneWidget);
-    });
-
-    testWidgets('Displays error label when password is too short (< 6 chars)', (tester) async {
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
-
-      await tester.enterText(
-        find.byKey(const Key('login_username_field')),
-        'sovandara',
-      );
-      await tester.enterText(
-        find.byKey(const Key('login_password_field')),
-        '123',
-      );
-      await tester.tap(find.byKey(const Key('login_submit_button')));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Password must be at least 6 characters'), findsOneWidget);
-    });
-
-    testWidgets('Clears error label when typing in the field', (tester) async {
+    testWidgets('Clears error banner when typing in the field', (tester) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const Key('login_submit_button')));
       await tester.pumpAndSettle();
 
-      expect(find.text('Please enter your username or email'), findsOneWidget);
+      expect(find.byKey(const Key('login_error_banner')), findsOneWidget);
 
       await tester.enterText(
         find.byKey(const Key('login_username_field')),
@@ -171,7 +137,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Please enter your username or email'), findsNothing);
+      expect(find.byKey(const Key('login_error_banner')), findsNothing);
     });
   });
 }

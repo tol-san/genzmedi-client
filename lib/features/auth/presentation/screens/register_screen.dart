@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:client/app/router/route_names.dart';
 import 'package:client/core/auth/auth_notifier.dart';
-import 'package:client/core/auth/auth_state.dart';
 import 'package:client/core/errors/app_exception.dart';
 import 'package:client/core/theme/app_colors.dart';
 import 'package:client/core/theme/app_spacing.dart';
@@ -25,6 +24,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  bool _isLoading = false;
   String? _errorMessage;
   String? _usernameError;
   String? _emailError;
@@ -97,6 +97,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return;
     }
 
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
       await ref.read(authNotifierProvider.notifier).register(
             username: username,
@@ -114,6 +118,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               .replaceFirst(RegExp(r'\s*\(statusCode:\s*\d+\)'), '');
 
       setState(() {
+        _isLoading = false;
         _errorMessage = cleanMessage;
         final msgLower = cleanMessage.toLowerCase();
         if (msgLower.contains('username')) {
@@ -124,14 +129,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           _passwordError = cleanMessage;
         }
       });
+    } finally {
+      if (mounted && _isLoading) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final authState = ref.watch(authNotifierProvider);
-    final isLoading = authState is AuthLoading;
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.midnightNavy : AppColors.lightCanvas,
@@ -301,8 +310,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   AppButton(
                     key: const Key('register_submit_button'),
                     text: 'Create Account',
-                    isLoading: isLoading,
-                    onPressed: isLoading ? null : _handleRegister,
+                    isLoading: _isLoading,
+                    onPressed: _isLoading ? null : _handleRegister,
                   ),
                   const SizedBox(height: AppSpacing.space24),
 

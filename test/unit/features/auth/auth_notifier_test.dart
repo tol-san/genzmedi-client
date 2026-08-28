@@ -102,7 +102,7 @@ void main() {
       verify(() => mockStorage.saveTokens(accessToken: 'access_123', refreshToken: 'refresh_456')).called(1);
     });
 
-    test('login sets AuthUnauthenticated and rethrows on failure', () async {
+    test('login rethrows on failure without transitioning to AuthAuthenticated', () async {
       when(() => mockRepository.login(any())).thenThrow(const UnauthorizedException('Invalid credentials'));
 
       final notifier = AuthNotifier(
@@ -111,10 +111,11 @@ void main() {
         prefs: mockPrefs,
       );
 
-      expect(
+      await expectLater(
         () => notifier.login(username: 'sovandara', password: 'wrongpassword'),
         throwsA(isA<UnauthorizedException>()),
       );
+      expect(notifier.state, isNot(isA<AuthAuthenticated>()));
     });
 
     test('logout calls repository, clears storage, and transitions to AuthUnauthenticated', () async {

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:client/app/router/route_names.dart';
 import 'package:client/core/auth/auth_notifier.dart';
-import 'package:client/core/auth/auth_state.dart';
 import 'package:client/core/errors/app_exception.dart';
 import 'package:client/core/theme/app_colors.dart';
 import 'package:client/core/theme/app_spacing.dart';
@@ -23,9 +22,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isLoading = false;
   String? _errorMessage;
-  String? _usernameError;
-  String? _passwordError;
 
   @override
   void dispose() {
@@ -38,53 +36,42 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     // Clear previous error
     setState(() {
       _errorMessage = null;
-      _usernameError = null;
-      _passwordError = null;
     });
 
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
 
-    bool hasValidationError = false;
-    if (username.isEmpty) {
-      _usernameError = 'Please enter your username or email';
-      hasValidationError = true;
-    } else if (username.contains('@')) {
-      final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-      if (!emailRegex.hasMatch(username)) {
-        _usernameError = 'Please enter a valid email address';
-        hasValidationError = true;
-      }
-    } else if (username.length < 3) {
-      _usernameError = 'Username must be at least 3 characters';
-      hasValidationError = true;
-    }
-
-    if (password.isEmpty) {
-      _passwordError = 'Please enter your password';
-      hasValidationError = true;
-    } else if (password.length < 6) {
-      _passwordError = 'Password must be at least 6 characters';
-      hasValidationError = true;
-    }
-
-    if (hasValidationError) {
+    if (username.isEmpty && password.isEmpty) {
       setState(() {
-        if (username.isEmpty && password.isEmpty) {
-          _errorMessage = 'Please enter both your username/email and password.';
-        } else {
-          _errorMessage = 'Please fix the errors above.';
-        }
+        _errorMessage = 'Please enter both your username/email and password.';
       });
       return;
     }
+
+    if (username.isEmpty) {
+      setState(() {
+        _errorMessage = 'Please enter your username or email.';
+      });
+      return;
+    }
+
+    if (password.isEmpty) {
+      setState(() {
+        _errorMessage = 'Please enter your password.';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
 
     try {
       await ref.read(authNotifierProvider.notifier).login(
             username: username,
             password: password,
           );
-      // Navigation is automatically handled by GoRouter redirect
+      // Upon success, GoRouter redirect automatically navigates to /feed
     } catch (e) {
       if (!mounted) return;
       final String cleanMessage = e is AppException
@@ -95,18 +82,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               .replaceFirst(RegExp(r'\s*\(statusCode:\s*\d+\)'), '');
 
       setState(() {
+        _isLoading = false;
         _errorMessage = cleanMessage;
-        _usernameError = 'Invalid username or email';
-        _passwordError = 'Invalid password';
       });
+    } finally {
+      if (mounted && _isLoading) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final authState = ref.watch(authNotifierProvider);
-    final isLoading = authState is AuthLoading;
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.midnightNavy : AppColors.lightCanvas,
@@ -140,7 +130,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: AppSpacing.space48),
 
-                  // Error Message Banner
+                  // Error Message Banner - Single place for all errors
                   if (_errorMessage != null) ...[
                     Container(
                       key: const Key('login_error_banner'),
@@ -180,12 +170,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     controller: _usernameController,
                     label: 'Username or Email',
                     hintText: 'Enter your username or email',
-                    errorText: _usernameError,
                     textInputAction: TextInputAction.next,
                     onChanged: (_) {
-                      if (_usernameError != null || _errorMessage != null) {
+                      if (_errorMessage != null) {
                         setState(() {
-                          _usernameError = null;
                           _errorMessage = null;
                         });
                       }
@@ -199,13 +187,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     controller: _passwordController,
                     label: 'Password',
                     hintText: 'Enter your password',
-                    errorText: _passwordError,
                     isPassword: true,
                     textInputAction: TextInputAction.done,
                     onChanged: (_) {
-                      if (_passwordError != null || _errorMessage != null) {
+                      if (_errorMessage != null) {
                         setState(() {
-                          _passwordError = null;
                           _errorMessage = null;
                         });
                       }
@@ -236,8 +222,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   AppButton(
                     key: const Key('login_submit_button'),
                     text: 'Sign In',
-                    isLoading: isLoading,
-                    onPressed: isLoading ? null : _handleLogin,
+                    isLoading: _isLoading,
+                    onPressed: _isLoading ? null : _handleLogin,
                   ),
                   const SizedBox(height: AppSpacing.space24),
 

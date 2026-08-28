@@ -79,7 +79,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required String username,
     required String password,
   }) async {
-    state = const AuthLoading();
     try {
       final tokenModel = await repository.login(
         LoginRequest(username: username, password: password),
@@ -98,13 +97,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
       } else {
         state = AuthAuthenticated(user);
       }
-    } on AppException catch (e) {
-      state = AuthUnauthenticated(message: e.message);
+    } on AppException {
       rethrow;
     } catch (e) {
-      final ex = UnknownException(e.toString());
-      state = AuthUnauthenticated(message: ex.message);
-      throw ex;
+      throw UnknownException(e.toString());
     }
   }
 
@@ -114,7 +110,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required String email,
     required String password,
   }) async {
-    state = const AuthLoading();
     try {
       final tokenModel = await repository.register(
         RegisterRequest(
@@ -144,13 +139,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
           message: 'Account created successfully! Please sign in.',
         );
       }
-    } on AppException catch (e) {
-      state = AuthUnauthenticated(message: e.message);
+    } on AppException {
       rethrow;
     } catch (e) {
-      final ex = UnknownException(e.toString());
-      state = AuthUnauthenticated(message: ex.message);
-      throw ex;
+      throw UnknownException(e.toString());
     }
   }
 
