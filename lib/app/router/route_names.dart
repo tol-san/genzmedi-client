@@ -18,6 +18,11 @@ abstract class RouteNames {
   static const String createPost = 'createPost';
   static const String postDetail = 'postDetail';
 
+  // Community Routes
+  static const String communityList = 'communityList';
+  static const String communityDetail = 'communityDetail';
+  static const String createCommunity = 'createCommunity';
+
   // Shell Tabs
   static const String homeFeed = 'homeFeed';
   static const String shortsFeed = 'shortsFeed';

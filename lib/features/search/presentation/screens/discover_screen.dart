@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:client/app/router/route_names.dart';
 import 'package:client/core/theme/app_colors.dart';
 import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/theme/app_typography.dart';
@@ -65,7 +67,9 @@ class DiscoverScreen extends StatelessWidget {
                   ),
                 ),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    context.pushNamed(RouteNames.communityList);
+                  },
                   child: Text(
                     'See all',
                     style: AppTypography.bodySmall.copyWith(

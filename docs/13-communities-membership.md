@@ -1,109 +1,42 @@
 # 13 — Communities & Membership
 
-## Community types
+## Status
+- **Client Implementation**: Complete (`CommunityListScreen`, `CommunityDetailScreen`, `CreateCommunityScreen`, `CommunityCardWidget`, `CommunityRepository`, `CommunityListNotifier`, `CommunityDetailNotifier`, `CreateCommunityNotifier`).
+- **Backend Endpoints**:
+  - `POST /api/v1/communities`
+  - `GET /api/v1/communities`
+  - `GET /api/v1/communities/me/joined`
+  - `GET /api/v1/communities/{community_id}`
+  - `PATCH /api/v1/communities/{community_id}`
+  - `DELETE /api/v1/communities/{community_id}`
+  - `POST /api/v1/communities/{community_id}/cover`
+  - `POST /api/v1/communities/{community_id}/join`
+  - `DELETE /api/v1/communities/{community_id}/leave`
+  - `GET /api/v1/communities/{community_id}/members`
+  - `DELETE /api/v1/communities/{community_id}/members/{user_id}`
+  - `GET /api/v1/communities/{community_id}/join-requests`
+  - `POST /api/v1/communities/{community_id}/join-requests/{request_id}/approve`
+  - `POST /api/v1/communities/{community_id}/join-requests/{request_id}/reject`
 
-### Public
-Join immediately.
+---
 
-### Private
-Join request → owner approval.
+## Community Types & Access Control
 
-## Roles
+### 1. Public Communities
+- Anyone can discover, view, and tap **Join** to become an active member immediately.
+- Once joined, members can publish posts directly to the community feed.
 
-### Owner
-Can:
-- manage community info;
-- cover;
-- join requests;
-- members;
-- remove members;
-- moderate community posts/chat messages;
-- start/end Live Rooms.
+### 2. Private Communities
+- Tapping **Request to Join** submits a membership request with `status: pending`.
+- **Owner Controls**: The community owner accesses a dedicated **Requests** tab on `CommunityDetailScreen` to **Approve** or **Reject** pending users.
+- Approved users automatically transition to active members.
 
-### Member
-Can:
-- view/create community content;
-- participate in community group chat.
-
-## Community Detail
-
-```text
-Cover
-
-Community Name
-Public / Private
-Member count
-Interests
-Description
-
-[ Join / Requested / Joined ]
-[ Manage ] owner only
-
-Posts | About | Members
-
-[ Group Chat ]
-[ Live Room ] when applicable
-```
-
-## Membership states
-
-```text
-Join
-Joining…
-Requested
-Joined
-Owner
-```
-
-## Public join flow
-
-```text
-Join
- ↓
-Submitting
- ├─ success → Joined
- └─ error → restore Join + retry
-```
-
-## Private join flow
-
-```text
-Request to Join
- ↓
-Submitting
- ├─ success → Requested
- └─ error → restore
-```
-
-## Leave
-
-Use confirmation if leaving can interrupt chat/live access.
-
-Leaving should:
-- refresh membership;
-- remove community-only compose permission;
-- close chat if connected;
-- update accessible UI.
-
-## Owner management
-
-Screens/panels:
-- Edit Community
-- Members
-- Join Requests
-- Community Reports
-- moderation actions
-
-## Member removal
-
-Owner removes member via backend.
-After success:
-- remove row;
-- reconcile count;
-- chat access termination is backend-driven.
-
-## Posting
-
-Only members can publish to community.
-
-Destination selector must use backend-confirmed membership, not guessed local state.
+### 3. Roles & Management
+- **Owner**:
+  - Identified by the Crimson Owner Shield badge.
+  - Can kick members via the **Members** tab.
+  - Can review and approve/reject join requests.
+  - Can upload custom cover banners via `POST /communities/{id}/cover`.
+- **Member**:
+  - Can view community content and participate in discussions.
+  - Can leave anytime with a confirmation dialog.
