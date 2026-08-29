@@ -8,7 +8,7 @@ import 'package:client/core/auth/user_model.dart';
 import 'package:client/core/storage/preferences_service.dart';
 import 'package:client/core/storage/secure_storage_service.dart';
 import 'package:client/features/auth/data/repositories/auth_repository.dart';
-
+import 'package:client/features/feeds/presentation/screens/shorts_feed_screen.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/profiles/data/repositories/profile_repository.dart';
 
@@ -78,7 +78,7 @@ void main() {
       // 2. Switch to Shorts
       await tester.tap(find.text('Shorts'));
       await tester.pumpAndSettle();
-      expect(find.text('Shorts Video Feed'), findsOneWidget);
+      expect(find.byType(ShortsFeedScreen), findsOneWidget);
 
       // 3. Switch to Discover
       await tester.tap(find.text('Discover'));

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:client/app/router/route_names.dart';
 import 'package:client/core/theme/app_colors.dart';
 import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/theme/app_typography.dart';
@@ -39,8 +41,9 @@ class CreateHubScreen extends StatelessWidget {
               subtitle: 'Upload vertical short video for the Shorts feed',
               badge: 'Popular',
               onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Video Composer (Phase 1)')),
+                context.pushNamed(
+                  RouteNames.createPost,
+                  queryParameters: {'type': 'video'},
                 );
               },
             ),
@@ -51,8 +54,9 @@ class CreateHubScreen extends StatelessWidget {
               title: 'Photo Carousel',
               subtitle: 'Share up to 10 images with tags and description',
               onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Image Carousel Composer (Phase 1)')),
+                context.pushNamed(
+                  RouteNames.createPost,
+                  queryParameters: {'type': 'image'},
                 );
               },
             ),
@@ -63,8 +67,9 @@ class CreateHubScreen extends StatelessWidget {
               title: 'Discussion / Thought',
               subtitle: 'Start a conversation with a formatted text post',
               onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Text Post Composer (Phase 1)')),
+                context.pushNamed(
+                  RouteNames.createPost,
+                  queryParameters: {'type': 'text'},
                 );
               },
             ),

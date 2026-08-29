@@ -1,67 +1,34 @@
 # 09 — Home Feed
 
-## Backend definition
+## Status
+- **Client Implementation**: Complete (`HomeFeedScreen`, `HomeFeedNotifier`, `HomeFeedState`, `PostCardWidget`).
+- **Backend Endpoint**: `GET /api/v1/feeds/home?limit=20&offset=0`.
 
-Home includes posts from:
-- followed users;
-- joined communities;
-- interest matches;
+---
 
-ranked by recency and relevance.
+## Architecture & Data Flow
 
-Endpoint:
-`GET /api/v1/feeds/home`
+### 1. Endpoint & Service
+- **Endpoint**: `GET /api/v1/feeds/home`
+- **Response**: `PaginatedPostsResponse(items: List[PostModel], total: int, limit: int, offset: int)`
+- **Feed Composition**:
+  - Followed user posts
+  - Joined community posts
+  - Interest match recommendations
 
-## UI character
+### 2. Riverpod State Management
+- `homeFeedNotifierProvider`: `StateNotifier<HomeFeedState>`
+- **Operations**:
+  - `loadInitial()`: Loads first page (`limit=20, offset=0`).
+  - `refresh()`: Pull-to-refresh reload.
+  - `loadMore()`: Infinite scroll listener trigger when approaching bottom.
+  - `toggleLike(postId)`: Optimistic like mutation with automatic rollback on network failure.
+  - `toggleSave(postId)`: Optimistic bookmark mutation with rollback.
+  - `sharePost(postId)`: Increments share counter and copies link to clipboard.
 
-Home should feel like a clean social feed, not a second TikTok screen.
-
-## Post hierarchy
-
-```text
-Avatar + name + username
-Community identity if applicable
-Timestamp / supported context
-
-Text / title / caption
-Media
-
-Like · Comment · Save · Share
-Counts
-```
-
-## Recommendation context
-
-Do not fabricate explanation text such as:
-
-> Because you like Technology
-
-unless backend response supplies it.
-
-## Short-video posts in Home
-
-Use a portrait preview/player treatment without turning the whole Home feed into autoplay full-screen video.
-
-Tapping may open the corresponding short in Shorts if the app can preserve a supported item context.
-
-## Feed state
-
-Required:
-- initial skeleton;
-- success;
-- empty;
-- transient error;
-- refresh;
-- pagination.
-
-## Empty state
-
-Suggested:
-
-> Your feed is just getting started. Follow people or join communities.
-
-## Interaction updates
-
-Like/save/follow/join updates should reconcile with backend response.
-
-Optimistic mutation is allowed only when rollback behavior is reliable.
+### 3. Post Card Component (`PostCardWidget`)
+- Author avatar, display name, username, relative timestamp.
+- Post title and text body.
+- Multi-image swipeable carousel with page indicator dots, or video thumbnail with play trigger.
+- Interactive engagement bar with Like (Crimson), Comment, Save (Mint), and Share.
+- Tapping author navigates to `PublicProfileScreen`.

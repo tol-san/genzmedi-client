@@ -14,6 +14,10 @@ abstract class RouteNames {
   static const String publicProfile = 'publicProfile';
   static const String followList = 'followList';
 
+  // Post Routes
+  static const String createPost = 'createPost';
+  static const String postDetail = 'postDetail';
+
   // Shell Tabs
   static const String homeFeed = 'homeFeed';
   static const String shortsFeed = 'shortsFeed';

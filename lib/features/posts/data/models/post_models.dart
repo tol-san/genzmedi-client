@@ -221,3 +221,84 @@ class PostModel extends Equatable {
         createdAt,
       ];
 }
+
+/// Response returned from POST /posts/media
+class MediaUploadModel extends Equatable {
+  final String url;
+  final String mediaType;
+  final String? thumbnailUrl;
+  final int? width;
+  final int? height;
+  final double? duration;
+
+  const MediaUploadModel({
+    required this.url,
+    required this.mediaType,
+    this.thumbnailUrl,
+    this.width,
+    this.height,
+    this.duration,
+  });
+
+  factory MediaUploadModel.fromJson(Map<String, dynamic> json) {
+    return MediaUploadModel(
+      url: json['url'] as String? ?? '',
+      mediaType: json['media_type'] as String? ?? 'image',
+      thumbnailUrl: json['thumbnail_url'] as String?,
+      width: (json['width'] as num?)?.toInt(),
+      height: (json['height'] as num?)?.toInt(),
+      duration: (json['duration'] as num?)?.toDouble(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'url': url,
+        'media_type': mediaType,
+        'thumbnail_url': thumbnailUrl,
+        'width': width,
+        'height': height,
+        'duration': duration,
+      };
+
+  @override
+  List<Object?> get props => [url, mediaType, thumbnailUrl, width, height, duration];
+}
+
+/// Request payload for POST /posts
+class PostCreateRequestModel {
+  final String postType;
+  final String? title;
+  final String? content;
+  final String visibility;
+  final String? communityId;
+  final List<MediaItemModel> media;
+
+  const PostCreateRequestModel({
+    this.postType = 'text',
+    this.title,
+    this.content,
+    this.visibility = 'public',
+    this.communityId,
+    this.media = const [],
+  });
+
+  Map<String, dynamic> toJson() => {
+        'post_type': postType,
+        if (title != null && title!.isNotEmpty) 'title': title,
+        if (content != null && content!.isNotEmpty) 'content': content,
+        'visibility': visibility,
+        if (communityId != null && communityId!.isNotEmpty) 'community_id': communityId,
+        if (media.isNotEmpty)
+          'media': media
+              .map((m) => {
+                    'media_type': m.mediaType,
+                    'url': m.url,
+                    if (m.thumbnailUrl != null) 'thumbnail_url': m.thumbnailUrl,
+                    if (m.duration != null) 'duration': m.duration,
+                    if (m.width != null) 'width': m.width,
+                    if (m.height != null) 'height': m.height,
+                    'order': m.order,
+                  })
+              .toList(),
+      };
+}

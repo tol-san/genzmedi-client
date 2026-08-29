@@ -1,93 +1,32 @@
 # 10 — Shorts Feed
 
-## Backend
+## Status
+- **Client Implementation**: Complete (`ShortsFeedScreen`, `ShortsFeedNotifier`, `ShortsFeedState`, `ShortVideoItemWidget`).
+- **Backend Endpoint**: `GET /api/v1/feeds/shorts?limit=20&offset=0`.
 
-`GET /api/v1/feeds/shorts`
+---
 
-Ranking inputs include:
-- interests;
-- likes;
-- saves;
-- recency.
+## Architecture & Interaction
 
-## Layout
+### 1. Endpoint & Service
+- **Endpoint**: `GET /api/v1/feeds/shorts`
+- **Response**: `PaginatedPostsResponse` filtered to short video posts.
+- **Ranking**: Interest affinity, likes, saves, and recency.
 
-```text
-┌────────────────────────────┐
-│                            │
-│         VIDEO              │
-│                            │
-│                    Avatar  │
-│                    Like    │
-│                    Comment │
-│                    Save    │
-│                    Share   │
-│                            │
-│ @creator  [Follow]         │
-│ Community / interest       │
-│ Caption                    │
-│                            │
-│ Bottom navigation          │
-└────────────────────────────┘
-```
+### 2. Full-Screen Vertical Paging
+- **Widget**: `PageView.builder` with `scrollDirection: Axis.vertical`.
+- **Playback Model**:
+  - `active`: Plays current short video via `VideoPlayerController.networkUrl`.
+  - `inactive`: Pauses playback immediately on page swipe.
+  - Controls: Tap anywhere on screen to toggle play/pause, top right mute/unmute button.
 
-## Paging
-
-One video per page, vertical snapping.
-
-Resource model:
-
-```text
-Current  → active
-Next     → preload
-Previous → optional short cache
-Distant  → release
-```
-
-## Controls
-
-Permanent high-frequency rail:
-1. creator/avatar entry
-2. Like
-3. Comments
-4. Save
-5. Share
-
-Overflow:
-- Report
-- Block user where relevant
-- Delete if authorized
-
-## Gestures
-
-- vertical swipe → next/previous;
-- single tap → play/pause;
-- optional double tap → Like.
-
-Gestures do not replace visible controls.
-
-## Audio
-
-Keep a visible mute/audio affordance.
-
-## Comments
-
-Open as a draggable bottom sheet so the video context remains visible.
-
-## Community context
-
-If the short belongs to a community, make that community tappable and visible.
-
-## Low-chrome enhancement
-
-A clear-screen/reduced-overlay mode can be future polish, not a requirement for first implementation.
-
-## Performance metrics to watch
-
-- time to first frame;
-- start failures;
-- rebuffering;
-- early swipe-away;
-- completion;
-- follow after view;
-- community open/join after view.
+### 3. Engagement Overlays
+- **Right Action Rail**:
+  - Author Avatar (navigates to `@username` public profile).
+  - Like button with count and crimson toggle.
+  - Comment bubble button with count.
+  - Bookmark/Save button with mint toggle.
+  - Share button with clipboard copy and counter.
+- **Bottom Content Overlay**:
+  - Creator `@username` and display name.
+  - Video title and description / hashtags.

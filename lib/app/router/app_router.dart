@@ -16,6 +16,8 @@ import 'package:client/features/auth/presentation/screens/verify_otp_screen.dart
 import 'package:client/features/feeds/presentation/screens/home_feed_screen.dart';
 import 'package:client/features/feeds/presentation/screens/shorts_feed_screen.dart';
 import 'package:client/features/posts/presentation/screens/create_hub_screen.dart';
+import 'package:client/features/posts/presentation/screens/create_post_screen.dart';
+import 'package:client/features/posts/presentation/screens/post_detail_screen.dart';
 import 'package:client/features/profiles/presentation/screens/edit_profile_screen.dart';
 import 'package:client/features/profiles/presentation/screens/follow_list_screen.dart';
 import 'package:client/features/profiles/presentation/screens/my_profile_screen.dart';
@@ -187,6 +189,22 @@ final routerProvider = Provider<GoRouter>((ref) {
             username: username,
             initialTabIndex: initialTabIndex,
           );
+        },
+      ),
+      GoRoute(
+        path: '/create/composer',
+        name: RouteNames.createPost,
+        builder: (context, state) {
+          final type = state.uri.queryParameters['type'] ?? 'text';
+          return CreatePostScreen(initialPostType: type);
+        },
+      ),
+      GoRoute(
+        path: '/posts/:postId',
+        name: RouteNames.postDetail,
+        builder: (context, state) {
+          final postId = state.pathParameters['postId'] ?? '';
+          return PostDetailScreen(postId: postId);
         },
       ),
 

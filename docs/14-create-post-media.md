@@ -1,102 +1,25 @@
 # 14 — Create Post & Media
 
-## Supported types
+## Status
+- **Client Implementation**: Complete (`CreateHubScreen`, `CreatePostScreen`, `CreatePostNotifier`, `CreatePostState`, `PostRepository`).
+- **Backend Endpoints**:
+  - `POST /api/v1/posts`
+  - `POST /api/v1/posts/media`
 
-### Text
-- title;
-- content;
-- visibility;
-- optional community ID.
+---
 
-### Image
-- caption;
-- one or more image URLs;
-- visibility;
-- optional community ID.
+## Architecture & Creation Flow
 
-### Short Video
-- caption;
-- video URL;
-- thumbnail URL;
-- duration;
-- visibility;
-- optional community ID.
+### 1. Creation Hub & Modes
+- **Hub Navigation (`CreateHubScreen`)**:
+  - Direct entry point for **Short Video**, **Photo Carousel**, and **Discussion / Thought**.
+- **Composer Modes (`CreatePostScreen`)**:
+  - **Text**: Optional Title (max 100 chars), multiline content body (max 1000 chars), visibility selector.
+  - **Photos**: Multi-image selector (up to 10 images) via `ImagePicker.pickMultiImage()`, horizontal thumbnail preview list with individual delete buttons, caption.
+  - **Short Video**: Video picker via `ImagePicker.pickVideo()`, custom thumbnail picker via `ImagePicker.pickImage()`, file size/name display, caption.
 
-## Ownership
-
-```text
-Personal post  → community_id = null
-Community post → community_id = <ID>
-```
-
-## Create hub
-
-```text
-Create
-
-Text
-Photo
-Short Video
-```
-
-## Destination
-
-```text
-Post to
-
-● My Profile
-○ Joined Community A
-○ Joined Community B
-```
-
-Only include valid community destinations.
-
-## Media workflow
-
-The backend architecture stores media in object storage, not PostgreSQL.
-
-Flutter flow:
-
-```text
-Select
-  ↓
-Preview
-  ↓
-Metadata/caption
-  ↓
-Upload media according to implemented backend/storage contract
-  ↓
-Create post
-  ↓
-Published
-```
-
-## Critical state distinction
-
-```text
-Upload complete ≠ Post published
-```
-
-Do not show Published before `POST /api/v1/posts` succeeds.
-
-## Draft preservation
-
-On:
-- network error;
-- upload failure;
-- post creation failure;
-
-preserve safe user inputs/media references and allow Retry.
-
-## Permissions
-
-Ask for media permissions only when selecting media.
-
-## Excluded
-
-Do not build:
-- timeline editor;
-- filters marketplace;
-- music library;
-- transcoding pipeline;
-- remix editor.
+### 2. Media Upload Pipeline
+- Media files are uploaded to MinIO via `POST /api/v1/posts/media` using multipart form data.
+- Returned `MediaUploadModel` (containing URL, thumbnail URL, width, height, and duration) is attached to `MediaItemModel`.
+- Post is published atomically via `POST /api/v1/posts` upon completion of media upload.
+- Draft preservation and error banners ensure inputs are retained if upload/network fails.
