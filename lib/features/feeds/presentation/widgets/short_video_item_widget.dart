@@ -437,12 +437,22 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
           child: Container(
             color: Colors.black,
             child: _isInitialized && _controller != null
-                ? Center(
-                    child: AspectRatio(
-                      aspectRatio: _controller!.value.aspectRatio,
-                      child: VideoPlayer(_controller!),
-                    ),
-                  )
+                ? (isLandscapeVideo
+                    ? Center(
+                        child: AspectRatio(
+                          aspectRatio: _controller!.value.aspectRatio,
+                          child: VideoPlayer(_controller!),
+                        ),
+                      )
+                    : FittedBox(
+                        fit: BoxFit.cover,
+                        clipBehavior: Clip.hardEdge,
+                        child: SizedBox(
+                          width: _controller!.value.size.width,
+                          height: _controller!.value.size.height,
+                          child: VideoPlayer(_controller!),
+                        ),
+                      ))
                 : Stack(
                     fit: StackFit.expand,
                     children: [
