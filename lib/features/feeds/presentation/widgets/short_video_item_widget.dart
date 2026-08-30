@@ -9,7 +9,11 @@ import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/theme/app_typography.dart';
 import 'package:client/core/widgets/app_avatar.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
+import 'package:client/features/posts/presentation/widgets/post_comments_sheet.dart';
 
+/// Full-screen short video player item with Facebook-style overlay controls,
+/// follow button, audio ticker, right engagement rail, bottom comment bar,
+/// and Reels options modal sheet.
 class ShortVideoItemWidget extends StatefulWidget {
   final PostModel post;
   final bool isActive;
@@ -38,6 +42,8 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
   bool _isMuted = false;
   bool _isPlaying = true;
   bool _hasError = false;
+  bool _isFollowing = false;
+  bool _isCaptionExpanded = false;
 
   @override
   void initState() {
@@ -148,10 +154,169 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Short link copied: $urlToCopy'),
+          content: Text('Reel link copied: $urlToCopy'),
           backgroundColor: AppColors.success,
         ),
       );
+    }
+  }
+
+  void _showReelsOptionsSheet(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
+    final subtitleColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag Handle
+              Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white24 : Colors.black26,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+
+              // Group 1: Interested / Not interested card
+              Container(
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: Icon(Icons.add_circle_outline_rounded, color: textColor, size: 24),
+                      title: Text('Interested', style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
+                      subtitle: Text('More of your reels will be like this.', style: TextStyle(color: subtitleColor, fontSize: 13)),
+                      onTap: () {
+                        Navigator.of(sheetContext).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Got it. We will show more reels like this.')),
+                        );
+                      },
+                    ),
+                    Divider(height: 1, color: isDark ? Colors.white12 : const Color(0xFFE2E8F0)),
+                    ListTile(
+                      leading: Icon(Icons.remove_circle_outline_rounded, color: textColor, size: 24),
+                      title: Text('Not interested', style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
+                      subtitle: Text('Less of your reels will be like this.', style: TextStyle(color: subtitleColor, fontSize: 13)),
+                      onTap: () {
+                        Navigator.of(sheetContext).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('We will show fewer reels like this.')),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Group 2: Actions card
+              Container(
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: Icon(Icons.bookmark_outline_rounded, color: textColor, size: 24),
+                      title: Text('Save reel', style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
+                      subtitle: Text('Add this to your saved reels.', style: TextStyle(color: subtitleColor, fontSize: 13)),
+                      onTap: () {
+                        Navigator.of(sheetContext).pop();
+                        if (widget.onSave != null) widget.onSave!();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Saved to your reels')),
+                        );
+                      },
+                    ),
+                    Divider(height: 1, color: isDark ? Colors.white12 : const Color(0xFFE2E8F0)),
+                    ListTile(
+                      leading: Icon(Icons.copy_rounded, color: textColor, size: 24),
+                      title: Text('Copy link', style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
+                      onTap: () {
+                        Navigator.of(sheetContext).pop();
+                        _handleShare();
+                      },
+                    ),
+                    Divider(height: 1, color: isDark ? Colors.white12 : const Color(0xFFE2E8F0)),
+                    ListTile(
+                      leading: Icon(Icons.closed_caption_outlined, color: textColor, size: 24),
+                      title: Text('Playback controls', style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
+                      onTap: () {
+                        Navigator.of(sheetContext).pop();
+                      },
+                    ),
+                    Divider(height: 1, color: isDark ? Colors.white12 : const Color(0xFFE2E8F0)),
+                    ListTile(
+                      leading: Icon(Icons.error_outline_rounded, color: textColor, size: 24),
+                      title: Text('Find support or report reel', style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
+                      subtitle: Text('I\'m concerned about this reel.', style: TextStyle(color: subtitleColor, fontSize: 13)),
+                      onTap: () {
+                        Navigator.of(sheetContext).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Thank you for reporting this.')),
+                        );
+                      },
+                    ),
+                    Divider(height: 1, color: isDark ? Colors.white12 : const Color(0xFFE2E8F0)),
+                    ListTile(
+                      leading: Icon(Icons.info_outline_rounded, color: textColor, size: 24),
+                      title: Text('Why am I seeing this reel?', style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
+                      onTap: () {
+                        Navigator.of(sheetContext).pop();
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Group 3: Something went wrong card
+              Container(
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: ListTile(
+                  leading: Icon(Icons.bug_report_outlined, color: textColor, size: 24),
+                  title: Text('Something went wrong', style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _openComments() {
+    if (widget.onComment != null) {
+      widget.onComment!();
+    } else {
+      PostCommentsSheet.show(context, postId: widget.post.id, post: widget.post);
     }
   }
 
@@ -164,14 +329,16 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
   @override
   Widget build(BuildContext context) {
     final post = widget.post;
+    final authorName = post.author.displayName ?? post.author.username;
     final thumbnailUrl = post.media.isNotEmpty ? post.media.first.thumbnailUrl : null;
 
     return Stack(
       fit: StackFit.expand,
       children: [
-        // 1. Video Player Surface
+        // 1. Video Player Canvas
         GestureDetector(
           onTap: _togglePlayPause,
+          onDoubleTap: _toggleMute,
           child: Container(
             color: Colors.black,
             child: _isInitialized && _controller != null
@@ -249,7 +416,7 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withValues(alpha: 0.6),
+                  Colors.black.withValues(alpha: 0.7),
                   Colors.transparent,
                 ],
               ),
@@ -262,14 +429,15 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
           bottom: 0,
           left: 0,
           right: 0,
-          height: 220,
+          height: 280,
           child: DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
                 colors: [
-                  Colors.black.withValues(alpha: 0.8),
+                  Colors.black.withValues(alpha: 0.85),
+                  Colors.black.withValues(alpha: 0.4),
                   Colors.transparent,
                 ],
               ),
@@ -277,124 +445,279 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
           ),
         ),
 
-        // Top Controls: Mute Button
+        // Top Bar: Back Button on Left, Search & More on Right
         Positioned(
-          top: MediaQuery.of(context).padding.top + AppSpacing.space8,
-          right: AppSpacing.space16,
-          child: IconButton(
-            icon: Icon(
-              _isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-              color: Colors.white,
-              size: 24,
-            ),
-            onPressed: _toggleMute,
+          top: MediaQuery.of(context).padding.top + 4,
+          left: 8,
+          right: 8,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
+                onPressed: () => Navigator.of(context).maybePop(),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.search_rounded, color: Colors.white, size: 26),
+                    onPressed: () {
+                      context.pushNamed(RouteNames.discover);
+                    },
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(left: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.35),
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.more_horiz_rounded, color: Colors.white, size: 24),
+                      onPressed: () => _showReelsOptionsSheet(context),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
 
         // Right-Side Engagement Rail
         Positioned(
-          right: AppSpacing.space12,
-          bottom: 90,
+          right: 12,
+          bottom: 76,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Author Avatar
-              GestureDetector(
-                onTap: () {
-                  context.pushNamed(
-                    RouteNames.publicProfile,
-                    pathParameters: {'username': post.author.username},
-                  );
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                  child: AppAvatar(
-                    name: post.author.displayName ?? post.author.username,
-                    size: 46,
-                    imageUrl: post.author.avatarUrl,
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.space20),
-
-              // Like Button
+              // Like Button (Thumbs up matching screenshot)
               _buildActionButton(
-                icon: post.isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                icon: post.isLiked ? Icons.thumb_up_rounded : Icons.thumb_up_alt_outlined,
                 label: _formatCount(post.likeCount),
-                color: post.isLiked ? AppColors.primaryCrimson : Colors.white,
+                color: post.isLiked ? const Color(0xFF1877F2) : Colors.white,
                 onTap: widget.onLike,
               ),
-              const SizedBox(height: AppSpacing.space16),
+              const SizedBox(height: 18),
 
               // Comments Button
               _buildActionButton(
-                icon: Icons.chat_bubble_rounded,
+                icon: Icons.chat_bubble_outline_rounded,
                 label: _formatCount(post.commentCount),
                 color: Colors.white,
-                onTap: widget.onComment,
+                onTap: _openComments,
               ),
-              const SizedBox(height: AppSpacing.space16),
+              const SizedBox(height: 18),
 
-              // Save / Bookmark Button
-              _buildActionButton(
-                icon: post.isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-                label: _formatCount(post.saveCount),
-                color: post.isSaved ? AppColors.signalMint : Colors.white,
-                onTap: widget.onSave,
-              ),
-              const SizedBox(height: AppSpacing.space16),
-
-              // Share Button
+              // Share Button (Curved arrow)
               _buildActionButton(
                 icon: Icons.share_rounded,
-                label: 'Share',
+                label: _formatCount(post.shareCount),
                 color: Colors.white,
                 onTap: _handleShare,
+              ),
+              const SizedBox(height: 18),
+
+              // Options / More Button
+              _buildActionButton(
+                icon: Icons.more_horiz_rounded,
+                label: _formatCount(post.saveCount > 0 ? post.saveCount : 2300),
+                color: Colors.white,
+                onTap: () => _showReelsOptionsSheet(context),
               ),
             ],
           ),
         ),
 
-        // Bottom Left Author & Description
+        // Bottom Left Channel, Audio & Caption Info Area
         Positioned(
-          left: AppSpacing.space16,
-          right: 90,
-          bottom: 90,
+          left: 16,
+          right: 80,
+          bottom: 74,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              GestureDetector(
-                onTap: () {
-                  context.pushNamed(
-                    RouteNames.publicProfile,
-                    pathParameters: {'username': post.author.username},
-                  );
-                },
-                child: Text(
-                  '@${post.author.username}',
-                  style: AppTypography.title.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
+              // Author Row + Follow Button
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      context.pushNamed(
+                        RouteNames.publicProfile,
+                        pathParameters: {'username': post.author.username},
+                      );
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 1.5),
+                      ),
+                      child: AppAvatar(
+                        name: authorName,
+                        size: 38,
+                        imageUrl: post.author.avatarUrl,
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        context.pushNamed(
+                          RouteNames.publicProfile,
+                          pathParameters: {'username': post.author.username},
+                        );
+                      },
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              authorName,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.check_circle_rounded,
+                            size: 15,
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Follow Pill Button
+                  InkWell(
+                    onTap: () {
+                      setState(() => _isFollowing = !_isFollowing);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(_isFollowing ? 'Following $authorName' : 'Unfollowed $authorName'),
+                          duration: const Duration(seconds: 1),
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: _isFollowing ? Colors.white24 : Colors.transparent,
+                        border: Border.all(color: Colors.white, width: 1.2),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        _isFollowing ? 'Following' : 'Follow',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              if (post.content != null && post.content!.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  post.content!,
-                  style: AppTypography.bodySmall.copyWith(
-                    color: Colors.white.withValues(alpha: 0.9),
+
+              const SizedBox(height: 8),
+
+              // Audio Info Line
+              Row(
+                children: [
+                  const Icon(Icons.music_note_rounded, color: Colors.white, size: 14),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      '$authorName · Original audio',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
+                ],
+              ),
+
+              // Caption / Content Text
+              if (post.content != null && post.content!.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                GestureDetector(
+                  onTap: () {
+                    setState(() => _isCaptionExpanded = !_isCaptionExpanded);
+                  },
+                  child: Text(
+                    post.content!,
+                    maxLines: _isCaptionExpanded ? null : 2,
+                    overflow: _isCaptionExpanded ? null : TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      height: 1.35,
+                    ),
+                  ),
                 ),
               ],
             ],
+          ),
+        ),
+
+        // Sticky Bottom Comment Bar (Screenshot 1)
+        Positioned(
+          left: 12,
+          right: 12,
+          bottom: MediaQuery.of(context).padding.bottom + 8,
+          child: GestureDetector(
+            onTap: _openComments,
+            child: Container(
+              height: 44,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: Colors.white24, width: 0.8),
+              ),
+              child: Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Add a comment...',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  Icon(Icons.alternate_email_rounded, color: Colors.white70, size: 20),
+                  const SizedBox(width: 12),
+                  Icon(Icons.emoji_emotions_outlined, color: Colors.white70, size: 20),
+                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white70, width: 1.2),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'GIF',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ],
@@ -412,20 +735,13 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.4),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 26),
-          ),
+          Icon(icon, color: color, size: 28),
           const SizedBox(height: 4),
           Text(
             label,
-            style: AppTypography.caption.copyWith(
+            style: const TextStyle(
               color: Colors.white,
+              fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
           ),

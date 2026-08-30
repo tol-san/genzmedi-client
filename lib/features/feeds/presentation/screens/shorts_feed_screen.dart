@@ -5,6 +5,7 @@ import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/theme/app_typography.dart';
 import 'package:client/features/feeds/presentation/notifiers/shorts_feed_notifier.dart';
 import 'package:client/features/feeds/presentation/widgets/short_video_item_widget.dart';
+import 'package:client/features/posts/presentation/widgets/post_comments_sheet.dart';
 
 class ShortsFeedScreen extends ConsumerStatefulWidget {
   const ShortsFeedScreen({super.key});
@@ -112,9 +113,7 @@ class _ShortsFeedScreenState extends ConsumerState<ShortsFeedScreen> {
             onSave: () => notifier.toggleSave(post.id),
             onShare: () => notifier.sharePost(post.id),
             onComment: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Comments for @${post.author.username}\'s video')),
-              );
+              PostCommentsSheet.show(context, postId: post.id, post: post);
             },
           );
         },

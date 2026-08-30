@@ -53,11 +53,12 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(ShortVideoItemWidget), findsOneWidget);
-      expect(find.text('@dancer_pro'), findsOneWidget);
+      expect(find.text('Dancer Pro'), findsOneWidget);
+      expect(find.text('Follow'), findsOneWidget);
+      expect(find.text('Add a comment...'), findsOneWidget);
       expect(find.text('#dance #street #vibes'), findsOneWidget);
       expect(find.text('1.2K'), findsOneWidget);
       expect(find.text('88'), findsOneWidget);
-      expect(find.text('340'), findsOneWidget);
     });
 
     testWidgets('renders empty state when shorts feed has no items', (tester) async {
