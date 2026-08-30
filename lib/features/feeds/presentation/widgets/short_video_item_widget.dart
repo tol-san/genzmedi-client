@@ -13,7 +13,7 @@ import 'package:client/features/posts/presentation/widgets/post_comments_sheet.d
 
 /// Full-screen short video player item with flexible 16:9 landscape and 9:16 portrait support,
 /// follow button, audio ticker, right engagement rail, bottom comment bar,
-/// and Reels options modal sheet.
+/// playback speed controls (0.5x - 2.0x), auto-scroll toggle, share, and report sheet.
 class ShortVideoItemWidget extends StatefulWidget {
   final PostModel post;
   final bool isActive;
@@ -21,6 +21,7 @@ class ShortVideoItemWidget extends StatefulWidget {
   final VoidCallback? onSave;
   final Future<String?> Function()? onShare;
   final VoidCallback? onComment;
+  final VoidCallback? onVideoCompleted;
 
   const ShortVideoItemWidget({
     super.key,
@@ -30,6 +31,7 @@ class ShortVideoItemWidget extends StatefulWidget {
     this.onSave,
     this.onShare,
     this.onComment,
+    this.onVideoCompleted,
   });
 
   @override
@@ -44,6 +46,9 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
   bool _hasError = false;
   bool _isFollowing = false;
   bool _isCaptionExpanded = false;
+  double _playbackSpeed = 1.0;
+  bool _autoScrollOnFinish = true;
+  bool _hasTriggeredAutoScroll = false;
 
   @override
   void initState() {
@@ -56,6 +61,7 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.isActive != widget.isActive) {
       if (widget.isActive) {
+        _hasTriggeredAutoScroll = false;
         _play();
       } else {
         _pause();
@@ -79,6 +85,8 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
       _controller = VideoPlayerController.networkUrl(uri);
       await _controller!.initialize();
       _controller!.setLooping(true);
+      await _controller!.setPlaybackSpeed(_playbackSpeed);
+      _controller!.addListener(_videoListener);
 
       if (mounted) {
         setState(() {
@@ -94,6 +102,23 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
         setState(() {
           _hasError = true;
         });
+      }
+    }
+  }
+
+  void _videoListener() {
+    if (!mounted || _controller == null || !_isInitialized) return;
+    if (_autoScrollOnFinish && widget.isActive) {
+      final position = _controller!.value.position;
+      final duration = _controller!.value.duration;
+      if (duration > Duration.zero &&
+          position >= duration - const Duration(milliseconds: 300)) {
+        if (!_hasTriggeredAutoScroll) {
+          _hasTriggeredAutoScroll = true;
+          widget.onVideoCompleted?.call();
+        }
+      } else if (position < duration - const Duration(milliseconds: 800)) {
+        _hasTriggeredAutoScroll = false;
       }
     }
   }
@@ -134,6 +159,12 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
     });
   }
 
+  void _setPlaybackSpeed(double speed) {
+    if (_controller == null || !_isInitialized) return;
+    setState(() => _playbackSpeed = speed);
+    _controller!.setPlaybackSpeed(speed);
+  }
+
   String _formatCount(int count) {
     if (count >= 1000000) {
       return '${(count / 1000000).toStringAsFixed(1)}M';
@@ -167,6 +198,8 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
     final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
     final subtitleColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
+    final speedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -174,138 +207,188 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (sheetContext) => SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Drag Handle
-              Container(
-                width: 36,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.white24 : Colors.black26,
-                  borderRadius: BorderRadius.circular(2),
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) => SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Drag Handle
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white24 : Colors.black26,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
                 ),
-              ),
 
-              // Group 1: Interested / Not interested card
-              Container(
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  borderRadius: BorderRadius.circular(16),
+                // Group 1: Playback Controls (0.5, 0.75, 1, 1.25, 1.5, 2)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.speed_rounded, color: textColor, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Playback Speed',
+                            style: TextStyle(
+                              color: textColor,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            '${_playbackSpeed}x',
+                            style: const TextStyle(
+                              color: AppColors.primaryElectricBlue,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: speedOptions.map((speed) {
+                            final isSelected = _playbackSpeed == speed;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ChoiceChip(
+                                label: Text('${speed}x'),
+                                selected: isSelected,
+                                onSelected: (selected) {
+                                  if (selected) {
+                                    _setPlaybackSpeed(speed);
+                                    setSheetState(() {});
+                                  }
+                                },
+                                selectedColor: AppColors.primaryElectricBlue,
+                                labelStyle: TextStyle(
+                                  color: isSelected
+                                      ? Colors.white
+                                      : (isDark ? Colors.white70 : const Color(0xFF334155)),
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                  fontSize: 13,
+                                ),
+                                backgroundColor: isDark
+                                    ? const Color(0xFF0F172A)
+                                    : const Color(0xFFF1F5F9),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                  side: BorderSide(
+                                    color: isSelected
+                                        ? AppColors.primaryElectricBlue
+                                        : (isDark ? Colors.white12 : const Color(0xFFCBD5E1)),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                child: Column(
-                  children: [
-                    ListTile(
-                      leading: Icon(Icons.add_circle_outline_rounded, color: textColor, size: 24),
-                      title: Text('Interested', style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
-                      subtitle: Text('More of your reels will be like this.', style: TextStyle(color: subtitleColor, fontSize: 13)),
-                      onTap: () {
-                        Navigator.of(sheetContext).pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Got it. We will show more reels like this.')),
-                        );
-                      },
-                    ),
-                    Divider(height: 1, color: isDark ? Colors.white12 : const Color(0xFFE2E8F0)),
-                    ListTile(
-                      leading: Icon(Icons.remove_circle_outline_rounded, color: textColor, size: 24),
-                      title: Text('Not interested', style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
-                      subtitle: Text('Less of your reels will be like this.', style: TextStyle(color: subtitleColor, fontSize: 13)),
-                      onTap: () {
-                        Navigator.of(sheetContext).pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('We will show fewer reels like this.')),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
 
-              const SizedBox(height: 12),
+                const SizedBox(height: 12),
 
-              // Group 2: Actions card
-              Container(
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  borderRadius: BorderRadius.circular(16),
+                // Group 2: Auto Play / Auto Scroll on Finish
+                Container(
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: SwitchListTile(
+                    secondary: Icon(Icons.autorenew_rounded, color: textColor, size: 22),
+                    title: Text(
+                      'Auto-scroll on finish',
+                      style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Automatically scroll to next reel when video ends',
+                      style: TextStyle(color: subtitleColor, fontSize: 13),
+                    ),
+                    value: _autoScrollOnFinish,
+                    activeTrackColor: AppColors.primaryElectricBlue,
+                    onChanged: (val) {
+                      setState(() => _autoScrollOnFinish = val);
+                      setSheetState(() {});
+                    },
+                  ),
                 ),
-                child: Column(
-                  children: [
-                    ListTile(
-                      leading: Icon(Icons.bookmark_outline_rounded, color: textColor, size: 24),
-                      title: Text('Save reel', style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
-                      subtitle: Text('Add this to your saved reels.', style: TextStyle(color: subtitleColor, fontSize: 13)),
-                      onTap: () {
-                        Navigator.of(sheetContext).pop();
-                        if (widget.onSave != null) widget.onSave!();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Saved to your reels')),
-                        );
-                      },
-                    ),
-                    Divider(height: 1, color: isDark ? Colors.white12 : const Color(0xFFE2E8F0)),
-                    ListTile(
-                      leading: Icon(Icons.copy_rounded, color: textColor, size: 24),
-                      title: Text('Copy link', style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
-                      onTap: () {
-                        Navigator.of(sheetContext).pop();
-                        _handleShare();
-                      },
-                    ),
-                    Divider(height: 1, color: isDark ? Colors.white12 : const Color(0xFFE2E8F0)),
-                    ListTile(
-                      leading: Icon(Icons.closed_caption_outlined, color: textColor, size: 24),
-                      title: Text('Playback controls', style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
-                      onTap: () {
-                        Navigator.of(sheetContext).pop();
-                      },
-                    ),
-                    Divider(height: 1, color: isDark ? Colors.white12 : const Color(0xFFE2E8F0)),
-                    ListTile(
-                      leading: Icon(Icons.error_outline_rounded, color: textColor, size: 24),
-                      title: Text('Find support or report reel', style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
-                      subtitle: Text('I\'m concerned about this reel.', style: TextStyle(color: subtitleColor, fontSize: 13)),
-                      onTap: () {
-                        Navigator.of(sheetContext).pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Thank you for reporting this.')),
-                        );
-                      },
-                    ),
-                    Divider(height: 1, color: isDark ? Colors.white12 : const Color(0xFFE2E8F0)),
-                    ListTile(
-                      leading: Icon(Icons.info_outline_rounded, color: textColor, size: 24),
-                      title: Text('Why am I seeing this reel?', style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
-                      onTap: () {
-                        Navigator.of(sheetContext).pop();
-                      },
-                    ),
-                  ],
-                ),
-              ),
 
-              const SizedBox(height: 12),
+                const SizedBox(height: 12),
 
-              // Group 3: Something went wrong card
-              Container(
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  borderRadius: BorderRadius.circular(16),
+                // Group 3: Share & Report Actions
+                Container(
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: Icon(Icons.share_rounded, color: textColor, size: 22),
+                        title: Text(
+                          'Share reel',
+                          style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(
+                          'Copy link or share to other apps',
+                          style: TextStyle(color: subtitleColor, fontSize: 13),
+                        ),
+                        onTap: () {
+                          Navigator.of(sheetContext).pop();
+                          _handleShare();
+                        },
+                      ),
+                      Divider(height: 1, color: isDark ? Colors.white12 : const Color(0xFFE2E8F0)),
+                      ListTile(
+                        leading: Icon(Icons.flag_outlined, color: AppColors.error, size: 22),
+                        title: const Text(
+                          'Report reel',
+                          style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(
+                          'Find support or report inappropriate content',
+                          style: TextStyle(color: subtitleColor, fontSize: 13),
+                        ),
+                        onTap: () {
+                          Navigator.of(sheetContext).pop();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Thank you for reporting. Our moderation team will review this reel.'),
+                              backgroundColor: AppColors.error,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-                child: ListTile(
-                  leading: Icon(Icons.bug_report_outlined, color: textColor, size: 24),
-                  title: Text('Something went wrong', style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                  },
-                ),
-              ),
-            ],
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
         ),
       ),
@@ -322,6 +405,7 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
 
   @override
   void dispose() {
+    _controller?.removeListener(_videoListener);
     _controller?.dispose();
     super.dispose();
   }
@@ -508,7 +592,7 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
           ),
         ),
 
-        // Right-Side Engagement Rail
+        // Right-Side Engagement Rail (Like, Comment, Bookmark)
         Positioned(
           right: 12,
           bottom: 76,
@@ -686,7 +770,7 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
           ),
         ),
 
-        // Sticky Bottom Comment Bar (Screenshot 1)
+        // Sticky Bottom Comment Bar
         Positioned(
           left: 12,
           right: 12,

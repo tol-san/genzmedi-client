@@ -115,6 +115,14 @@ class _ShortsFeedScreenState extends ConsumerState<ShortsFeedScreen> {
             onComment: () {
               PostCommentsSheet.show(context, postId: post.id, post: post);
             },
+            onVideoCompleted: () {
+              if (index < state.shorts.length - 1) {
+                _pageController.nextPage(
+                  duration: const Duration(milliseconds: 350),
+                  curve: Curves.easeInOut,
+                );
+              }
+            },
           );
         },
       ),
