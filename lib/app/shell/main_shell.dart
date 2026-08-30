@@ -18,6 +18,30 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   bool _isBottomNavVisible = true;
 
+  void _handleHorizontalSwipe(DragEndDetails details) {
+    final velocity = details.primaryVelocity ?? 0;
+    const swipeThreshold = 250.0;
+    final currentIndex = widget.navigationShell.currentIndex;
+
+    if (velocity < -swipeThreshold) {
+      // Swiped Left -> go to next branch (Home -> Shorts -> Create -> Discover -> Profile)
+      if (currentIndex < 4) {
+        widget.navigationShell.goBranch(
+          currentIndex + 1,
+          initialLocation: false,
+        );
+      }
+    } else if (velocity > swipeThreshold) {
+      // Swiped Right -> go to previous branch (Profile -> Discover -> Create -> Shorts -> Home)
+      if (currentIndex > 0) {
+        widget.navigationShell.goBranch(
+          currentIndex - 1,
+          initialLocation: false,
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
@@ -37,7 +61,11 @@ class _MainShellState extends State<MainShell> {
           }
           return false;
         },
-        child: widget.navigationShell,
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onHorizontalDragEnd: _handleHorizontalSwipe,
+          child: widget.navigationShell,
+        ),
       ),
       bottomNavigationBar: AnimatedContainer(
         duration: const Duration(milliseconds: 220),

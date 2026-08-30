@@ -564,7 +564,13 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
             children: [
               IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
-                onPressed: () => Navigator.of(context).maybePop(),
+                onPressed: () {
+                  if (Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop();
+                  } else {
+                    context.goNamed(RouteNames.homeFeed);
+                  }
+                },
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
