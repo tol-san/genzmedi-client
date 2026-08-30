@@ -23,6 +23,7 @@ import 'package:client/features/posts/presentation/screens/create_hub_screen.dar
 import 'package:client/features/posts/presentation/screens/create_post_screen.dart';
 import 'package:client/features/posts/presentation/screens/post_detail_screen.dart';
 import 'package:client/features/posts/presentation/screens/post_media_viewer_screen.dart';
+import 'package:client/features/posts/presentation/screens/post_reactions_screen.dart';
 import 'package:client/features/profiles/presentation/screens/edit_profile_screen.dart';
 import 'package:client/features/profiles/presentation/screens/follow_list_screen.dart';
 import 'package:client/features/profiles/presentation/screens/my_profile_screen.dart';
@@ -224,6 +225,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           }
           final postId = state.pathParameters['postId'] ?? '';
           return PostDetailScreen(postId: postId);
+        },
+      ),
+      GoRoute(
+        path: '/posts/:postId/reactions',
+        name: RouteNames.postReactions,
+        builder: (context, state) {
+          final postId = state.pathParameters['postId'] ?? '';
+          return PostReactionsScreen(postId: postId);
         },
       ),
       GoRoute(

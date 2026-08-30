@@ -9,6 +9,7 @@ import 'package:client/core/theme/app_typography.dart';
 import 'package:client/core/utils/media_url_resolver.dart';
 import 'package:client/core/widgets/app_avatar.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
+import 'package:client/features/posts/presentation/widgets/post_comments_sheet.dart';
 
 /// Full-screen media viewer screen for single and multi-image posts.
 /// Supports smooth horizontal swiping for multi-image albums, pinch-to-zoom, and post details.
@@ -240,40 +241,53 @@ class _PostMediaViewerScreenState extends State<PostMediaViewerScreen> {
             ),
             child: Row(
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(3),
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.primaryCrimson,
+                GestureDetector(
+                  onTap: () {
+                    context.pushNamed(
+                      RouteNames.postReactions,
+                      pathParameters: {'postId': post.id},
+                    );
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.primaryCrimson,
+                        ),
+                        child: const Icon(
+                          Icons.favorite_rounded,
+                          size: 11,
+                          color: Colors.white,
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.favorite_rounded,
-                        size: 11,
-                        color: Colors.white,
+                      const SizedBox(width: 6),
+                      Text(
+                        _formatCount(_likeCount),
+                        style: AppTypography.caption.copyWith(
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      _formatCount(_likeCount),
-                      style: AppTypography.caption.copyWith(
-                        color: isDark
-                            ? AppColors.textSecondaryDark
-                            : AppColors.textSecondaryLight,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 const Spacer(),
-                Text(
-                  '${_formatCount(_commentCount)} comments',
-                  style: AppTypography.caption.copyWith(
-                    color: isDark
-                        ? AppColors.textSecondaryDark
-                        : AppColors.textSecondaryLight,
+                GestureDetector(
+                  onTap: () {
+                    PostCommentsSheet.show(context, postId: post.id, post: post);
+                  },
+                  child: Text(
+                    '${_formatCount(_commentCount)} comments',
+                    style: AppTypography.caption.copyWith(
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.space12),
@@ -424,10 +438,7 @@ class _PostMediaViewerScreenState extends State<PostMediaViewerScreen> {
                   Expanded(
                     child: InkWell(
                       onTap: () {
-                        context.pushNamed(
-                          RouteNames.postDetail,
-                          pathParameters: {'postId': post.id},
-                        );
+                        PostCommentsSheet.show(context, postId: post.id, post: post);
                       },
                       borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                       child: Padding(

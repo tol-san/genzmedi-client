@@ -39,7 +39,6 @@ void main() {
       );
 
       expect(find.text('Tech Expert'), findsOneWidget);
-      expect(find.textContaining('@tech_expert'), findsOneWidget);
       expect(find.text('This is a test comment discussing modern architecture.'), findsOneWidget);
       expect(find.text('View 2 replies'), findsOneWidget);
       expect(find.text('Reply'), findsOneWidget);

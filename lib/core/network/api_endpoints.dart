@@ -83,6 +83,7 @@ abstract class ApiEndpoints {
   static const String uploadMedia = '/posts/media';
   static String postDetail(String postId) => '/posts/$postId';
   static String likePost(String postId) => '/posts/$postId/like';
+  static String postReactions(String postId) => '/posts/$postId/reactions';
   static String savePost(String postId) => '/posts/$postId/save';
   static String sharePost(String postId) => '/posts/$postId/share';
 

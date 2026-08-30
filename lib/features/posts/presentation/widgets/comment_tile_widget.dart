@@ -76,86 +76,114 @@ class CommentTileWidget extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: GestureDetector(
-                            onTap: () {
-                              context.pushNamed(
-                                RouteNames.publicProfile,
-                                pathParameters: {'username': comment.author.username},
-                              );
-                            },
-                            child: Text(
-                              comment.author.displayName ?? comment.author.username,
-                              style: AppTypography.label.copyWith(
-                                fontWeight: FontWeight.w600,
-                                fontSize: isReply ? 12 : 13,
-                                color: isDark
-                                    ? AppColors.textPrimaryDark
-                                    : AppColors.textPrimaryLight,
+                      Row(
+                        children: [
+                          Flexible(
+                            child: GestureDetector(
+                              onTap: () {
+                                context.pushNamed(
+                                  RouteNames.publicProfile,
+                                  pathParameters: {'username': comment.author.username},
+                                );
+                              },
+                              child: Text(
+                                comment.author.displayName ?? comment.author.username,
+                                style: AppTypography.label.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: isReply ? 13 : 14,
+                                  color: isDark
+                                      ? AppColors.textPrimaryDark
+                                      : AppColors.textPrimaryLight,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '@${comment.author.username} · ${_formatTimeAgo(comment.createdAt)}',
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.textMuted,
-                            fontSize: 11,
-                          ),
-                        ),
-                        if (comment.isEdited) ...[
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 6),
                           Text(
-                            '(edited)',
+                            '· ${_formatTimeAgo(comment.createdAt)}',
                             style: AppTypography.caption.copyWith(
                               color: AppColors.textMuted,
-                              fontSize: 10,
-                              fontStyle: FontStyle.italic,
+                              fontSize: 12,
+                            ),
+                          ),
+                          if (comment.isEdited) ...[
+                            const SizedBox(width: 4),
+                            Text(
+                              '(edited)',
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.textMuted,
+                                fontSize: 10,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                          const Spacer(),
+                          if (isAuthor && onDelete != null)
+                            IconButton(
+                              icon: const Icon(Icons.more_horiz_rounded, size: 16),
+                              color: AppColors.textMuted,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              onPressed: onDelete,
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        comment.content,
+                        style: AppTypography.body.copyWith(
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
+                          fontSize: 14,
+                          height: 1.35,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+
+                      // Action Row: Reply on Left, Like on Right
+                      Row(
+                        children: [
+                          if (onReply != null)
+                            GestureDetector(
+                              onTap: onReply,
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 16, top: 2, bottom: 2),
+                                child: Text(
+                                  'Reply',
+                                  style: AppTypography.caption.copyWith(
+                                    color: isDark
+                                        ? AppColors.textSecondaryDark
+                                        : AppColors.textSecondaryLight,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          const Spacer(),
+                          InkWell(
+                            onTap: () {},
+                            borderRadius: BorderRadius.circular(12),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.thumb_up_outlined,
+                                    size: 14,
+                                    color: isDark
+                                        ? AppColors.textMuted
+                                        : AppColors.textSecondaryLight,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],
-                        const Spacer(),
-                        if (isAuthor && onDelete != null)
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline_rounded, size: 16),
-                            color: AppColors.textMuted,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            onPressed: onDelete,
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      comment.content,
-                      style: AppTypography.bodySmall.copyWith(
-                        color: isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimaryLight,
-                        height: 1.35,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-
-                    // Reply Action
-                    if (!isReply && onReply != null)
-                      GestureDetector(
-                        onTap: onReply,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 2),
-                          child: Text(
-                            'Reply',
-                            style: AppTypography.caption.copyWith(
-                              color: AppColors.primaryCrimson,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
                       ),
                   ],
                 ),

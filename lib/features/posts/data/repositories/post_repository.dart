@@ -5,6 +5,7 @@ import 'package:client/core/errors/error_mapper.dart';
 import 'package:client/core/network/api_client.dart';
 import 'package:client/core/network/api_endpoints.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
+import 'package:client/features/posts/data/models/reaction_models.dart';
 
 final postRepositoryProvider = Provider<PostRepository>((ref) {
   final dio = ref.watch(dioClientProvider);
@@ -75,6 +76,28 @@ class PostRepository {
     try {
       final response = await dio.post(ApiEndpoints.likePost(postId));
       return (response.data['liked'] as bool?) ?? true;
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
+
+  /// Get users who reacted to a post
+  Future<PostReactionsModel> getPostReactions(
+    String postId, {
+    int limit = 50,
+    int offset = 0,
+    String? query,
+  }) async {
+    try {
+      final response = await dio.get(
+        ApiEndpoints.postReactions(postId),
+        queryParameters: {
+          'limit': limit,
+          'offset': offset,
+          if (query != null && query.isNotEmpty) 'q': query,
+        },
+      );
+      return PostReactionsModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw ErrorMapper.fromDioException(e);
     }

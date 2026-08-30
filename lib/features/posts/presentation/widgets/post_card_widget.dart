@@ -10,6 +10,7 @@ import 'package:client/core/utils/media_url_resolver.dart';
 import 'package:client/core/widgets/app_avatar.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/posts/presentation/widgets/feed_video_player_widget.dart';
+import 'package:client/features/posts/presentation/widgets/post_comments_sheet.dart';
 
 /// Full-width seamless post item (No isolated card containers) for home and community feeds.
 /// Features auto-playing inline video, edge-to-edge media collages, author header, and 3-button action bar (Like, Comment, Share).
@@ -501,40 +502,53 @@ class _PostCardWidgetState extends State<PostCardWidget> {
       child: Row(
         children: [
           // Left: Reaction / Likes badge & count
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(3),
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primaryCrimson,
+          GestureDetector(
+            onTap: () {
+              context.pushNamed(
+                RouteNames.postReactions,
+                pathParameters: {'postId': post.id},
+              );
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.primaryCrimson,
+                  ),
+                  child: const Icon(
+                    Icons.favorite_rounded,
+                    size: 11,
+                    color: Colors.white,
+                  ),
                 ),
-                child: const Icon(
-                  Icons.favorite_rounded,
-                  size: 11,
-                  color: Colors.white,
+                const SizedBox(width: 6),
+                Text(
+                  _formatCount(post.likeCount),
+                  style: AppTypography.caption.copyWith(
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                _formatCount(post.likeCount),
-                style: AppTypography.caption.copyWith(
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
           const Spacer(),
           // Right: Comments and Shares counts
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                '${_formatCount(post.commentCount)} comments',
-                style: AppTypography.caption.copyWith(
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              GestureDetector(
+                onTap: () {
+                  PostCommentsSheet.show(context, postId: post.id, post: post);
+                },
+                child: Text(
+                  '${_formatCount(post.commentCount)} comments',
+                  style: AppTypography.caption.copyWith(
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  ),
                 ),
               ),
               const SizedBox(width: AppSpacing.space12),
@@ -575,10 +589,7 @@ class _PostCardWidgetState extends State<PostCardWidget> {
                 isActive: false,
                 onTap: widget.onComment ??
                     () {
-                      context.pushNamed(
-                        RouteNames.postDetail,
-                        pathParameters: {'postId': post.id},
-                      );
+                      PostCommentsSheet.show(context, postId: post.id, post: post);
                     },
               ),
               _buildActionButton(

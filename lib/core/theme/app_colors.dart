@@ -7,6 +7,7 @@ abstract class AppColors {
   static const Color primaryCrimson = Color(0xFFF20518);
   static const Color primaryPressed = Color(0xFFD00415);
   static const Color primarySoft = Color(0xFFFFF0F1);
+  static const Color primaryElectricBlue = Color(0xFF1877F2);
 
   // Minimal Clean Light Canvas & Surfaces
   static const Color lightCanvas = Color(0xFFFFFFFF);
