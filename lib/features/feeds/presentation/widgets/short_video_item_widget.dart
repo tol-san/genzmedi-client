@@ -599,7 +599,7 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
           ),
         ),
 
-        // Top Bar: Back Button on Left, Search & More on Right
+        // Top Bar: Back Button on Left, Search on Right
         Positioned(
           top: MediaQuery.of(context).padding.top + 4,
           left: 8,
@@ -617,33 +617,17 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
                   }
                 },
               ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.search_rounded, color: Colors.white, size: 26),
-                    onPressed: () {
-                      context.pushNamed(RouteNames.discover);
-                    },
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(left: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.35),
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.more_horiz_rounded, color: Colors.white, size: 24),
-                      onPressed: () => _showReelsOptionsSheet(context),
-                    ),
-                  ),
-                ],
+              IconButton(
+                icon: const Icon(Icons.search_rounded, color: Colors.white, size: 26),
+                onPressed: () {
+                  context.pushNamed(RouteNames.discover);
+                },
               ),
             ],
           ),
         ),
 
-        // Right-Side Engagement Rail (Like, Comment, Bookmark)
+        // Right-Side Engagement Rail (Like, Comment, Bookmark, More)
         Positioned(
           right: 12,
           bottom: 76,
@@ -674,6 +658,14 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
                 label: _formatCount(post.saveCount),
                 color: post.isSaved ? AppColors.warning : Colors.white,
                 onTap: widget.onSave,
+              ),
+              const SizedBox(height: 18),
+
+              // More Options Button (under bookmark)
+              _buildActionButton(
+                icon: Icons.more_horiz_rounded,
+                color: Colors.white,
+                onTap: () => _showReelsOptionsSheet(context),
               ),
             ],
           ),
@@ -877,26 +869,32 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
 
   Widget _buildActionButton({
     required IconData icon,
-    required String label,
+    String? label,
     required Color color,
     VoidCallback? onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 28),
+            if (label != null && label.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
