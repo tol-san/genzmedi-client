@@ -24,7 +24,6 @@ class CreatePostScreen extends ConsumerStatefulWidget {
 
 class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   final ImagePicker _picker = ImagePicker();
-  final TextEditingController _titleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
 
   @override
@@ -39,7 +38,6 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
 
   @override
   void dispose() {
-    _titleController.dispose();
     _contentController.dispose();
     super.dispose();
   }
@@ -78,7 +76,6 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
 
   Future<void> _handlePublish() async {
     final notifier = ref.read(createPostNotifierProvider.notifier);
-    notifier.setTitle(_titleController.text);
     notifier.setContent(_contentController.text);
 
     final success = await notifier.submitPost();
@@ -165,20 +162,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
               const SizedBox(height: AppSpacing.space16),
             ],
 
-            // 2. Title Field (optional for text)
-            if (state.postType == 'text') ...[
-              AppTextField(
-                controller: _titleController,
-                label: 'Title (Optional)',
-                hintText: 'Add an engaging title...',
-                maxLength: 100,
-                showCounter: true,
-                onChanged: notifier.setTitle,
-              ),
-              const SizedBox(height: AppSpacing.space16),
-            ],
-
-            // 3. Content / Caption Field
+            // 2. Content / Caption Field
             AppTextField(
               controller: _contentController,
               label: state.postType == 'text' ? 'Post Content' : 'Caption',

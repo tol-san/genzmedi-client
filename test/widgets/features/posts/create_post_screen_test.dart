@@ -26,14 +26,13 @@ void main() {
   }
 
   group('CreatePostScreen Widget Tests', () {
-    testWidgets('renders segmented type switcher, title, and content inputs', (tester) async {
+    testWidgets('renders segmented type switcher and content inputs', (tester) async {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
       expect(find.text('Text'), findsOneWidget);
       expect(find.text('Photos'), findsOneWidget);
       expect(find.text('Short Video'), findsOneWidget);
-      expect(find.text('Title (Optional)'), findsOneWidget);
       expect(find.text('Post Content'), findsOneWidget);
       expect(find.text('Publish'), findsOneWidget);
     });
