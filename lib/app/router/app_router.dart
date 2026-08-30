@@ -23,6 +23,7 @@ import 'package:client/features/posts/presentation/screens/create_hub_screen.dar
 import 'package:client/features/posts/presentation/screens/create_post_screen.dart';
 import 'package:client/features/posts/presentation/screens/post_detail_screen.dart';
 import 'package:client/features/posts/presentation/screens/post_media_viewer_screen.dart';
+import 'package:client/features/posts/presentation/screens/post_photo_viewer_screen.dart';
 import 'package:client/features/posts/presentation/screens/post_reactions_screen.dart';
 import 'package:client/features/profiles/presentation/screens/edit_profile_screen.dart';
 import 'package:client/features/profiles/presentation/screens/follow_list_screen.dart';
@@ -224,7 +225,31 @@ final routerProvider = Provider<GoRouter>((ref) {
             return PostMediaViewerScreen(post: post, initialIndex: initialIndex);
           }
           final postId = state.pathParameters['postId'] ?? '';
-          return PostDetailScreen(postId: postId);
+          return PostPhotoViewerScreen(
+            post: PostModel(
+              id: postId,
+              author: const PostAuthorModel(id: '', username: ''),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/posts/:postId/photos',
+        name: RouteNames.photoViewer,
+        builder: (context, state) {
+          final post = state.extra is PostModel ? state.extra as PostModel : null;
+          final initialIndexStr = state.uri.queryParameters['index'];
+          final initialIndex = int.tryParse(initialIndexStr ?? '0') ?? 0;
+          if (post != null) {
+            return PostPhotoViewerScreen(post: post, initialIndex: initialIndex);
+          }
+          final postId = state.pathParameters['postId'] ?? '';
+          return PostPhotoViewerScreen(
+            post: PostModel(
+              id: postId,
+              author: const PostAuthorModel(id: '', username: ''),
+            ),
+          );
         },
       ),
       GoRoute(

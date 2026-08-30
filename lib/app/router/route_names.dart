@@ -18,6 +18,7 @@ abstract class RouteNames {
   static const String createPost = 'createPost';
   static const String postDetail = 'postDetail';
   static const String mediaViewer = 'mediaViewer';
+  static const String photoViewer = 'photoViewer';
   static const String postReactions = 'postReactions';
 
   // Community Routes

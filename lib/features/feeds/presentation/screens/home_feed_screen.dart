@@ -11,6 +11,7 @@ import 'package:client/core/widgets/empty_state_widget.dart';
 import 'package:client/features/feeds/presentation/notifiers/home_feed_notifier.dart';
 import 'package:client/features/feeds/presentation/notifiers/home_feed_state.dart';
 import 'package:client/features/posts/presentation/widgets/post_card_widget.dart';
+import 'package:client/features/posts/presentation/widgets/post_comments_sheet.dart';
 
 class HomeFeedScreen extends ConsumerStatefulWidget {
   const HomeFeedScreen({super.key});
@@ -173,16 +174,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
             onSave: () => notifier.toggleSave(post.id),
             onShare: () => notifier.sharePost(post.id),
             onComment: () {
-              context.pushNamed(
-                RouteNames.postDetail,
-                pathParameters: {'postId': post.id},
-              );
-            },
-            onTap: () {
-              context.pushNamed(
-                RouteNames.postDetail,
-                pathParameters: {'postId': post.id},
-              );
+              PostCommentsSheet.show(context, postId: post.id, post: post);
             },
           );
         },

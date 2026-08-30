@@ -273,18 +273,18 @@ class _PostCardWidgetState extends State<PostCardWidget> {
       return;
     }
 
-    if (widget.post.media.isNotEmpty) {
+    if (media.isNotEmpty) {
+      // Single image post OR tapping any specific image in a multi-image collage
+      // -> Opens full-screen photo lightbox (Image 3)
       context.pushNamed(
-        RouteNames.mediaViewer,
+        RouteNames.photoViewer,
         pathParameters: {'postId': widget.post.id},
         queryParameters: {'index': '$index'},
         extra: widget.post,
       );
     } else {
-      context.pushNamed(
-        RouteNames.postDetail,
-        pathParameters: {'postId': widget.post.id},
-      );
+      // Text-only post -> Open Comments Bottom Sheet directly
+      PostCommentsSheet.show(context, postId: widget.post.id, post: widget.post);
     }
   }
 
@@ -301,7 +301,30 @@ class _PostCardWidgetState extends State<PostCardWidget> {
         AppSpacing.space12,
       ),
       child: GestureDetector(
-        onTap: () => _onMediaTap(context, 0),
+        onTap: () {
+          if (post.isVideo) {
+            context.goNamed(RouteNames.shortsFeed);
+          } else if (post.media.length > 1) {
+            // Multi-image post text tap -> Show full post with image carousel (Image 4)
+            context.pushNamed(
+              RouteNames.mediaViewer,
+              pathParameters: {'postId': post.id},
+              queryParameters: {'index': '0'},
+              extra: post,
+            );
+          } else if (post.media.length == 1) {
+            // Single image post text tap -> Show full-screen photo lightbox (Image 3)
+            context.pushNamed(
+              RouteNames.photoViewer,
+              pathParameters: {'postId': post.id},
+              queryParameters: {'index': '0'},
+              extra: post,
+            );
+          } else {
+            // Text-only post -> Comments Sheet
+            PostCommentsSheet.show(context, postId: post.id, post: post);
+          }
+        },
         child: Text(
           post.content!,
           style: AppTypography.body.copyWith(

@@ -720,12 +720,6 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
                       ),
                     PostCardWidget(
                       post: post,
-                      onTap: () {
-                        context.pushNamed(
-                          RouteNames.postDetail,
-                          pathParameters: {'postId': post.id},
-                        );
-                      },
                     ),
                   ],
                 );

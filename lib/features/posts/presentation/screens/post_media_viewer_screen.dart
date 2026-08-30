@@ -329,21 +329,31 @@ class _PostMediaViewerScreenState extends State<PostMediaViewerScreen> {
                           return InteractiveViewer(
                             minScale: 1.0,
                             maxScale: 4.0,
-                            child: Center(
-                              child: CachedNetworkImage(
-                                imageUrl: resolvedUrl,
-                                fit: BoxFit.contain,
-                                placeholder: (context, url) => Center(
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: AppColors.primaryCrimson,
+                            child: GestureDetector(
+                              onTap: () {
+                                context.pushNamed(
+                                  RouteNames.photoViewer,
+                                  pathParameters: {'postId': post.id},
+                                  queryParameters: {'index': '$index'},
+                                  extra: post,
+                                );
+                              },
+                              child: Center(
+                                child: CachedNetworkImage(
+                                  imageUrl: resolvedUrl,
+                                  fit: BoxFit.contain,
+                                  placeholder: (context, url) => Center(
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: AppColors.primaryCrimson,
+                                    ),
                                   ),
-                                ),
-                                errorWidget: (context, url, error) =>
-                                    const Icon(
-                                  Icons.broken_image_rounded,
-                                  color: AppColors.textMuted,
-                                  size: 48,
+                                  errorWidget: (context, url, error) =>
+                                      const Icon(
+                                    Icons.broken_image_rounded,
+                                    color: AppColors.textMuted,
+                                    size: 48,
+                                  ),
                                 ),
                               ),
                             ),
