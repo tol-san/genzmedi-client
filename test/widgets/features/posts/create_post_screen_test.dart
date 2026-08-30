@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:client/features/posts/data/repositories/post_repository.dart';
+import 'package:client/features/posts/presentation/notifiers/create_post_notifier.dart';
+import 'package:client/features/posts/presentation/notifiers/create_post_state.dart';
 import 'package:client/features/posts/presentation/screens/create_post_screen.dart';
 
 class MockPostRepository extends Mock implements PostRepository {}
@@ -14,10 +16,20 @@ void main() {
     mockPostRepository = MockPostRepository();
   });
 
-  Widget buildTestWidget({String initialType = 'text'}) {
+  Widget buildTestWidget({
+    String initialType = 'text',
+    CreatePostState? initialState,
+  }) {
     return ProviderScope(
       overrides: [
         postRepositoryProvider.overrideWithValue(mockPostRepository),
+        if (initialState != null)
+          createPostNotifierProvider.overrideWith(
+            (ref) => FakeCreatePostNotifier(
+              repository: mockPostRepository,
+              initialState: initialState,
+            ),
+          ),
       ],
       child: MaterialApp(
         home: CreatePostScreen(initialPostType: initialType),
@@ -56,5 +68,30 @@ void main() {
 
       expect(find.text('Select Video from Gallery'), findsOneWidget);
     });
+
+    testWidgets('renders upload progress bar and status when uploading media', (tester) async {
+      await tester.pumpWidget(buildTestWidget(
+        initialState: const CreatePostState(
+          postType: 'image',
+          isUploadingMedia: true,
+          uploadProgress: 0.65,
+          uploadStatusText: 'Uploading photo 2 of 3 (65%)',
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Uploading photo 2 of 3 (65%)'), findsOneWidget);
+      expect(find.text('65%'), findsWidgets);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    });
   });
+}
+
+class FakeCreatePostNotifier extends CreatePostNotifier {
+  FakeCreatePostNotifier({
+    required super.repository,
+    required CreatePostState initialState,
+  }) {
+    state = initialState;
+  }
 }

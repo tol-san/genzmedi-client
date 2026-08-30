@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
@@ -12,6 +13,7 @@ class FakePostCreateRequestModel extends Fake
 void main() {
   setUpAll(() {
     registerFallbackValue(FakePostCreateRequestModel());
+    registerFallbackValue(File('test.jpg'));
   });
 
   late MockPostRepository mockRepository;
@@ -22,6 +24,13 @@ void main() {
     title: 'My First Post',
     content: 'Excited to be here on GenZ Media!',
     visibility: 'public',
+  );
+
+  const mockMediaUpload = MediaUploadModel(
+    url: 'https://example.com/media.jpg',
+    mediaType: 'image',
+    width: 1080,
+    height: 1080,
   );
 
   setUp(() {
@@ -66,6 +75,38 @@ void main() {
       expect(notifier.state.isSuccess, isTrue);
       expect(notifier.state.createdPost?.id, 'p-new-1');
       verify(() => mockRepository.createPost(any())).called(1);
+    });
+
+    test('uploads image media and tracks progress', () async {
+      when(() => mockRepository.uploadMedia(
+            any(),
+            mediaType: any(named: 'mediaType'),
+            onSendProgress: any(named: 'onSendProgress'),
+          )).thenAnswer((invocation) async {
+        final onSendProgress =
+            invocation.namedArguments[#onSendProgress] as dynamic;
+        if (onSendProgress != null) {
+          onSendProgress(500, 1000);
+        }
+        return mockMediaUpload;
+      });
+
+      when(() => mockRepository.createPost(any()))
+          .thenAnswer((_) async => mockCreatedPost);
+
+      final notifier = CreatePostNotifier(repository: mockRepository);
+      notifier.addImages([File('test1.jpg')]);
+      notifier.setContent('Check out my picture');
+
+      final success = await notifier.submitPost();
+      expect(success, isTrue);
+      expect(notifier.state.isSuccess, isTrue);
+      expect(notifier.state.uploadProgress, 1.0);
+      verify(() => mockRepository.uploadMedia(
+            any(),
+            mediaType: 'image',
+            onSendProgress: any(named: 'onSendProgress'),
+          )).called(1);
     });
   });
 }

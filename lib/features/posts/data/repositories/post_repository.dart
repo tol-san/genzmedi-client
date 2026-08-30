@@ -41,7 +41,11 @@ class PostRepository {
   }
 
   /// Upload media asset (image / video) to MinIO
-  Future<MediaUploadModel> uploadMedia(File file, {String? mediaType}) async {
+  Future<MediaUploadModel> uploadMedia(
+    File file, {
+    String? mediaType,
+    ProgressCallback? onSendProgress,
+  }) async {
     try {
       final fileName = file.path.split('/').last.split(r'\').last;
       final formData = FormData.fromMap({
@@ -54,6 +58,7 @@ class PostRepository {
       final response = await dio.post(
         ApiEndpoints.uploadMedia,
         data: formData,
+        onSendProgress: onSendProgress,
       );
 
       return MediaUploadModel.fromJson(response.data as Map<String, dynamic>);

@@ -13,6 +13,8 @@ class CreatePostState extends Equatable {
   final File? selectedThumbnail;
   final double? videoDuration;
   final bool isUploadingMedia;
+  final double uploadProgress;
+  final String? uploadStatusText;
   final bool isSubmitting;
   final bool isSuccess;
   final String? errorMessage;
@@ -29,6 +31,8 @@ class CreatePostState extends Equatable {
     this.selectedThumbnail,
     this.videoDuration,
     this.isUploadingMedia = false,
+    this.uploadProgress = 0.0,
+    this.uploadStatusText,
     this.isSubmitting = false,
     this.isSuccess = false,
     this.errorMessage,
@@ -49,6 +53,9 @@ class CreatePostState extends Equatable {
     bool clearThumbnail = false,
     double? videoDuration,
     bool? isUploadingMedia,
+    double? uploadProgress,
+    String? uploadStatusText,
+    bool clearUploadStatus = false,
     bool? isSubmitting,
     bool? isSuccess,
     String? errorMessage,
@@ -67,6 +74,10 @@ class CreatePostState extends Equatable {
           clearThumbnail ? null : (selectedThumbnail ?? this.selectedThumbnail),
       videoDuration: videoDuration ?? this.videoDuration,
       isUploadingMedia: isUploadingMedia ?? this.isUploadingMedia,
+      uploadProgress: uploadProgress ?? this.uploadProgress,
+      uploadStatusText: clearUploadStatus
+          ? null
+          : (uploadStatusText ?? this.uploadStatusText),
       isSubmitting: isSubmitting ?? this.isSubmitting,
       isSuccess: isSuccess ?? this.isSuccess,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
@@ -86,6 +97,8 @@ class CreatePostState extends Equatable {
         selectedThumbnail,
         videoDuration,
         isUploadingMedia,
+        uploadProgress,
+        uploadStatusText,
         isSubmitting,
         isSuccess,
         errorMessage,

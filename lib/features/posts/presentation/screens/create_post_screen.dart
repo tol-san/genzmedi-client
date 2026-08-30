@@ -105,12 +105,14 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
             padding: const EdgeInsets.only(right: AppSpacing.space16),
             child: AppButton(
               text: state.isUploadingMedia
-                  ? 'Uploading...'
+                  ? (state.uploadProgress > 0
+                      ? '${(state.uploadProgress * 100).toInt()}%'
+                      : 'Uploading...')
                   : (state.isSubmitting ? 'Posting...' : 'Publish'),
               size: AppButtonSize.small,
               isFullWidth: false,
-              isLoading: state.isSubmitting || state.isUploadingMedia,
-              onPressed: _handlePublish,
+              isLoading: state.isSubmitting && !state.isUploadingMedia,
+              onPressed: (state.isSubmitting || state.isUploadingMedia) ? null : _handlePublish,
             ),
           ),
         ],
@@ -120,6 +122,70 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Upload Progress Banner
+            if (state.isUploadingMedia || (state.isSubmitting && state.uploadProgress > 0)) ...[
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.space16),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: AppColors.primaryCrimson.withValues(alpha: 0.35),
+                    width: 1.2,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryCrimson.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.cloud_upload_rounded,
+                            color: AppColors.primaryCrimson,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            state.uploadStatusText ?? 'Uploading media...',
+                            style: AppTypography.bodySmall.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          '${(state.uploadProgress * 100).toInt()}%',
+                          style: AppTypography.bodySmall.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primaryCrimson,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: state.uploadProgress > 0 ? state.uploadProgress : null,
+                        backgroundColor: isDark ? AppColors.navyBorder : const Color(0xFFE2E8F0),
+                        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryCrimson),
+                        minHeight: 6,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.space16),
+            ],
+
             // 1. Post Type Segmented Switcher
             Container(
               decoration: BoxDecoration(
@@ -335,8 +401,15 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                               overflow: TextOverflow.ellipsis,
                             ),
                             Text(
-                              'Ready for upload',
-                              style: AppTypography.caption.copyWith(color: AppColors.success),
+                              state.isUploadingMedia
+                                  ? (state.uploadStatusText ?? 'Uploading...')
+                                  : 'Ready for upload',
+                              style: AppTypography.caption.copyWith(
+                                color: state.isUploadingMedia
+                                    ? AppColors.primaryElectricBlue
+                                    : AppColors.success,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ],
                         ),
