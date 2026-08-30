@@ -119,6 +119,27 @@ class CommunityRepository {
     }
   }
 
+  /// Upload community avatar / logo image
+  Future<CommunityModel> uploadAvatar(String communityId, File file) async {
+    try {
+      final fileName = file.path.split('/').last.split(r'\').last;
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          file.path,
+          filename: fileName,
+        ),
+      });
+
+      final response = await dio.post(
+        ApiEndpoints.communityAvatar(communityId),
+        data: formData,
+      );
+      return CommunityModel.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
+
   /// Join community (instant for public, creates join request for private)
   Future<Map<String, dynamic>> joinCommunity(String communityId) async {
     try {

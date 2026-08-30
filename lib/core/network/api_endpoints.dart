@@ -63,6 +63,7 @@ abstract class ApiEndpoints {
   static const String myJoinedCommunities = '/communities/me/joined';
   static String communityDetail(String communityId) => '/communities/$communityId';
   static String communityCover(String communityId) => '/communities/$communityId/cover';
+  static String communityAvatar(String communityId) => '/communities/$communityId/avatar';
   static String joinCommunity(String communityId) => '/communities/$communityId/join';
   static String leaveCommunity(String communityId) => '/communities/$communityId/leave';
   static String communityMembers(String communityId) => '/communities/$communityId/members';

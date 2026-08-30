@@ -43,6 +43,18 @@ class _CreateCommunityScreenState extends ConsumerState<CreateCommunityScreen> {
     } catch (_) {}
   }
 
+  Future<void> _pickAvatar() async {
+    try {
+      final XFile? picked =
+          await _picker.pickImage(source: ImageSource.gallery);
+      if (picked != null) {
+        ref
+            .read(createCommunityNotifierProvider.notifier)
+            .setAvatar(File(picked.path));
+      }
+    } catch (_) {}
+  }
+
   Future<void> _handleSubmit() async {
     final notifier = ref.read(createCommunityNotifierProvider.notifier);
     notifier.setName(_nameController.text);
@@ -84,52 +96,128 @@ class _CreateCommunityScreenState extends ConsumerState<CreateCommunityScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Cover Image Selector
-            GestureDetector(
-              onTap: _pickCover,
-              child: Container(
-                height: 140,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.darkSurfaceElevated
-                      : AppColors.lightSurfaceElevated,
-                  borderRadius: AppSpacing.roundedMd,
-                  border: Border.all(
-                    color: isDark
-                        ? AppColors.navyBorder
-                        : AppColors.lightBorder,
+            // Combined Visual Header: Cover Banner + Overlapping Avatar Icon Picker
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // 1. Cover Banner Picker
+                GestureDetector(
+                  onTap: _pickCover,
+                  child: Container(
+                    height: 140,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.darkSurfaceElevated
+                          : AppColors.lightSurfaceElevated,
+                      borderRadius: AppSpacing.roundedMd,
+                      border: Border.all(
+                        color: isDark
+                            ? AppColors.navyBorder
+                            : AppColors.lightBorder,
+                      ),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: state.selectedCover != null
+                        ? Image.file(
+                            state.selectedCover!,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.add_photo_alternate_outlined,
+                                size: 36,
+                                color: AppColors.primaryCrimson,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Add Cover Banner (Optional)',
+                                style: AppTypography.label.copyWith(
+                                  color: AppColors.primaryCrimson,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
                   ),
                 ),
-                child: state.selectedCover != null
-                    ? ClipRRect(
-                        borderRadius: AppSpacing.roundedMd,
-                        child: Image.file(
-                          state.selectedCover!,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    : Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.add_photo_alternate_outlined,
-                            size: 36,
-                            color: AppColors.primaryCrimson,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Add Community Banner (Optional)',
-                            style: AppTypography.label.copyWith(
-                              color: AppColors.primaryCrimson,
-                              fontWeight: FontWeight.w600,
+
+                // 2. Overlapping Circular Avatar Picker
+                Positioned(
+                  left: AppSpacing.space16,
+                  bottom: -32,
+                  child: GestureDetector(
+                    onTap: _pickAvatar,
+                    child: Stack(
+                      children: [
+                        Container(
+                          width: 72,
+                          height: 72,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.darkSurface
+                                : AppColors.lightSurface,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isDark
+                                  ? AppColors.midnightNavy
+                                  : AppColors.lightCanvas,
+                              width: 4,
                             ),
                           ),
-                        ],
-                      ),
-              ),
+                          clipBehavior: Clip.antiAlias,
+                          child: state.selectedAvatar != null
+                              ? Image.file(
+                                  state.selectedAvatar!,
+                                  fit: BoxFit.cover,
+                                )
+                              : const Center(
+                                  child: Icon(
+                                    Icons.groups_rounded,
+                                    color: AppColors.primaryCrimson,
+                                    size: 36,
+                                  ),
+                                ),
+                        ),
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: AppColors.primaryCrimson,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt_rounded,
+                              size: 14,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: AppSpacing.space24),
+            const SizedBox(height: 44),
+
+            // Helper guidance text for branding
+            Row(
+              children: [
+                const Icon(Icons.info_outline_rounded, size: 14, color: AppColors.textMuted),
+                const SizedBox(width: 6),
+                Text(
+                  'Tap banner to add cover · Tap circle to add logo',
+                  style: AppTypography.caption.copyWith(color: AppColors.textMuted),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.space20),
 
             // Error Banner
             if (state.errorMessage != null) ...[

@@ -47,6 +47,24 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
     } catch (_) {}
   }
 
+  Future<void> _pickAndUploadAvatar(CommunityDetailNotifier notifier) async {
+    try {
+      final XFile? picked =
+          await _picker.pickImage(source: ImageSource.gallery);
+      if (picked != null) {
+        final success = await notifier.updateAvatarImage(File(picked.path));
+        if (success && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Community avatar updated!'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        }
+      }
+    } catch (_) {}
+  }
+
   void _showLeaveConfirmation(CommunityDetailNotifier notifier) {
     showDialog(
       context: context,
@@ -225,44 +243,70 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
                                 Positioned(
                                   left: AppSpacing.space16,
                                   bottom: -30,
-                                  child: Container(
-                                    width: 72,
-                                    height: 72,
-                                    decoration: BoxDecoration(
-                                      color: isDark
-                                          ? AppColors.darkSurface
-                                          : AppColors.lightSurface,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: isDark
-                                            ? AppColors.midnightNavy
-                                            : AppColors.lightCanvas,
-                                        width: 4,
-                                      ),
-                                    ),
-                                    clipBehavior: Clip.antiAlias,
-                                    child: community.avatarUrl != null &&
-                                            community.avatarUrl!.isNotEmpty
-                                        ? CachedNetworkImage(
-                                            imageUrl: resolveMediaUrl(
-                                                    community.avatarUrl) ??
-                                                community.avatarUrl!,
-                                            fit: BoxFit.cover,
-                                            errorWidget:
-                                                (context, url, error) =>
-                                                    const Icon(
-                                              Icons.groups_rounded,
-                                              color: AppColors.primaryCrimson,
-                                              size: 36,
-                                            ),
-                                          )
-                                        : const Center(
-                                            child: Icon(
-                                              Icons.groups_rounded,
-                                              color: AppColors.primaryCrimson,
-                                              size: 36,
+                                  child: GestureDetector(
+                                    onTap: isOwner
+                                        ? () => _pickAndUploadAvatar(notifier)
+                                        : null,
+                                    child: Stack(
+                                      children: [
+                                        Container(
+                                          width: 72,
+                                          height: 72,
+                                          decoration: BoxDecoration(
+                                            color: isDark
+                                                ? AppColors.darkSurface
+                                                : AppColors.lightSurface,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: isDark
+                                                  ? AppColors.midnightNavy
+                                                  : AppColors.lightCanvas,
+                                              width: 4,
                                             ),
                                           ),
+                                          clipBehavior: Clip.antiAlias,
+                                          child: community.avatarUrl != null &&
+                                                  community.avatarUrl!.isNotEmpty
+                                              ? CachedNetworkImage(
+                                                  imageUrl: resolveMediaUrl(
+                                                          community.avatarUrl) ??
+                                                      community.avatarUrl!,
+                                                  fit: BoxFit.cover,
+                                                  errorWidget:
+                                                      (context, url, error) =>
+                                                          const Icon(
+                                                    Icons.groups_rounded,
+                                                    color: AppColors.primaryCrimson,
+                                                    size: 36,
+                                                  ),
+                                                )
+                                              : const Center(
+                                                  child: Icon(
+                                                    Icons.groups_rounded,
+                                                    color: AppColors.primaryCrimson,
+                                                    size: 36,
+                                                  ),
+                                                ),
+                                        ),
+                                        if (isOwner)
+                                          Positioned(
+                                            right: 0,
+                                            bottom: 0,
+                                            child: Container(
+                                              padding: const EdgeInsets.all(4),
+                                              decoration: const BoxDecoration(
+                                                color: AppColors.primaryCrimson,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(
+                                                Icons.camera_alt_rounded,
+                                                size: 13,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ],

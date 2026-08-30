@@ -217,4 +217,21 @@ class CommunityDetailNotifier extends StateNotifier<CommunityDetailState> {
       return false;
     }
   }
+
+  Future<bool> updateAvatarImage(File file) async {
+    state = state.copyWith(isActionLoading: true);
+    try {
+      final updatedCommunity = await repository.uploadAvatar(communityId, file);
+      if (state.detail != null) {
+        state = state.copyWith(
+          detail: state.detail!.copyWith(community: updatedCommunity),
+          isActionLoading: false,
+        );
+      }
+      return true;
+    } catch (_) {
+      state = state.copyWith(isActionLoading: false);
+      return false;
+    }
+  }
 }

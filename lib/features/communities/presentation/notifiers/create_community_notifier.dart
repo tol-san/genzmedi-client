@@ -81,6 +81,12 @@ class CreateCommunityNotifier extends StateNotifier<CreateCommunityState> {
             await repository.uploadCover(community.id, state.selectedCover!);
       }
 
+      // Upload avatar if chosen
+      if (state.selectedAvatar != null) {
+        community =
+            await repository.uploadAvatar(community.id, state.selectedAvatar!);
+      }
+
       state = state.copyWith(
         isSubmitting: false,
         isSuccess: true,
