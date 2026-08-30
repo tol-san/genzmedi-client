@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:video_player/video_player.dart';
 import 'package:client/app/router/route_names.dart';
@@ -12,10 +13,13 @@ import 'package:client/core/widgets/app_avatar.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/posts/presentation/widgets/post_comments_sheet.dart';
 
+/// Global provider for Clear Mode across all shorts/reels in the feed.
+final shortsClearModeProvider = StateProvider<bool>((ref) => false);
+
 /// Full-screen short video player item with flexible 16:9 landscape and 9:16 portrait support,
 /// follow button, audio ticker, right engagement rail, bottom comment bar,
 /// playback speed controls (0.5x - 2.0x), auto-scroll toggle, share, and report sheet.
-class ShortVideoItemWidget extends StatefulWidget {
+class ShortVideoItemWidget extends ConsumerStatefulWidget {
   final PostModel post;
   final bool isActive;
   final VoidCallback? onLike;
@@ -36,10 +40,10 @@ class ShortVideoItemWidget extends StatefulWidget {
   });
 
   @override
-  State<ShortVideoItemWidget> createState() => _ShortVideoItemWidgetState();
+  ConsumerState<ShortVideoItemWidget> createState() => _ShortVideoItemWidgetState();
 }
 
-class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
+class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
   VideoPlayerController? _controller;
   bool _isInitialized = false;
   bool _isMuted = false;
@@ -50,7 +54,6 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
   double _playbackSpeed = 1.0;
   bool _autoScrollOnFinish = true;
   bool _hasTriggeredAutoScroll = false;
-  bool _isClearMode = false;
 
   @override
   void initState() {
@@ -68,7 +71,6 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
       _isInitialized = false;
       _isPlaying = true;
       _hasError = false;
-      _isClearMode = false;
       _initializeVideo();
       return;
     }
@@ -365,29 +367,34 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
                     color: cardBg,
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: SwitchListTile(
-                    secondary: Icon(
-                      _isClearMode ? Icons.visibility_off_rounded : Icons.visibility_outlined,
-                      color: textColor,
-                      size: 22,
-                    ),
-                    title: Text(
-                      'Clear mode',
-                      style: TextStyle(
-                        color: textColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                      ),
-                    ),
-                    subtitle: Text(
-                      'Hide comments, buttons, and captions for clean viewing',
-                      style: TextStyle(color: subtitleColor, fontSize: 13),
-                    ),
-                    value: _isClearMode,
-                    activeTrackColor: AppColors.primaryElectricBlue,
-                    onChanged: (val) {
-                      Navigator.of(sheetContext).pop();
-                      setState(() => _isClearMode = val);
+                  child: Consumer(
+                    builder: (context, ref, _) {
+                      final isClearMode = ref.watch(shortsClearModeProvider);
+                      return SwitchListTile(
+                        secondary: Icon(
+                          isClearMode ? Icons.visibility_off_rounded : Icons.visibility_outlined,
+                          color: textColor,
+                          size: 22,
+                        ),
+                        title: Text(
+                          'Clear mode',
+                          style: TextStyle(
+                            color: textColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                          ),
+                        ),
+                        subtitle: Text(
+                          'Hide comments, buttons, and captions for clean viewing',
+                          style: TextStyle(color: subtitleColor, fontSize: 13),
+                        ),
+                        value: isClearMode,
+                        activeTrackColor: AppColors.primaryElectricBlue,
+                        onChanged: (val) {
+                          Navigator.of(sheetContext).pop();
+                          ref.read(shortsClearModeProvider.notifier).state = val;
+                        },
+                      );
                     },
                   ),
                 ),
@@ -467,6 +474,7 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final isClearMode = ref.watch(shortsClearModeProvider);
     final post = widget.post;
     final authorName = post.author.displayName ?? post.author.username;
 
@@ -492,7 +500,7 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
       children: [
         // 1. Video Player Canvas (Flexible 16:9 Landscape and 9:16 Portrait)
         GestureDetector(
-          onTap: _isClearMode ? () => setState(() => _isClearMode = false) : _togglePlayPause,
+          onTap: _togglePlayPause,
           onDoubleTap: _toggleMute,
           onLongPress: () => _showReelsOptionsSheet(context),
           child: Container(
@@ -597,7 +605,7 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
           ),
 
         // Overlays when not in Clear Mode
-        if (!_isClearMode) ...[
+        if (!isClearMode) ...[
           // Top Gradient Scrim
           Positioned(
             top: 0,
@@ -904,33 +912,26 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
             ),
           ),
         ] else ...[
-          // Clear Mode Floating Exit Indicator Button
+          // Clear Mode Floating Toggle (no border, icon only)
           Positioned(
             right: 16,
             bottom: MediaQuery.of(context).padding.bottom + 20,
             child: GestureDetector(
-              onTap: () => setState(() => _isClearMode = false),
+              onTap: () => ref.read(shortsClearModeProvider.notifier).state = false,
+              behavior: HitTestBehavior.opaque,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.65),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white24, width: 0.8),
+                  color: Colors.black.withValues(alpha: 0.45),
+                  shape: BoxShape.circle,
                 ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.visibility_rounded, color: Colors.white, size: 16),
-                    SizedBox(width: 6),
-                    Text(
-                      'Exit Clear Mode',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+                child: const Center(
+                  child: Icon(
+                    Icons.visibility_off_rounded,
+                    color: Colors.white,
+                    size: 22,
+                  ),
                 ),
               ),
             ),
