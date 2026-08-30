@@ -108,10 +108,11 @@ class _FeedVideoPlayerWidgetState extends State<FeedVideoPlayerWidget> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final targetAspectRatio = widget.aspectRatio ??
-        (_isInitialized && _controller!.value.aspectRatio > 0
-            ? _controller!.value.aspectRatio
-            : 16 / 9);
+    final double? naturalRatio = _isInitialized && _controller!.value.aspectRatio > 0
+        ? _controller!.value.aspectRatio
+        : widget.aspectRatio;
+
+    final targetAspectRatio = naturalRatio ?? 16 / 9;
 
     final resolvedThumbnail = resolveMediaUrl(widget.thumbnailUrl);
 
@@ -126,7 +127,7 @@ class _FeedVideoPlayerWidgetState extends State<FeedVideoPlayerWidget> {
               if (resolvedThumbnail != null)
                 CachedNetworkImage(
                   imageUrl: resolvedThumbnail,
-                  fit: BoxFit.cover,
+                  fit: (naturalRatio != null && naturalRatio < 1.0) ? BoxFit.cover : BoxFit.cover,
                   errorWidget: (context, url, error) => Container(
                     color: isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated,
                     child: const Icon(Icons.videocam_off_rounded, color: AppColors.textMuted, size: 40),
@@ -179,21 +180,18 @@ class _FeedVideoPlayerWidgetState extends State<FeedVideoPlayerWidget> {
       aspectRatio: targetAspectRatio,
       child: GestureDetector(
         onTap: widget.onTap ?? _togglePlayPause,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Video Surface
-            Positioned.fill(
-              child: FittedBox(
-                fit: BoxFit.cover,
-                clipBehavior: Clip.hardEdge,
-                child: SizedBox(
-                  width: _controller!.value.size.width,
-                  height: _controller!.value.size.height,
+        child: Container(
+          color: Colors.black,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Video Surface
+              Center(
+                child: AspectRatio(
+                  aspectRatio: _controller!.value.aspectRatio,
                   child: VideoPlayer(_controller!),
                 ),
               ),
-            ),
 
             // Paused State Indicator
             if (!_isPlaying)
@@ -214,27 +212,28 @@ class _FeedVideoPlayerWidgetState extends State<FeedVideoPlayerWidget> {
                 ),
               ),
 
-            // Mute / Unmute Button
-            Positioned(
-              bottom: 12,
-              right: 12,
-              child: GestureDetector(
-                onTap: _toggleMute,
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.65),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    _isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-                    color: Colors.white,
-                    size: 18,
+              // Mute / Unmute Button
+              Positioned(
+                bottom: 12,
+                right: 12,
+                child: GestureDetector(
+                  onTap: _toggleMute,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.65),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      _isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                      color: Colors.white,
+                      size: 18,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -261,6 +261,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
+        path: '/shorts-viewer',
+        name: RouteNames.shortsViewer,
+        builder: (context, state) {
+          final post = state.extra is PostModel ? state.extra as PostModel : null;
+          final postId = state.uri.queryParameters['postId'];
+          return ShortsFeedScreen(
+            initialPost: post,
+            initialPostId: postId,
+            isStandalone: true,
+          );
+        },
+      ),
+      GoRoute(
         path: '/communities',
         name: RouteNames.communityList,
         builder: (context, state) => const CommunityListScreen(),

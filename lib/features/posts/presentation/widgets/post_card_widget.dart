@@ -265,11 +265,19 @@ class _PostCardWidgetState extends State<PostCardWidget> {
     if (media.isNotEmpty && index < media.length) {
       final item = media[index];
       if (item.isVideo || widget.post.isVideo) {
-        context.goNamed(RouteNames.shortsFeed);
+        context.pushNamed(
+          RouteNames.shortsViewer,
+          queryParameters: {'postId': widget.post.id},
+          extra: widget.post,
+        );
         return;
       }
     } else if (widget.post.isVideo) {
-      context.goNamed(RouteNames.shortsFeed);
+      context.pushNamed(
+        RouteNames.shortsViewer,
+        queryParameters: {'postId': widget.post.id},
+        extra: widget.post,
+      );
       return;
     }
 
@@ -303,7 +311,11 @@ class _PostCardWidgetState extends State<PostCardWidget> {
       child: GestureDetector(
         onTap: () {
           if (post.isVideo) {
-            context.goNamed(RouteNames.shortsFeed);
+            context.pushNamed(
+              RouteNames.shortsViewer,
+              queryParameters: {'postId': post.id},
+              extra: post,
+            );
           } else if (post.media.length > 1) {
             // Multi-image post text tap -> Show full post with image carousel (Image 4)
             context.pushNamed(

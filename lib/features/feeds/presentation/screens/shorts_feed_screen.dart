@@ -5,10 +5,20 @@ import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/theme/app_typography.dart';
 import 'package:client/features/feeds/presentation/notifiers/shorts_feed_notifier.dart';
 import 'package:client/features/feeds/presentation/widgets/short_video_item_widget.dart';
+import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/posts/presentation/widgets/post_comments_sheet.dart';
 
 class ShortsFeedScreen extends ConsumerStatefulWidget {
-  const ShortsFeedScreen({super.key});
+  final PostModel? initialPost;
+  final String? initialPostId;
+  final bool isStandalone;
+
+  const ShortsFeedScreen({
+    super.key,
+    this.initialPost,
+    this.initialPostId,
+    this.isStandalone = false,
+  });
 
   @override
   ConsumerState<ShortsFeedScreen> createState() => _ShortsFeedScreenState();
@@ -16,6 +26,7 @@ class ShortsFeedScreen extends ConsumerStatefulWidget {
 
 class _ShortsFeedScreenState extends ConsumerState<ShortsFeedScreen> {
   late PageController _pageController;
+  int _activeIndex = 0;
 
   @override
   void initState() {
@@ -29,12 +40,37 @@ class _ShortsFeedScreenState extends ConsumerState<ShortsFeedScreen> {
     super.dispose();
   }
 
+  List<PostModel> _computeShortsList(List<PostModel> fetchedShorts) {
+    if (widget.initialPost != null) {
+      final existingIndex = fetchedShorts.indexWhere((p) => p.id == widget.initialPost!.id);
+      if (existingIndex >= 0) {
+        final list = List<PostModel>.from(fetchedShorts);
+        final item = list.removeAt(existingIndex);
+        list.insert(0, item);
+        return list;
+      } else {
+        return [widget.initialPost!, ...fetchedShorts];
+      }
+    } else if (widget.initialPostId != null) {
+      final existingIndex = fetchedShorts.indexWhere((p) => p.id == widget.initialPostId);
+      if (existingIndex > 0) {
+        final list = List<PostModel>.from(fetchedShorts);
+        final item = list.removeAt(existingIndex);
+        list.insert(0, item);
+        return list;
+      }
+    }
+    return fetchedShorts;
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(shortsFeedNotifierProvider);
     final notifier = ref.read(shortsFeedNotifierProvider.notifier);
 
-    if (state.isLoading && state.shorts.isEmpty) {
+    final displayShorts = _computeShortsList(state.shorts);
+
+    if (state.isLoading && displayShorts.isEmpty) {
       return Scaffold(
         backgroundColor: Colors.black,
         body: const Center(
@@ -43,7 +79,7 @@ class _ShortsFeedScreenState extends ConsumerState<ShortsFeedScreen> {
       );
     }
 
-    if (state.shorts.isEmpty && !state.isLoading) {
+    if (displayShorts.isEmpty && !state.isLoading) {
       return Scaffold(
         backgroundColor: Colors.black,
         body: Center(
@@ -54,7 +90,7 @@ class _ShortsFeedScreenState extends ConsumerState<ShortsFeedScreen> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.space24),
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: AppColors.darkSurfaceElevated,
                     shape: BoxShape.circle,
                   ),
@@ -97,13 +133,14 @@ class _ShortsFeedScreenState extends ConsumerState<ShortsFeedScreen> {
       body: PageView.builder(
         controller: _pageController,
         scrollDirection: Axis.vertical,
-        itemCount: state.shorts.length,
+        itemCount: displayShorts.length,
         onPageChanged: (index) {
+          setState(() => _activeIndex = index);
           notifier.setActiveIndex(index);
         },
         itemBuilder: (context, index) {
-          final post = state.shorts[index];
-          final isActive = state.activeIndex == index;
+          final post = displayShorts[index];
+          final isActive = _activeIndex == index;
 
           return ShortVideoItemWidget(
             key: ValueKey(post.id),
@@ -116,7 +153,7 @@ class _ShortsFeedScreenState extends ConsumerState<ShortsFeedScreen> {
               PostCommentsSheet.show(context, postId: post.id, post: post);
             },
             onVideoCompleted: () {
-              if (index < state.shorts.length - 1) {
+              if (index < displayShorts.length - 1) {
                 _pageController.nextPage(
                   duration: const Duration(milliseconds: 350),
                   curve: Curves.easeInOut,
