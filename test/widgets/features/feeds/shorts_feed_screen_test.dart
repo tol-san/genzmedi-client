@@ -59,6 +59,8 @@ void main() {
       expect(find.text('#dance #street #vibes'), findsOneWidget);
       expect(find.text('1.2K'), findsOneWidget);
       expect(find.text('88'), findsOneWidget);
+      expect(find.text('340'), findsOneWidget);
+      expect(find.byIcon(Icons.bookmark_border_rounded), findsOneWidget);
     });
 
     testWidgets('renders empty state when shorts feed has no items', (tester) async {

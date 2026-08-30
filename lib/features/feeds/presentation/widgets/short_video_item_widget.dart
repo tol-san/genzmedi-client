@@ -533,12 +533,12 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
               ),
               const SizedBox(height: 18),
 
-              // Share Button (Curved arrow)
+              // Bookmark / Save Button
               _buildActionButton(
-                icon: Icons.share_rounded,
-                label: _formatCount(post.shareCount),
-                color: Colors.white,
-                onTap: _handleShare,
+                icon: post.isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                label: _formatCount(post.saveCount),
+                color: post.isSaved ? AppColors.warning : Colors.white,
+                onTap: widget.onSave,
               ),
             ],
           ),
