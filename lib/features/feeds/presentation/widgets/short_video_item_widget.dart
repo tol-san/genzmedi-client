@@ -540,15 +540,6 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
                 color: Colors.white,
                 onTap: _handleShare,
               ),
-              const SizedBox(height: 18),
-
-              // Options / More Button
-              _buildActionButton(
-                icon: Icons.more_horiz_rounded,
-                label: _formatCount(post.saveCount > 0 ? post.saveCount : 2300),
-                color: Colors.white,
-                onTap: () => _showReelsOptionsSheet(context),
-              ),
             ],
           ),
         ),
