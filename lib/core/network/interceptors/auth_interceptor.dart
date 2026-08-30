@@ -28,7 +28,11 @@ class AuthInterceptor extends QueuedInterceptor {
     // Avoid attaching authorization to unauthenticated auth routes
     final isAuthRoute = options.path.contains('/auth/login') ||
         options.path.contains('/auth/register') ||
-        options.path.contains('/auth/refresh');
+        options.path.contains('/auth/refresh') ||
+        options.path.contains('/auth/forgot-password') ||
+        options.path.contains('/auth/verify-otp') ||
+        options.path.contains('/auth/reset-password') ||
+        options.path.contains('/auth/signup');
 
     if (!isAuthRoute) {
       final token = await storage.getAccessToken();
@@ -48,7 +52,11 @@ class AuthInterceptor extends QueuedInterceptor {
     final response = err.response;
     final isAuthRoute = err.requestOptions.path.contains('/auth/login') ||
         err.requestOptions.path.contains('/auth/register') ||
-        err.requestOptions.path.contains('/auth/refresh');
+        err.requestOptions.path.contains('/auth/refresh') ||
+        err.requestOptions.path.contains('/auth/forgot-password') ||
+        err.requestOptions.path.contains('/auth/verify-otp') ||
+        err.requestOptions.path.contains('/auth/reset-password') ||
+        err.requestOptions.path.contains('/auth/signup');
 
     if (response?.statusCode == 401 && !isAuthRoute) {
       try {

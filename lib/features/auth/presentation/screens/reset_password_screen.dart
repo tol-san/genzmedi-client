@@ -11,6 +11,7 @@ import 'package:client/core/theme/app_typography.dart';
 import 'package:client/core/widgets/app_button.dart';
 import 'package:client/core/widgets/app_logo.dart';
 import 'package:client/core/widgets/app_text_field.dart';
+import 'package:client/core/storage/secure_storage_service.dart';
 import 'package:client/features/auth/data/models/auth_models.dart';
 import 'package:client/features/auth/data/repositories/auth_repository.dart';
 
@@ -94,16 +95,27 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
     try {
       final repository = ref.read(authRepositoryProvider);
+      final storage = ref.read(secureStorageServiceProvider);
+      final storedToken = await storage.getAccessToken();
+      final effectiveToken = (widget.initialToken != null && widget.initialToken!.isNotEmpty)
+          ? widget.initialToken!
+          : (storedToken ?? '');
+
       await repository.resetPassword(
         ResetPasswordRequest(
-          token: widget.initialToken ?? '',
+          token: effectiveToken,
           email: widget.initialEmail,
           newPassword: newPassword,
         ),
       );
 
       if (mounted) {
-        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Password updated successfully!'),
+            backgroundColor: AppColors.success,
+          ),
+        );
         _navigateToNextScreen();
       }
     } catch (e) {
@@ -116,9 +128,12 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               .replaceFirst(RegExp(r'\s*\(statusCode:\s*\d+\)'), '');
 
       setState(() {
-        _isLoading = false;
         _errorMessage = cleanMessage;
       });
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
