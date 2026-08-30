@@ -412,7 +412,7 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
                       ListTile(
                         leading: Icon(Icons.share_rounded, color: textColor, size: 22),
                         title: Text(
-                          'Share reel',
+                          'Share',
                           style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
                         ),
                         subtitle: Text(
@@ -428,7 +428,7 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
                       ListTile(
                         leading: Icon(Icons.flag_outlined, color: AppColors.error, size: 22),
                         title: const Text(
-                          'Report reel',
+                          'Report',
                           style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600),
                         ),
                         subtitle: Text(
