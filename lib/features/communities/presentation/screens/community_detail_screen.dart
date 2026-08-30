@@ -638,43 +638,46 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
       color: AppColors.primaryCrimson,
       onRefresh: notifier.loadPosts,
       child: ListView(
-        padding: const EdgeInsets.all(AppSpacing.space16),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.space12),
         children: [
           // If member or owner: Quick Post CTA bar
           if (detail.isMember || detail.isOwner) ...[
-            GestureDetector(
-              onTap: () {
-                context.pushNamed(RouteNames.createPost);
-              },
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.darkSurface
-                      : AppColors.lightSurface,
-                  borderRadius: AppSpacing.roundedSm,
-                  border: Border.all(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space16),
+              child: GestureDetector(
+                onTap: () {
+                  context.pushNamed(RouteNames.createPost);
+                },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
                     color: isDark
-                        ? AppColors.navyBorder
-                        : AppColors.lightBorder,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.edit_note_rounded,
-                        color: AppColors.primaryCrimson, size: 22),
-                    const SizedBox(width: 10),
-                    Text(
-                      'Share something with the community...',
-                      style: AppTypography.bodySmall
-                          .copyWith(color: AppColors.textMuted),
+                        ? AppColors.darkSurface
+                        : AppColors.lightSurface,
+                    borderRadius: AppSpacing.roundedSm,
+                    border: Border.all(
+                      color: isDark
+                          ? AppColors.navyBorder
+                          : AppColors.lightBorder,
                     ),
-                  ],
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.edit_note_rounded,
+                          color: AppColors.primaryCrimson, size: 22),
+                      const SizedBox(width: 10),
+                      Text(
+                        'Share something with the community...',
+                        style: AppTypography.bodySmall
+                            .copyWith(color: AppColors.textMuted),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: AppSpacing.space16),
+            const SizedBox(height: AppSpacing.space12),
           ],
 
           if (state.posts.isEmpty)
@@ -702,19 +705,31 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
               ),
             )
           else
-            ...state.posts.map(
-              (post) => Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.space16),
-                child: PostCardWidget(
-                  post: post,
-                  onTap: () {
-                    context.pushNamed(
-                      RouteNames.postDetail,
-                      pathParameters: {'postId': post.id},
-                    );
-                  },
-                ),
-              ),
+            ...state.posts.asMap().entries.map(
+              (entry) {
+                final index = entry.key;
+                final post = entry.value;
+                return Column(
+                  children: [
+                    if (index > 0)
+                      Container(
+                        height: 8,
+                        color: isDark
+                            ? const Color(0xFF030D1A)
+                            : const Color(0xFFF0F2F5),
+                      ),
+                    PostCardWidget(
+                      post: post,
+                      onTap: () {
+                        context.pushNamed(
+                          RouteNames.postDetail,
+                          pathParameters: {'postId': post.id},
+                        );
+                      },
+                    ),
+                  ],
+                );
+              },
             ),
         ],
       ),

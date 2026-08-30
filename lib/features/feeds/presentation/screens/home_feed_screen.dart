@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:client/app/router/route_names.dart';
@@ -20,6 +21,7 @@ class HomeFeedScreen extends ConsumerStatefulWidget {
 
 class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
   final ScrollController _scrollController = ScrollController();
+  bool _isAppBarVisible = true;
 
   @override
   void initState() {
@@ -46,43 +48,69 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final state = ref.watch(homeFeedNotifierProvider);
     final notifier = ref.read(homeFeedNotifierProvider.notifier);
+    final statusBarHeight = MediaQuery.of(context).padding.top;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const AppLogo.wordmark(width: 140, height: 22),
-        actions: [
-          IconButton(
-            icon: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(
-                  Icons.notifications_none_rounded,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                ),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primaryCrimson,
-                      shape: BoxShape.circle,
-                    ),
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(_isAppBarVisible ? kToolbarHeight : 0.0),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeInOut,
+          height: _isAppBarVisible ? (kToolbarHeight + statusBarHeight) : 0.0,
+          child: SingleChildScrollView(
+            physics: const NeverScrollableScrollPhysics(),
+            child: AppBar(
+              title: const AppLogo.wordmark(width: 140, height: 22),
+              actions: [
+                IconButton(
+                  icon: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Icon(
+                        Icons.notifications_none_rounded,
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      ),
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppColors.primaryCrimson,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Notifications (Coming soon)')),
+                    );
+                  },
                 ),
+                const SizedBox(width: AppSpacing.space8),
               ],
             ),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Notifications (Coming soon)')),
-              );
-            },
           ),
-          const SizedBox(width: AppSpacing.space8),
-        ],
+        ),
       ),
-      body: _buildBody(state, notifier, isDark),
+      body: NotificationListener<UserScrollNotification>(
+        onNotification: (notification) {
+          if (notification.direction == ScrollDirection.reverse) {
+            if (_isAppBarVisible) {
+              setState(() => _isAppBarVisible = false);
+            }
+          } else if (notification.direction == ScrollDirection.forward) {
+            if (!_isAppBarVisible) {
+              setState(() => _isAppBarVisible = true);
+            }
+          }
+          return false;
+        },
+        child: _buildBody(state, notifier, isDark),
+      ),
     );
   }
 
@@ -115,11 +143,15 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
     return RefreshIndicator(
       color: AppColors.primaryCrimson,
       onRefresh: notifier.refresh,
-      child: ListView.builder(
+      child: ListView.separated(
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.space8),
+        padding: EdgeInsets.zero,
         itemCount: state.posts.length + (state.hasMore ? 1 : 0),
+        separatorBuilder: (context, index) => Container(
+          height: 8,
+          color: isDark ? const Color(0xFF030D1A) : const Color(0xFFF0F2F5),
+        ),
         itemBuilder: (context, index) {
           if (index == state.posts.length) {
             return const Padding(
@@ -159,58 +191,66 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
   }
 
   Widget _buildFeedSkeleton(bool isDark) {
-    return ListView.builder(
+    return ListView.separated(
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.space8),
+      padding: EdgeInsets.zero,
       itemCount: 3,
+      separatorBuilder: (context, index) => Container(
+        height: 8,
+        color: isDark ? const Color(0xFF030D1A) : const Color(0xFFF0F2F5),
+      ),
       itemBuilder: (context, index) => Container(
-        margin: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.space16,
-          vertical: AppSpacing.space8,
-        ),
-        padding: const EdgeInsets.all(AppSpacing.space16),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-          borderRadius: AppSpacing.roundedMd,
-          border: Border.all(
-            color: isDark ? AppColors.navyBorder : AppColors.lightBorder,
-            width: 1,
-          ),
-        ),
+        color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.space12),
         child: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                AppSkeleton.circle(size: 40),
-                SizedBox(width: AppSpacing.space12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AppSkeleton.text(width: 120, height: 14),
-                    SizedBox(height: 6),
-                    AppSkeleton.text(width: 80, height: 12),
-                  ],
-                ),
-              ],
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.space16),
+              child: Row(
+                children: [
+                  AppSkeleton.circle(size: 40),
+                  SizedBox(width: AppSpacing.space12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppSkeleton.text(width: 120, height: 14),
+                      SizedBox(height: 6),
+                      AppSkeleton.text(width: 80, height: 12),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            SizedBox(height: AppSpacing.space16),
-            AppSkeleton.text(width: 200, height: 16),
-            SizedBox(height: 8),
-            AppSkeleton.text(width: double.infinity, height: 14),
+            SizedBox(height: AppSpacing.space12),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.space16),
+              child: AppSkeleton.text(width: 200, height: 16),
+            ),
             SizedBox(height: 6),
-            AppSkeleton.text(width: 240, height: 14),
-            SizedBox(height: AppSpacing.space16),
-            AppSkeleton.rectangular(height: 160),
-            SizedBox(height: AppSpacing.space16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                AppSkeleton.rectangular(width: 50, height: 20),
-                AppSkeleton.rectangular(width: 50, height: 20),
-                AppSkeleton.rectangular(width: 50, height: 20),
-                AppSkeleton.rectangular(width: 50, height: 20),
-              ],
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.space16),
+              child: AppSkeleton.text(width: double.infinity, height: 14),
+            ),
+            SizedBox(height: 6),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.space16),
+              child: AppSkeleton.text(width: 240, height: 14),
+            ),
+            SizedBox(height: AppSpacing.space12),
+            AppSkeleton.rectangular(height: 220),
+            SizedBox(height: AppSpacing.space12),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.space16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  AppSkeleton.rectangular(width: 60, height: 20),
+                  AppSkeleton.rectangular(width: 60, height: 20),
+                  AppSkeleton.rectangular(width: 60, height: 20),
+                  AppSkeleton.rectangular(width: 60, height: 20),
+                ],
+              ),
             ),
           ],
         ),

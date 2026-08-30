@@ -18,9 +18,11 @@ import 'package:client/features/communities/presentation/screens/community_list_
 import 'package:client/features/communities/presentation/screens/create_community_screen.dart';
 import 'package:client/features/feeds/presentation/screens/home_feed_screen.dart';
 import 'package:client/features/feeds/presentation/screens/shorts_feed_screen.dart';
+import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/posts/presentation/screens/create_hub_screen.dart';
 import 'package:client/features/posts/presentation/screens/create_post_screen.dart';
 import 'package:client/features/posts/presentation/screens/post_detail_screen.dart';
+import 'package:client/features/posts/presentation/screens/post_media_viewer_screen.dart';
 import 'package:client/features/profiles/presentation/screens/edit_profile_screen.dart';
 import 'package:client/features/profiles/presentation/screens/follow_list_screen.dart';
 import 'package:client/features/profiles/presentation/screens/my_profile_screen.dart';
@@ -206,6 +208,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/posts/:postId',
         name: RouteNames.postDetail,
         builder: (context, state) {
+          final postId = state.pathParameters['postId'] ?? '';
+          return PostDetailScreen(postId: postId);
+        },
+      ),
+      GoRoute(
+        path: '/posts/:postId/media',
+        name: RouteNames.mediaViewer,
+        builder: (context, state) {
+          final post = state.extra is PostModel ? state.extra as PostModel : null;
+          final initialIndexStr = state.uri.queryParameters['index'];
+          final initialIndex = int.tryParse(initialIndexStr ?? '0') ?? 0;
+          if (post != null) {
+            return PostMediaViewerScreen(post: post, initialIndex: initialIndex);
+          }
           final postId = state.pathParameters['postId'] ?? '';
           return PostDetailScreen(postId: postId);
         },

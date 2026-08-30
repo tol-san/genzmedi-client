@@ -383,18 +383,6 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
                   ),
                 ),
               ),
-              if (post.title != null && post.title!.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  post.title!,
-                  style: AppTypography.body.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
               if (post.content != null && post.content!.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
@@ -402,7 +390,7 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
                   style: AppTypography.bodySmall.copyWith(
                     color: Colors.white.withValues(alpha: 0.9),
                   ),
-                  maxLines: 2,
+                  maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],

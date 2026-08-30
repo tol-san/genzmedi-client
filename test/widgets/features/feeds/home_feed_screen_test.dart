@@ -53,7 +53,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(PostCardWidget), findsOneWidget);
-      expect(find.text('Digital Illustration'), findsOneWidget);
+      expect(find.text('Check out my new piece!'), findsOneWidget);
       expect(find.text('Art Creator'), findsOneWidget);
     });
 

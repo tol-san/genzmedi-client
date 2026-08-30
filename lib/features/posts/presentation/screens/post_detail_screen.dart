@@ -173,22 +173,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                               ),
                             ),
 
-                            // 2. Post Title & Content
-                            if (post.title != null && post.title!.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppSpacing.space16,
-                                ),
-                                child: Text(
-                                  post.title!,
-                                  style: AppTypography.heading.copyWith(
-                                    fontSize: 20,
-                                    color: isDark
-                                        ? AppColors.textPrimaryDark
-                                        : AppColors.textPrimaryLight,
-                                  ),
-                                ),
-                              ),
+                            // 2. Post Content (Description)
                             if (post.content != null && post.content!.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.symmetric(

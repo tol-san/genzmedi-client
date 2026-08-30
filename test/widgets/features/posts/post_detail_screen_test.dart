@@ -88,9 +88,9 @@ void main() {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
-      expect(find.text('Post Details Title'), findsOneWidget);
       expect(find.text('Sarah Developer'), findsOneWidget);
       expect(find.text('Full description of the post content.'), findsOneWidget);
+      expect(find.text('Post Details Title'), findsNothing);
       expect(find.text('Discussion (1)'), findsOneWidget);
       expect(find.text('Mark Reader'), findsOneWidget);
       expect(find.text('Insightful post!'), findsOneWidget);

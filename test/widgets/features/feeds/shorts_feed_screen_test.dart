@@ -54,7 +54,7 @@ void main() {
 
       expect(find.byType(ShortVideoItemWidget), findsOneWidget);
       expect(find.text('@dancer_pro'), findsOneWidget);
-      expect(find.text('Epic Street Dance'), findsOneWidget);
+      expect(find.text('#dance #street #vibes'), findsOneWidget);
       expect(find.text('1.2K'), findsOneWidget);
       expect(find.text('88'), findsOneWidget);
       expect(find.text('340'), findsOneWidget);

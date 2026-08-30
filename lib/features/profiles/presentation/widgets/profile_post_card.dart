@@ -72,29 +72,16 @@ class ProfilePostCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    if (post.title != null && post.title!.isNotEmpty)
+                    if (post.content != null && post.content!.isNotEmpty)
                       Text(
-                        post.title!,
-                        maxLines: 2,
+                        post.content!,
+                        maxLines: 4,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTypography.label.copyWith(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
+                        style: AppTypography.bodySmall.copyWith(
+                          fontSize: 12,
                           color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
                         ),
                       ),
-                    if (post.content != null && post.content!.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        post.content!,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.bodySmall.copyWith(
-                          fontSize: 11,
-                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),

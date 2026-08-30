@@ -90,7 +90,6 @@ void main() {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
-      expect(find.text('Welcome to my feed'), findsOneWidget);
       expect(find.text('Loving the vibe here!'), findsOneWidget);
     });
 
