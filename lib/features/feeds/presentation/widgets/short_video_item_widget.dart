@@ -7,6 +7,7 @@ import 'package:client/app/router/route_names.dart';
 import 'package:client/core/theme/app_colors.dart';
 import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/theme/app_typography.dart';
+import 'package:client/core/utils/media_url_resolver.dart';
 import 'package:client/core/widgets/app_avatar.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/posts/presentation/widgets/post_comments_sheet.dart';
@@ -70,9 +71,14 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
   }
 
   Future<void> _initializeVideo() async {
-    final videoUrl = widget.post.media.isNotEmpty
-        ? widget.post.media.first.url
+    final videoMedia = widget.post.media.isNotEmpty
+        ? widget.post.media.firstWhere(
+            (m) => m.isVideo,
+            orElse: () => widget.post.media.first,
+          )
         : null;
+
+    final videoUrl = resolveMediaUrl(videoMedia?.url);
 
     if (videoUrl == null || videoUrl.isEmpty) {
       if (mounted) setState(() => _hasError = true);
@@ -414,12 +420,20 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
   Widget build(BuildContext context) {
     final post = widget.post;
     final authorName = post.author.displayName ?? post.author.username;
-    final thumbnailUrl = post.media.isNotEmpty ? post.media.first.thumbnailUrl : null;
 
-    final isLandscapeMedia = post.media.isNotEmpty &&
-        post.media.first.width != null &&
-        post.media.first.height != null &&
-        post.media.first.width! > post.media.first.height!;
+    final videoMedia = post.media.isNotEmpty
+        ? post.media.firstWhere(
+            (m) => m.isVideo,
+            orElse: () => post.media.first,
+          )
+        : null;
+
+    final thumbnailUrl = resolveMediaUrl(videoMedia?.thumbnailUrl);
+
+    final isLandscapeMedia = videoMedia != null &&
+        videoMedia.width != null &&
+        videoMedia.height != null &&
+        videoMedia.width! > videoMedia.height!;
 
     final isLandscapeVideo = _isInitialized &&
         _controller != null &&
