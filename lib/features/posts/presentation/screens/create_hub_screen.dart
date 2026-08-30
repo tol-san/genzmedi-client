@@ -52,7 +52,6 @@ class CreateHubScreen extends StatelessWidget {
               icon: Icons.videocam_rounded,
               title: '🎬 Video',
               subtitle: 'Post a short video',
-              badge: 'Popular',
               onTap: () {
                 context.pushNamed(
                   RouteNames.createPost,
@@ -98,8 +97,6 @@ class CreateHubScreen extends StatelessWidget {
               icon: Icons.poll_rounded,
               title: '📊 Poll',
               subtitle: 'Ask the community',
-              badge: 'Soon',
-              badgeColor: AppColors.primaryElectricBlue,
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
