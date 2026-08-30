@@ -60,6 +60,16 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
   @override
   void didUpdateWidget(covariant ShortVideoItemWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.post.id != widget.post.id) {
+      _controller?.removeListener(_videoListener);
+      _controller?.dispose();
+      _controller = null;
+      _isInitialized = false;
+      _isPlaying = true;
+      _hasError = false;
+      _initializeVideo();
+      return;
+    }
     if (oldWidget.isActive != widget.isActive) {
       if (widget.isActive) {
         _hasTriggeredAutoScroll = false;
@@ -90,13 +100,15 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
       final uri = Uri.parse(videoUrl);
       _controller = VideoPlayerController.networkUrl(uri);
       await _controller!.initialize();
-      _controller!.setLooping(true);
+      await _controller!.setLooping(true);
+      await _controller!.setVolume(_isMuted ? 0.0 : 1.0);
       await _controller!.setPlaybackSpeed(_playbackSpeed);
       _controller!.addListener(_videoListener);
 
       if (mounted) {
         setState(() {
           _isInitialized = true;
+          _hasError = false;
         });
         if (widget.isActive) {
           _play();
@@ -430,16 +442,13 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
 
     final thumbnailUrl = resolveMediaUrl(videoMedia?.thumbnailUrl);
 
-    final isLandscapeMedia = videoMedia != null &&
-        videoMedia.width != null &&
-        videoMedia.height != null &&
-        videoMedia.width! > videoMedia.height!;
+    final double? naturalAspectRatio = (_isInitialized && _controller != null && _controller!.value.aspectRatio > 0)
+        ? _controller!.value.aspectRatio
+        : (videoMedia != null && videoMedia.width != null && videoMedia.height != null && videoMedia.height! > 0)
+            ? (videoMedia.width! / videoMedia.height!)
+            : null;
 
-    final isLandscapeVideo = _isInitialized &&
-        _controller != null &&
-        _controller!.value.aspectRatio > 1.0;
-
-    final isLandscape = isLandscapeVideo || (!_isInitialized && isLandscapeMedia);
+    final isLandscape = (naturalAspectRatio ?? 1.0) > 1.0;
 
     return Stack(
       fit: StackFit.expand,
@@ -451,36 +460,53 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
           child: Container(
             color: Colors.black,
             child: _isInitialized && _controller != null
-                ? (isLandscapeVideo
+                ? (isLandscape
                     ? Center(
                         child: AspectRatio(
                           aspectRatio: _controller!.value.aspectRatio,
                           child: VideoPlayer(_controller!),
                         ),
                       )
-                    : FittedBox(
-                        fit: BoxFit.cover,
-                        clipBehavior: Clip.hardEdge,
-                        child: SizedBox(
-                          width: _controller!.value.size.width,
-                          height: _controller!.value.size.height,
-                          child: VideoPlayer(_controller!),
+                    : Positioned.fill(
+                        child: FittedBox(
+                          fit: BoxFit.cover,
+                          clipBehavior: Clip.hardEdge,
+                          child: SizedBox(
+                            width: _controller!.value.size.width,
+                            height: _controller!.value.size.height,
+                            child: VideoPlayer(_controller!),
+                          ),
                         ),
                       ))
                 : Stack(
                     fit: StackFit.expand,
                     children: [
                       if (thumbnailUrl != null)
-                        Center(
-                          child: CachedNetworkImage(
-                            imageUrl: thumbnailUrl,
-                            fit: isLandscape ? BoxFit.contain : BoxFit.cover,
-                            width: isLandscape ? double.infinity : null,
-                            height: isLandscape ? null : double.infinity,
-                            errorWidget: (context, url, error) => Container(color: Colors.black),
-                          ),
-                        ),
-                      Container(color: Colors.black.withValues(alpha: 0.4)),
+                        isLandscape
+                            ? Center(
+                                child: AspectRatio(
+                                  aspectRatio: naturalAspectRatio ?? (16 / 9),
+                                  child: CachedNetworkImage(
+                                    imageUrl: thumbnailUrl,
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) => Container(color: Colors.black),
+                                    errorWidget: (context, url, error) => Container(color: Colors.black),
+                                  ),
+                                ),
+                              )
+                            : Positioned.fill(
+                                child: FittedBox(
+                                  fit: BoxFit.cover,
+                                  clipBehavior: Clip.hardEdge,
+                                  child: CachedNetworkImage(
+                                    imageUrl: thumbnailUrl,
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) => Container(color: Colors.black),
+                                    errorWidget: (context, url, error) => Container(color: Colors.black),
+                                  ),
+                                ),
+                              ),
+                      Container(color: Colors.black.withValues(alpha: 0.25)),
                       if (_hasError)
                         Center(
                           child: Column(
@@ -499,8 +525,17 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
                             ],
                           ),
                         )
-                      else
-                        const SizedBox.shrink(),
+                      else if (!_isInitialized)
+                        const Center(
+                          child: SizedBox(
+                            width: 36,
+                            height: 36,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
           ),
