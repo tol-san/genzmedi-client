@@ -1,11 +1,14 @@
+import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:client/app/router/route_names.dart';
 import 'package:client/core/theme/app_colors.dart';
 import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/theme/app_typography.dart';
+import 'package:client/core/utils/media_url_resolver.dart';
 import 'package:client/core/widgets/app_avatar.dart';
 import 'package:client/core/widgets/app_button.dart';
 import 'package:client/features/communities/data/models/community_models.dart';
@@ -23,20 +26,25 @@ class CommunityDetailScreen extends ConsumerStatefulWidget {
       _CommunityDetailScreenState();
 }
 
-class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
+  final ImagePicker _picker = ImagePicker();
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  Future<void> _pickAndUploadCover(CommunityDetailNotifier notifier) async {
+    try {
+      final XFile? picked =
+          await _picker.pickImage(source: ImageSource.gallery);
+      if (picked != null) {
+        final success = await notifier.updateCoverImage(File(picked.path));
+        if (success && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Community cover banner updated!'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        }
+      }
+    } catch (_) {}
   }
 
   void _showLeaveConfirmation(CommunityDetailNotifier notifier) {
@@ -86,258 +94,345 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen>
     final detail = state.detail;
     final community = detail?.community;
     final isOwner = detail?.isOwner ?? false;
-    final tabCount = isOwner ? 4 : 3;
+    final isPrivate = community?.isPrivate ?? false;
+    final showRequestsTab = isOwner && isPrivate;
+    final tabCount = showRequestsTab ? 4 : 3;
 
-    if (_tabController.length != tabCount) {
-      _tabController.dispose();
-      _tabController = TabController(length: tabCount, vsync: this);
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(community?.name ?? 'Community'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share_outlined),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                      'Community link copied for ${community?.name ?? ''}'),
-                  backgroundColor: AppColors.success,
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: state.isLoading && detail == null
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.primaryCrimson),
-            )
-          : detail == null
-              ? Center(
-                  child: Text(
-                    state.errorMessage ?? 'Community not found',
-                    style: AppTypography.bodySmall
-                        .copyWith(color: AppColors.textMuted),
+    return DefaultTabController(
+      key: ValueKey('tab_ctrl_${widget.communityId}_$tabCount'),
+      length: tabCount,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(community?.name ?? 'Community'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.share_outlined),
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                        'Community link copied for ${community?.name ?? ''}'),
+                    backgroundColor: AppColors.success,
                   ),
-                )
-              : NestedScrollView(
-                  headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                    SliverToBoxAdapter(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // 1. Cover Banner Image
-                          Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              Container(
-                                height: 140,
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      AppColors.primaryCrimson
-                                          .withValues(alpha: 0.7),
-                                      AppColors.midnightNavy,
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                ),
-                                child: community.coverImageUrl != null &&
-                                        community.coverImageUrl!.isNotEmpty
-                                    ? CachedNetworkImage(
-                                        imageUrl: community.coverImageUrl!,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : const SizedBox.shrink(),
-                              ),
-
-                              // Avatar
-                              Positioned(
-                                left: AppSpacing.space16,
-                                bottom: -30,
-                                child: Container(
-                                  width: 72,
-                                  height: 72,
+                );
+              },
+            ),
+          ],
+        ),
+        body: state.isLoading && detail == null
+            ? const Center(
+                child:
+                    CircularProgressIndicator(color: AppColors.primaryCrimson),
+              )
+            : detail == null || community == null
+                ? Center(
+                    child: Text(
+                      state.errorMessage ?? 'Community not found',
+                      style: AppTypography.bodySmall
+                          .copyWith(color: AppColors.textMuted),
+                    ),
+                  )
+                : NestedScrollView(
+                    headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                      SliverToBoxAdapter(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // 1. Cover Banner Image
+                            Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Container(
+                                  height: 140,
+                                  width: double.infinity,
                                   decoration: BoxDecoration(
-                                    color: isDark
-                                        ? AppColors.darkSurface
-                                        : AppColors.lightSurface,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: isDark
-                                          ? AppColors.midnightNavy
-                                          : AppColors.lightCanvas,
-                                      width: 4,
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        AppColors.primaryCrimson
+                                            .withValues(alpha: 0.7),
+                                        AppColors.midnightNavy,
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
                                     ),
                                   ),
-                                  clipBehavior: Clip.antiAlias,
-                                  child: community.avatarUrl != null &&
-                                          community.avatarUrl!.isNotEmpty
+                                  child: community.coverImageUrl != null &&
+                                          community.coverImageUrl!.isNotEmpty
                                       ? CachedNetworkImage(
-                                          imageUrl: community.avatarUrl!,
+                                          imageUrl: resolveMediaUrl(
+                                                  community.coverImageUrl) ??
+                                              community.coverImageUrl!,
                                           fit: BoxFit.cover,
-                                        )
-                                      : const Center(
-                                          child: Icon(
-                                            Icons.groups_rounded,
-                                            color: AppColors.primaryCrimson,
-                                            size: 36,
-                                          ),
-                                        ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 38),
-
-                          // 2. Info & Action Row
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.space16,
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Flexible(
-                                            child: Text(
-                                              community.name,
-                                              style: AppTypography.heading
-                                                  .copyWith(
-                                                fontSize: 20,
-                                                color: isDark
-                                                    ? AppColors.textPrimaryDark
-                                                    : AppColors.textPrimaryLight,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 2,
-                                            ),
+                                          errorWidget: (context, url, error) =>
+                                              Container(
                                             decoration: BoxDecoration(
-                                              color: community.isPrivate
-                                                  ? AppColors.warning
-                                                      .withValues(alpha: 0.15)
-                                                  : AppColors.signalMint
-                                                      .withValues(alpha: 0.15),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  AppColors.primaryCrimson
+                                                      .withValues(alpha: 0.7),
+                                                  AppColors.midnightNavy,
+                                                ],
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              ),
                                             ),
-                                            child: Text(
-                                              community.isPrivate
-                                                  ? 'Private'
-                                                  : 'Public',
+                                          ),
+                                        )
+                                      : const SizedBox.shrink(),
+                                ),
+
+                                // Owner Edit Cover Button
+                                if (isOwner)
+                                  Positioned(
+                                    top: 12,
+                                    right: 12,
+                                    child: GestureDetector(
+                                      onTap: () =>
+                                          _pickAndUploadCover(notifier),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black
+                                              .withValues(alpha: 0.65),
+                                          borderRadius: AppSpacing.roundedFull,
+                                          border:
+                                              Border.all(color: Colors.white24),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(
+                                                Icons.camera_alt_outlined,
+                                                size: 14,
+                                                color: Colors.white),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              'Edit Banner',
                                               style: AppTypography.caption
                                                   .copyWith(
-                                                fontSize: 11,
+                                                color: Colors.white,
                                                 fontWeight: FontWeight.w600,
-                                                color: community.isPrivate
-                                                    ? AppColors.warning
-                                                    : AppColors.signalMint,
                                               ),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '${community.memberCount} members · ${community.postCount} posts',
-                                        style: AppTypography.caption.copyWith(
-                                          color: AppColors.textMuted,
+                                          ],
                                         ),
                                       ),
-                                    ],
+                                    ),
+                                  ),
+
+                                // Avatar
+                                Positioned(
+                                  left: AppSpacing.space16,
+                                  bottom: -30,
+                                  child: Container(
+                                    width: 72,
+                                    height: 72,
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? AppColors.darkSurface
+                                          : AppColors.lightSurface,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: isDark
+                                            ? AppColors.midnightNavy
+                                            : AppColors.lightCanvas,
+                                        width: 4,
+                                      ),
+                                    ),
+                                    clipBehavior: Clip.antiAlias,
+                                    child: community.avatarUrl != null &&
+                                            community.avatarUrl!.isNotEmpty
+                                        ? CachedNetworkImage(
+                                            imageUrl: resolveMediaUrl(
+                                                    community.avatarUrl) ??
+                                                community.avatarUrl!,
+                                            fit: BoxFit.cover,
+                                            errorWidget:
+                                                (context, url, error) =>
+                                                    const Icon(
+                                              Icons.groups_rounded,
+                                              color: AppColors.primaryCrimson,
+                                              size: 36,
+                                            ),
+                                          )
+                                        : const Center(
+                                            child: Icon(
+                                              Icons.groups_rounded,
+                                              color: AppColors.primaryCrimson,
+                                              size: 36,
+                                            ),
+                                          ),
                                   ),
                                 ),
-
-                                // Membership Action Button
-                                _buildActionButton(detail, notifier),
                               ],
                             ),
-                          ),
+                            const SizedBox(height: 38),
 
-                          // 3. Description
-                          if (community.description != null &&
-                              community.description!.isNotEmpty)
+                            // 2. Info & Action Row
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(
-                                AppSpacing.space16,
-                                AppSpacing.space12,
-                                AppSpacing.space16,
-                                0,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.space16,
                               ),
-                              child: Text(
-                                community.description!,
-                                style: AppTypography.bodySmall.copyWith(
-                                  color: isDark
-                                      ? AppColors.textPrimaryDark
-                                      : AppColors.textPrimaryLight,
-                                  height: 1.4,
-                                ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                community.name,
+                                                style: AppTypography.heading
+                                                    .copyWith(
+                                                  fontSize: 20,
+                                                  color: isDark
+                                                      ? AppColors
+                                                          .textPrimaryDark
+                                                      : AppColors
+                                                          .textPrimaryLight,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                                vertical: 2,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: community.isPrivate
+                                                    ? AppColors.warning
+                                                        .withValues(alpha: 0.15)
+                                                    : AppColors.signalMint
+                                                        .withValues(alpha: 0.15),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    community.isPrivate
+                                                        ? Icons
+                                                            .lock_outline_rounded
+                                                        : Icons.public_rounded,
+                                                    size: 11,
+                                                    color: community.isPrivate
+                                                        ? AppColors.warning
+                                                        : AppColors.signalMint,
+                                                  ),
+                                                  const SizedBox(width: 3),
+                                                  Text(
+                                                    community.isPrivate
+                                                        ? 'Private'
+                                                        : 'Public',
+                                                    style: AppTypography.caption
+                                                        .copyWith(
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: community.isPrivate
+                                                          ? AppColors.warning
+                                                          : AppColors
+                                                              .signalMint,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '${community.memberCount} members · ${community.postCount} posts',
+                                          style: AppTypography.caption.copyWith(
+                                            color: AppColors.textMuted,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  // Membership Action Button
+                                  _buildActionButton(detail, notifier),
+                                ],
                               ),
                             ),
-                          const SizedBox(height: AppSpacing.space16),
-                        ],
-                      ),
-                    ),
-                    SliverPersistentHeader(
-                      pinned: true,
-                      delegate: _SliverTabBarDelegate(
-                        TabBar(
-                          controller: _tabController,
-                          indicatorColor: AppColors.primaryCrimson,
-                          labelColor: AppColors.primaryCrimson,
-                          unselectedLabelColor: AppColors.textMuted,
-                          labelStyle: AppTypography.label
-                              .copyWith(fontWeight: FontWeight.w600),
-                          tabs: [
-                            const Tab(text: 'Posts'),
-                            const Tab(text: 'About'),
-                            Tab(text: 'Members (${state.members.length})'),
-                            if (isOwner)
-                              Tab(
-                                  text:
-                                      'Requests (${state.joinRequests.length})'),
+
+                            // 3. Description
+                            if (community.description != null &&
+                                community.description!.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  AppSpacing.space16,
+                                  AppSpacing.space12,
+                                  AppSpacing.space16,
+                                  0,
+                                ),
+                                child: Text(
+                                  community.description!,
+                                  style: AppTypography.bodySmall.copyWith(
+                                    color: isDark
+                                        ? AppColors.textPrimaryDark
+                                        : AppColors.textPrimaryLight,
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ),
+                            const SizedBox(height: AppSpacing.space16),
                           ],
                         ),
-                        isDark: isDark,
                       ),
-                    ),
-                  ],
-                  body: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      // Tab 1: Posts Feed
-                      _buildPostsTab(state, notifier),
-
-                      // Tab 2: About
-                      _buildAboutTab(community!, detail, isDark),
-
-                      // Tab 3: Members
-                      _buildMembersTab(state, notifier, isOwner, isDark),
-
-                      // Tab 4: Join Requests (Owner only)
-                      if (isOwner)
-                        _buildRequestsTab(state, notifier, isDark),
+                      SliverPersistentHeader(
+                        pinned: true,
+                        delegate: _SliverTabBarDelegate(
+                          TabBar(
+                            indicatorColor: AppColors.primaryCrimson,
+                            labelColor: AppColors.primaryCrimson,
+                            unselectedLabelColor: AppColors.textMuted,
+                            labelStyle: AppTypography.label
+                                .copyWith(fontWeight: FontWeight.w600),
+                            tabs: [
+                              const Tab(text: 'Posts'),
+                              const Tab(text: 'About'),
+                              Tab(text: 'Members (${state.members.length})'),
+                              if (showRequestsTab)
+                                Tab(
+                                    text:
+                                        'Requests (${state.joinRequests.length})'),
+                            ],
+                          ),
+                          isDark: isDark,
+                        ),
+                      ),
                     ],
+                    body: TabBarView(
+                      children: [
+                        // Tab 1: Posts Feed
+                        _buildPostsTab(state, notifier, detail, isDark),
+
+                        // Tab 2: About
+                        _buildAboutTab(community, detail, isDark),
+
+                        // Tab 3: Members
+                        _buildMembersTab(
+                            state, notifier, detail, isOwner, isDark),
+
+                        // Tab 4: Join Requests (Private Community Owner only)
+                        if (showRequestsTab)
+                          _buildRequestsTab(state, notifier, isDark),
+                      ],
+                    ),
                   ),
-                ),
+      ),
     );
   }
 
@@ -385,15 +480,23 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen>
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: AppColors.textMuted.withValues(alpha: 0.15),
+          color: AppColors.warning.withValues(alpha: 0.15),
           borderRadius: AppSpacing.roundedFull,
         ),
-        child: Text(
-          'Requested',
-          style: AppTypography.caption.copyWith(
-            color: AppColors.textMuted,
-            fontWeight: FontWeight.w600,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.hourglass_top_rounded,
+                size: 13, color: AppColors.warning),
+            const SizedBox(width: 4),
+            Text(
+              'Requested',
+              style: AppTypography.caption.copyWith(
+                color: AppColors.warning,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -409,60 +512,167 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen>
   Widget _buildPostsTab(
     CommunityDetailState state,
     CommunityDetailNotifier notifier,
+    CommunityDetailModel detail,
+    bool isDark,
   ) {
+    final isPrivateAndLocked =
+        detail.community.isPrivate && !detail.isMember && !detail.isOwner;
+
+    // 1. Private Community Locked Scrim for Non-Members
+    if (isPrivateAndLocked) {
+      if (detail.joinRequestStatus == 'pending') {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpacing.space24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 24),
+              const Icon(
+                Icons.hourglass_top_rounded,
+                size: 48,
+                color: AppColors.warning,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Join Request Pending',
+                style: AppTypography.title.copyWith(fontSize: 18),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Your request has been submitted to the community owner. You will get access once approved.',
+                style:
+                    AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        );
+      }
+
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSpacing.space24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 16),
+            const Icon(
+              Icons.lock_rounded,
+              size: 48,
+              color: AppColors.warning,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Private Community',
+              style: AppTypography.title.copyWith(fontSize: 18),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Posts, discussions, and member activities in this community are private. Request access to see content.',
+              style:
+                  AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            AppButton(
+              text: 'Request to Join',
+              size: AppButtonSize.small,
+              isFullWidth: false,
+              onPressed: () => notifier.joinCommunity(),
+            ),
+          ],
+        ),
+      );
+    }
+
     if (state.isLoadingPosts && state.posts.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(color: AppColors.primaryCrimson),
       );
     }
 
-    if (state.posts.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.space24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.article_outlined,
-                  size: 48, color: AppColors.textMuted),
-              const SizedBox(height: 12),
-              Text(
-                'No community posts yet.',
-                style: AppTypography.title.copyWith(fontSize: 16),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Be the first to share content with this community!',
-                style: AppTypography.bodySmall
-                    .copyWith(color: AppColors.textMuted),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
     return RefreshIndicator(
       color: AppColors.primaryCrimson,
       onRefresh: notifier.loadPosts,
-      child: ListView.separated(
+      child: ListView(
         padding: const EdgeInsets.all(AppSpacing.space16),
-        itemCount: state.posts.length,
-        separatorBuilder: (context, index) =>
+        children: [
+          // If member or owner: Quick Post CTA bar
+          if (detail.isMember || detail.isOwner) ...[
+            GestureDetector(
+              onTap: () {
+                context.pushNamed(RouteNames.createPost);
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppColors.darkSurface
+                      : AppColors.lightSurface,
+                  borderRadius: AppSpacing.roundedSm,
+                  border: Border.all(
+                    color: isDark
+                        ? AppColors.navyBorder
+                        : AppColors.lightBorder,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.edit_note_rounded,
+                        color: AppColors.primaryCrimson, size: 22),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Share something with the community...',
+                      style: AppTypography.bodySmall
+                          .copyWith(color: AppColors.textMuted),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: AppSpacing.space16),
-        itemBuilder: (context, index) {
-          final post = state.posts[index];
-          return PostCardWidget(
-            post: post,
-            onTap: () {
-              context.pushNamed(
-                RouteNames.postDetail,
-                pathParameters: {'postId': post.id},
-              );
-            },
-          );
-        },
+          ],
+
+          if (state.posts.isEmpty)
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(vertical: AppSpacing.space48),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.article_outlined,
+                      size: 48, color: AppColors.textMuted),
+                  const SizedBox(height: 12),
+                  Text(
+                    'No community posts yet.',
+                    style: AppTypography.title.copyWith(fontSize: 16),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Be the first to share content with this community!',
+                    style: AppTypography.bodySmall
+                        .copyWith(color: AppColors.textMuted),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            )
+          else
+            ...state.posts.map(
+              (post) => Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.space16),
+                child: PostCardWidget(
+                  post: post,
+                  onTap: () {
+                    context.pushNamed(
+                      RouteNames.postDetail,
+                      pathParameters: {'postId': post.id},
+                    );
+                  },
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -555,9 +765,39 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen>
   Widget _buildMembersTab(
     CommunityDetailState state,
     CommunityDetailNotifier notifier,
+    CommunityDetailModel detail,
     bool isOwner,
     bool isDark,
   ) {
+    final isPrivateAndLocked =
+        detail.community.isPrivate && !detail.isMember && !detail.isOwner;
+    if (isPrivateAndLocked) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.space24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.shield_outlined,
+                  size: 48, color: AppColors.textMuted),
+              const SizedBox(height: 12),
+              Text(
+                'Member list is private.',
+                style: AppTypography.title.copyWith(fontSize: 16),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Join this community to view the member directory.',
+                style: AppTypography.bodySmall
+                    .copyWith(color: AppColors.textMuted),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     if (state.isLoadingMembers && state.members.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(color: AppColors.primaryCrimson),

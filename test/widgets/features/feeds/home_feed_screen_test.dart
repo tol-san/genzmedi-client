@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:client/core/widgets/app_skeleton.dart';
 import 'package:client/features/feeds/data/repositories/feed_repository.dart';
 import 'package:client/features/feeds/presentation/screens/home_feed_screen.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
@@ -53,6 +55,20 @@ void main() {
       expect(find.byType(PostCardWidget), findsOneWidget);
       expect(find.text('Digital Illustration'), findsOneWidget);
       expect(find.text('Art Creator'), findsOneWidget);
+    });
+
+    testWidgets('renders loading skeleton when initially fetching feed', (tester) async {
+      final completer = Completer<List<PostModel>>();
+      when(() => mockRepository.getHomeFeed(limit: 20, offset: 0))
+          .thenAnswer((_) => completer.future);
+
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pump();
+
+      expect(find.byType(AppSkeleton), findsWidgets);
+
+      completer.complete([testPost]);
+      await tester.pumpAndSettle();
     });
 
     testWidgets('renders empty state when home feed is empty', (tester) async {

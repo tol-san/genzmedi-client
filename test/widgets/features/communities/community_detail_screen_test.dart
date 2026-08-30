@@ -12,7 +12,7 @@ class MockCommunityRepository extends Mock implements CommunityRepository {}
 void main() {
   late MockCommunityRepository mockRepository;
 
-  const testCommunity = CommunityModel(
+  const testPublicCommunity = CommunityModel(
     id: 'comm-detail-1',
     ownerId: 'owner-1',
     name: 'Cyberpunk Art Collective',
@@ -23,10 +23,41 @@ void main() {
     postCount: 15,
   );
 
-  const testDetail = CommunityDetailModel(
-    community: testCommunity,
+  const testPublicNonMemberDetail = CommunityDetailModel(
+    community: testPublicCommunity,
     isMember: false,
     isOwner: false,
+  );
+
+  const testPublicOwnerDetail = CommunityDetailModel(
+    community: testPublicCommunity,
+    isMember: true,
+    isOwner: true,
+    membershipRole: 'owner',
+  );
+
+  const testPrivateCommunity = CommunityModel(
+    id: 'comm-private-1',
+    ownerId: 'owner-2',
+    name: 'Secret Lore Society',
+    slug: 'secret-lore',
+    description: 'Private community for classified lore.',
+    isPrivate: true,
+    memberCount: 42,
+    postCount: 5,
+  );
+
+  const testPrivateNonMemberDetail = CommunityDetailModel(
+    community: testPrivateCommunity,
+    isMember: false,
+    isOwner: false,
+  );
+
+  const testPrivateOwnerDetail = CommunityDetailModel(
+    community: testPrivateCommunity,
+    isMember: true,
+    isOwner: true,
+    membershipRole: 'owner',
   );
 
   const testMember = CommunityMemberModel(
@@ -46,20 +77,22 @@ void main() {
   setUp(() {
     mockRepository = MockCommunityRepository();
     when(() => mockRepository.getCommunity('comm-detail-1'))
-        .thenAnswer((_) async => testDetail);
+        .thenAnswer((_) async => testPublicNonMemberDetail);
     when(() => mockRepository.getCommunityPosts('comm-detail-1'))
         .thenAnswer((_) async => [testPost]);
     when(() => mockRepository.listMembers('comm-detail-1'))
         .thenAnswer((_) async => [testMember]);
+    when(() => mockRepository.listJoinRequests('comm-detail-1'))
+        .thenAnswer((_) async => []);
   });
 
-  Widget buildTestWidget() {
+  Widget buildTestWidget({String communityId = 'comm-detail-1'}) {
     return ProviderScope(
       overrides: [
         communityRepositoryProvider.overrideWithValue(mockRepository),
       ],
-      child: const MaterialApp(
-        home: CommunityDetailScreen(communityId: 'comm-detail-1'),
+      child: MaterialApp(
+        home: CommunityDetailScreen(communityId: communityId),
       ),
     );
   }
@@ -87,6 +120,61 @@ void main() {
 
       expect(find.text('Neon Rider'), findsOneWidget);
       expect(find.text('@neon_rider · ADMIN'), findsOneWidget);
+    });
+
+    testWidgets(
+        'renders Public Community Owner screen WITHOUT Requests tab',
+        (tester) async {
+      when(() => mockRepository.getCommunity('comm-detail-1'))
+          .thenAnswer((_) async => testPublicOwnerDetail);
+
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Owner'), findsOneWidget);
+      expect(find.text('Edit Banner'), findsOneWidget);
+      expect(find.text('Posts'), findsOneWidget);
+      expect(find.text('About'), findsOneWidget);
+      expect(find.text('Members (1)'), findsOneWidget);
+      expect(find.textContaining('Requests'), findsNothing);
+    });
+
+    testWidgets(
+        'renders Private Community Owner screen WITH Requests tab',
+        (tester) async {
+      when(() => mockRepository.getCommunity('comm-private-1'))
+          .thenAnswer((_) async => testPrivateOwnerDetail);
+      when(() => mockRepository.getCommunityPosts('comm-private-1'))
+          .thenAnswer((_) async => []);
+      when(() => mockRepository.listMembers('comm-private-1'))
+          .thenAnswer((_) async => [testMember]);
+      when(() => mockRepository.listJoinRequests('comm-private-1'))
+          .thenAnswer((_) async => []);
+
+      await tester.pumpWidget(buildTestWidget(communityId: 'comm-private-1'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Owner'), findsOneWidget);
+      expect(find.text('Edit Banner'), findsOneWidget);
+      expect(find.text('Requests (0)'), findsOneWidget);
+    });
+
+    testWidgets('renders Private Community locked screen for non-members',
+        (tester) async {
+      when(() => mockRepository.getCommunity('comm-private-1'))
+          .thenAnswer((_) async => testPrivateNonMemberDetail);
+      when(() => mockRepository.getCommunityPosts('comm-private-1'))
+          .thenAnswer((_) async => []);
+      when(() => mockRepository.listMembers('comm-private-1'))
+          .thenAnswer((_) async => []);
+
+      await tester.pumpWidget(buildTestWidget(communityId: 'comm-private-1'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Secret Lore Society'), findsWidgets);
+      expect(find.text('Private'), findsOneWidget);
+      expect(find.text('Request to Join'), findsWidgets);
+      expect(find.text('Private Community'), findsOneWidget);
     });
   });
 }

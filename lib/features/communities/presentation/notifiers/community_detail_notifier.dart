@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/core/errors/app_exception.dart';
 import 'package:client/features/communities/data/repositories/community_repository.dart';
@@ -29,7 +30,9 @@ class CommunityDetailNotifier extends StateNotifier<CommunityDetailState> {
     await Future.wait([
       loadPosts(),
       loadMembers(),
-      if (state.detail?.isOwner ?? false) loadJoinRequests(),
+      if ((state.detail?.isOwner ?? false) &&
+          (state.detail?.community.isPrivate ?? false))
+        loadJoinRequests(),
     ]);
   }
 
@@ -38,7 +41,7 @@ class CommunityDetailNotifier extends StateNotifier<CommunityDetailState> {
     try {
       final detail = await repository.getCommunity(communityId);
       state = state.copyWith(detail: detail, isLoading: false);
-      if (detail.isOwner) {
+      if (detail.isOwner && detail.community.isPrivate) {
         await loadJoinRequests();
       }
     } on AppException catch (e) {
@@ -194,6 +197,23 @@ class CommunityDetailNotifier extends StateNotifier<CommunityDetailState> {
       );
       return true;
     } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> updateCoverImage(File file) async {
+    state = state.copyWith(isActionLoading: true);
+    try {
+      final updatedCommunity = await repository.uploadCover(communityId, file);
+      if (state.detail != null) {
+        state = state.copyWith(
+          detail: state.detail!.copyWith(community: updatedCommunity),
+          isActionLoading: false,
+        );
+      }
+      return true;
+    } catch (_) {
+      state = state.copyWith(isActionLoading: false);
       return false;
     }
   }

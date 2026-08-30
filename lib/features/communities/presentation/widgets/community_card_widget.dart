@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:client/core/theme/app_colors.dart';
 import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/theme/app_typography.dart';
+import 'package:client/core/utils/media_url_resolver.dart';
 import 'package:client/features/communities/data/models/community_models.dart';
 
 class CommunityCardWidget extends StatelessWidget {
@@ -47,7 +48,7 @@ class CommunityCardWidget extends StatelessWidget {
                 child: community.avatarUrl != null &&
                         community.avatarUrl!.isNotEmpty
                     ? CachedNetworkImage(
-                        imageUrl: community.avatarUrl!,
+                        imageUrl: resolveMediaUrl(community.avatarUrl) ?? community.avatarUrl!,
                         fit: BoxFit.cover,
                         errorWidget: (context, url, error) => const Icon(
                           Icons.groups_rounded,

@@ -5,6 +5,7 @@ import 'package:client/app/router/route_names.dart';
 import 'package:client/core/theme/app_colors.dart';
 import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/widgets/app_logo.dart';
+import 'package:client/core/widgets/app_skeleton.dart';
 import 'package:client/core/widgets/empty_state_widget.dart';
 import 'package:client/features/feeds/presentation/notifiers/home_feed_notifier.dart';
 import 'package:client/features/feeds/presentation/notifiers/home_feed_state.dart';
@@ -81,15 +82,13 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
           const SizedBox(width: AppSpacing.space8),
         ],
       ),
-      body: _buildBody(state, notifier),
+      body: _buildBody(state, notifier, isDark),
     );
   }
 
-  Widget _buildBody(HomeFeedState state, HomeFeedNotifier notifier) {
+  Widget _buildBody(HomeFeedState state, HomeFeedNotifier notifier, bool isDark) {
     if (state.isLoading && state.posts.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.primaryCrimson),
-      );
+      return _buildFeedSkeleton(isDark);
     }
 
     if (state.posts.isEmpty && !state.isLoading) {
@@ -155,6 +154,66 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
             },
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildFeedSkeleton(bool isDark) {
+    return ListView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.space8),
+      itemCount: 3,
+      itemBuilder: (context, index) => Container(
+        margin: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.space16,
+          vertical: AppSpacing.space8,
+        ),
+        padding: const EdgeInsets.all(AppSpacing.space16),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+          borderRadius: AppSpacing.roundedMd,
+          border: Border.all(
+            color: isDark ? AppColors.navyBorder : AppColors.lightBorder,
+            width: 1,
+          ),
+        ),
+        child: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                AppSkeleton.circle(size: 40),
+                SizedBox(width: AppSpacing.space12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppSkeleton.text(width: 120, height: 14),
+                    SizedBox(height: 6),
+                    AppSkeleton.text(width: 80, height: 12),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: AppSpacing.space16),
+            AppSkeleton.text(width: 200, height: 16),
+            SizedBox(height: 8),
+            AppSkeleton.text(width: double.infinity, height: 14),
+            SizedBox(height: 6),
+            AppSkeleton.text(width: 240, height: 14),
+            SizedBox(height: AppSpacing.space16),
+            AppSkeleton.rectangular(height: 160),
+            SizedBox(height: AppSpacing.space16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                AppSkeleton.rectangular(width: 50, height: 20),
+                AppSkeleton.rectangular(width: 50, height: 20),
+                AppSkeleton.rectangular(width: 50, height: 20),
+                AppSkeleton.rectangular(width: 50, height: 20),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

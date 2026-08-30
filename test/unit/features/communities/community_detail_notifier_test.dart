@@ -122,8 +122,11 @@ void main() {
     });
 
     test('approveJoinRequest removes request and increments member count', () async {
+      final privateOwnerDetail = testOwnerDetail.copyWith(
+        community: testCommunity.copyWith(isPrivate: true),
+      );
       when(() => mockRepository.getCommunity('comm-10'))
-          .thenAnswer((_) async => testOwnerDetail);
+          .thenAnswer((_) async => privateOwnerDetail);
       when(() => mockRepository.getCommunityPosts('comm-10'))
           .thenAnswer((_) async => []);
       when(() => mockRepository.listMembers('comm-10'))

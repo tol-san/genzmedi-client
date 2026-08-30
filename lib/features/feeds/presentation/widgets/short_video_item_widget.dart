@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -62,10 +63,12 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
         : null;
 
     if (videoUrl == null || videoUrl.isEmpty) {
+      if (mounted) setState(() => _hasError = true);
       return;
     }
 
     try {
+      if (mounted) setState(() => _hasError = false);
       final uri = Uri.parse(videoUrl);
       _controller = VideoPlayerController.networkUrl(uri);
       await _controller!.initialize();
@@ -79,7 +82,8 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
           _play();
         }
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[ShortVideoItemWidget] Video init error for $videoUrl: $e');
       if (mounted) {
         setState(() {
           _hasError = true;
@@ -103,7 +107,12 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
   }
 
   void _togglePlayPause() {
-    if (_controller == null || !_isInitialized) return;
+    if (_controller == null || !_isInitialized) {
+      if (_hasError) {
+        _initializeVideo();
+      }
+      return;
+    }
     if (_controller!.value.isPlaying) {
       _pause();
     } else {
@@ -155,6 +164,7 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
   @override
   Widget build(BuildContext context) {
     final post = widget.post;
+    final thumbnailUrl = post.media.isNotEmpty ? post.media.first.thumbnailUrl : null;
 
     return Stack(
       fit: StackFit.expand,
@@ -171,29 +181,42 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
                       child: VideoPlayer(_controller!),
                     ),
                   )
-                : (_hasError
-                    ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.play_disabled_rounded,
-                              size: 48,
-                              color: AppColors.textMuted,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Video preview unavailable',
-                              style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
-                            ),
-                          ],
+                : Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (thumbnailUrl != null)
+                        CachedNetworkImage(
+                          imageUrl: thumbnailUrl,
+                          fit: BoxFit.cover,
+                          errorWidget: (context, url, error) => Container(color: Colors.black),
                         ),
-                      )
-                    : const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.primaryCrimson,
+                      Container(color: Colors.black.withValues(alpha: 0.4)),
+                      if (_hasError)
+                        Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.replay_circle_filled_rounded,
+                                size: 52,
+                                color: AppColors.primaryCrimson,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Tap to retry loading video',
+                                style: AppTypography.bodySmall.copyWith(color: Colors.white),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.primaryCrimson,
+                          ),
                         ),
-                      )),
+                    ],
+                  ),
           ),
         ),
 
