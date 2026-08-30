@@ -11,7 +11,7 @@ import 'package:client/core/widgets/app_avatar.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/posts/presentation/widgets/post_comments_sheet.dart';
 
-/// Full-screen short video player item with Facebook-style overlay controls,
+/// Full-screen short video player item with flexible 16:9 landscape and 9:16 portrait support,
 /// follow button, audio ticker, right engagement rail, bottom comment bar,
 /// and Reels options modal sheet.
 class ShortVideoItemWidget extends StatefulWidget {
@@ -332,30 +332,55 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
     final authorName = post.author.displayName ?? post.author.username;
     final thumbnailUrl = post.media.isNotEmpty ? post.media.first.thumbnailUrl : null;
 
+    final isLandscapeMedia = post.media.isNotEmpty &&
+        post.media.first.width != null &&
+        post.media.first.height != null &&
+        post.media.first.width! > post.media.first.height!;
+
+    final isLandscapeVideo = _isInitialized &&
+        _controller != null &&
+        _controller!.value.aspectRatio > 1.0;
+
+    final isLandscape = isLandscapeVideo || (!_isInitialized && isLandscapeMedia);
+
     return Stack(
       fit: StackFit.expand,
       children: [
-        // 1. Video Player Canvas
+        // 1. Video Player Canvas (Flexible 16:9 Landscape and 9:16 Portrait)
         GestureDetector(
           onTap: _togglePlayPause,
           onDoubleTap: _toggleMute,
           child: Container(
             color: Colors.black,
             child: _isInitialized && _controller != null
-                ? Center(
-                    child: AspectRatio(
-                      aspectRatio: _controller!.value.aspectRatio,
-                      child: VideoPlayer(_controller!),
-                    ),
-                  )
+                ? (isLandscapeVideo
+                    ? Center(
+                        child: AspectRatio(
+                          aspectRatio: _controller!.value.aspectRatio,
+                          child: VideoPlayer(_controller!),
+                        ),
+                      )
+                    : FittedBox(
+                        fit: BoxFit.cover,
+                        clipBehavior: Clip.hardEdge,
+                        child: SizedBox(
+                          width: _controller!.value.size.width,
+                          height: _controller!.value.size.height,
+                          child: VideoPlayer(_controller!),
+                        ),
+                      ))
                 : Stack(
                     fit: StackFit.expand,
                     children: [
                       if (thumbnailUrl != null)
-                        CachedNetworkImage(
-                          imageUrl: thumbnailUrl,
-                          fit: BoxFit.cover,
-                          errorWidget: (context, url, error) => Container(color: Colors.black),
+                        Center(
+                          child: CachedNetworkImage(
+                            imageUrl: thumbnailUrl,
+                            fit: isLandscape ? BoxFit.contain : BoxFit.cover,
+                            width: isLandscape ? double.infinity : null,
+                            height: isLandscape ? null : double.infinity,
+                            errorWidget: (context, url, error) => Container(color: Colors.black),
+                          ),
                         ),
                       Container(color: Colors.black.withValues(alpha: 0.4)),
                       if (_hasError)
