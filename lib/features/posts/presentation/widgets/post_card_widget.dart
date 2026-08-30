@@ -356,8 +356,8 @@ class _PostCardWidgetState extends State<PostCardWidget> {
       final item = media[0];
       if (item.isVideo) {
         final explicitRatio = (item.width != null && item.height != null && item.height! > 0)
-            ? (item.width! / item.height!).clamp(9 / 16, 16 / 9)
-            : null;
+            ? (item.width! / item.height!).clamp(4 / 5, 16 / 9)
+            : 16 / 9;
 
         return FeedVideoPlayerWidget(
           videoUrl: item.url,

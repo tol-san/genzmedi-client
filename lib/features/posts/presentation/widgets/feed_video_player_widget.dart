@@ -112,7 +112,7 @@ class _FeedVideoPlayerWidgetState extends State<FeedVideoPlayerWidget> {
         ? _controller!.value.aspectRatio
         : widget.aspectRatio;
 
-    final targetAspectRatio = naturalRatio ?? 16 / 9;
+    final targetAspectRatio = (naturalRatio ?? 16 / 9).clamp(4 / 5, 16 / 9);
 
     final resolvedThumbnail = resolveMediaUrl(widget.thumbnailUrl);
 
@@ -127,7 +127,7 @@ class _FeedVideoPlayerWidgetState extends State<FeedVideoPlayerWidget> {
               if (resolvedThumbnail != null)
                 CachedNetworkImage(
                   imageUrl: resolvedThumbnail,
-                  fit: (naturalRatio != null && naturalRatio < 1.0) ? BoxFit.cover : BoxFit.cover,
+                  fit: BoxFit.cover,
                   errorWidget: (context, url, error) => Container(
                     color: isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated,
                     child: const Icon(Icons.videocam_off_rounded, color: AppColors.textMuted, size: 40),
