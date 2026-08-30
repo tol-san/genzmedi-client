@@ -50,6 +50,7 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
   double _playbackSpeed = 1.0;
   bool _autoScrollOnFinish = true;
   bool _hasTriggeredAutoScroll = false;
+  bool _isClearMode = false;
 
   @override
   void initState() {
@@ -67,6 +68,7 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
       _isInitialized = false;
       _isPlaying = true;
       _hasError = false;
+      _isClearMode = false;
       _initializeVideo();
       return;
     }
@@ -357,7 +359,42 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
 
                 const SizedBox(height: 12),
 
-                // Group 3: Share & Report Actions
+                // Group 3: Clear Mode Option
+                Container(
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: SwitchListTile(
+                    secondary: Icon(
+                      _isClearMode ? Icons.visibility_off_rounded : Icons.visibility_outlined,
+                      color: textColor,
+                      size: 22,
+                    ),
+                    title: Text(
+                      'Clear mode',
+                      style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Hide comments, buttons, and captions for clean viewing',
+                      style: TextStyle(color: subtitleColor, fontSize: 13),
+                    ),
+                    value: _isClearMode,
+                    activeTrackColor: AppColors.primaryElectricBlue,
+                    onChanged: (val) {
+                      Navigator.of(sheetContext).pop();
+                      setState(() => _isClearMode = val);
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // Group 4: Share & Report Actions
                 Container(
                   decoration: BoxDecoration(
                     color: cardBg,
@@ -455,8 +492,9 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
       children: [
         // 1. Video Player Canvas (Flexible 16:9 Landscape and 9:16 Portrait)
         GestureDetector(
-          onTap: _togglePlayPause,
+          onTap: _isClearMode ? () => setState(() => _isClearMode = false) : _togglePlayPause,
           onDoubleTap: _toggleMute,
+          onLongPress: () => _showReelsOptionsSheet(context),
           child: Container(
             color: Colors.black,
             child: _isInitialized && _controller != null
@@ -558,311 +596,346 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
             ),
           ),
 
-        // Top Gradient Scrim
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 120,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withValues(alpha: 0.7),
-                  Colors.transparent,
-                ],
+        // Overlays when not in Clear Mode
+        if (!_isClearMode) ...[
+          // Top Gradient Scrim
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 120,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.7),
+                    Colors.transparent,
+                  ],
+                ),
               ),
             ),
           ),
-        ),
 
-        // Bottom Gradient Scrim
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: 280,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-                colors: [
-                  Colors.black.withValues(alpha: 0.85),
-                  Colors.black.withValues(alpha: 0.4),
-                  Colors.transparent,
-                ],
+          // Bottom Gradient Scrim
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 280,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.85),
+                    Colors.black.withValues(alpha: 0.4),
+                    Colors.transparent,
+                  ],
+                ),
               ),
             ),
           ),
-        ),
 
-        // Top Bar: Back Button on Left, Search on Right
-        Positioned(
-          top: MediaQuery.of(context).padding.top + 4,
-          left: 8,
-          right: 8,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
-                onPressed: () {
-                  if (Navigator.of(context).canPop()) {
-                    Navigator.of(context).pop();
-                  } else {
-                    context.goNamed(RouteNames.homeFeed);
-                  }
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.search_rounded, color: Colors.white, size: 26),
-                onPressed: () {
-                  context.pushNamed(RouteNames.discover);
-                },
-              ),
-            ],
+          // Top Bar: Back Button on Left, Search on Right
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 4,
+            left: 8,
+            right: 8,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
+                  onPressed: () {
+                    if (Navigator.of(context).canPop()) {
+                      Navigator.of(context).pop();
+                    } else {
+                      context.goNamed(RouteNames.homeFeed);
+                    }
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.search_rounded, color: Colors.white, size: 26),
+                  onPressed: () {
+                    context.pushNamed(RouteNames.discover);
+                  },
+                ),
+              ],
+            ),
           ),
-        ),
 
-        // Right-Side Engagement Rail (Like, Comment, Bookmark, More)
-        Positioned(
-          right: 12,
-          bottom: 76,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Like Button (Heart icon)
-              _buildActionButton(
-                icon: post.isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                label: _formatCount(post.likeCount),
-                color: post.isLiked ? AppColors.primaryCrimson : Colors.white,
-                onTap: widget.onLike,
-              ),
-              const SizedBox(height: 18),
+          // Right-Side Engagement Rail (Like, Comment, Bookmark, More)
+          Positioned(
+            right: 12,
+            bottom: 76,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Like Button (Heart icon)
+                _buildActionButton(
+                  icon: post.isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                  label: _formatCount(post.likeCount),
+                  color: post.isLiked ? AppColors.primaryCrimson : Colors.white,
+                  onTap: widget.onLike,
+                ),
+                const SizedBox(height: 18),
 
-              // Comments Button
-              _buildActionButton(
-                icon: Icons.chat_bubble_outline_rounded,
-                label: _formatCount(post.commentCount),
-                color: Colors.white,
-                onTap: _openComments,
-              ),
-              const SizedBox(height: 18),
+                // Comments Button
+                _buildActionButton(
+                  icon: Icons.chat_bubble_outline_rounded,
+                  label: _formatCount(post.commentCount),
+                  color: Colors.white,
+                  onTap: _openComments,
+                ),
+                const SizedBox(height: 18),
 
-              // Bookmark / Save Button
-              _buildActionButton(
-                icon: post.isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-                label: _formatCount(post.saveCount),
-                color: post.isSaved ? AppColors.warning : Colors.white,
-                onTap: widget.onSave,
-              ),
-              const SizedBox(height: 18),
+                // Bookmark / Save Button
+                _buildActionButton(
+                  icon: post.isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                  label: _formatCount(post.saveCount),
+                  color: post.isSaved ? AppColors.warning : Colors.white,
+                  onTap: widget.onSave,
+                ),
+                const SizedBox(height: 18),
 
-              // More Options Button (under bookmark)
-              _buildActionButton(
-                icon: Icons.more_horiz_rounded,
-                color: Colors.white,
-                onTap: () => _showReelsOptionsSheet(context),
-              ),
-            ],
+                // More Options Button (under bookmark)
+                _buildActionButton(
+                  icon: Icons.more_horiz_rounded,
+                  color: Colors.white,
+                  onTap: () => _showReelsOptionsSheet(context),
+                ),
+              ],
+            ),
           ),
-        ),
 
-        // Bottom Left Channel, Audio & Caption Info Area
-        Positioned(
-          left: 16,
-          right: 80,
-          bottom: 74,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Author Row + Follow Button
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      context.pushNamed(
-                        RouteNames.publicProfile,
-                        pathParameters: {'username': post.author.username},
-                      );
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 1.5),
-                      ),
-                      child: AppAvatar(
-                        name: authorName,
-                        size: 38,
-                        imageUrl: post.author.avatarUrl,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: GestureDetector(
+          // Bottom Left Channel, Audio & Caption Info Area
+          Positioned(
+            left: 16,
+            right: 80,
+            bottom: 74,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Author Row + Follow Button
+                Row(
+                  children: [
+                    GestureDetector(
                       onTap: () {
                         context.pushNamed(
                           RouteNames.publicProfile,
                           pathParameters: {'username': post.author.username},
                         );
                       },
-                      child: Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              authorName,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 16,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          const Icon(
-                            Icons.check_circle_rounded,
-                            size: 15,
-                            color: Colors.white,
-                          ),
-                        ],
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1.5),
+                        ),
+                        child: AppAvatar(
+                          name: authorName,
+                          size: 38,
+                          imageUrl: post.author.avatarUrl,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  // Follow Pill Button
-                  InkWell(
-                    onTap: () {
-                      setState(() => _isFollowing = !_isFollowing);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(_isFollowing ? 'Following $authorName' : 'Unfollowed $authorName'),
-                          duration: const Duration(seconds: 1),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          context.pushNamed(
+                            RouteNames.publicProfile,
+                            pathParameters: {'username': post.author.username},
+                          );
+                        },
+                        child: Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                authorName,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 16,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.check_circle_rounded,
+                              size: 15,
+                              color: Colors.white,
+                            ),
+                          ],
                         ),
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: _isFollowing ? Colors.white24 : Colors.transparent,
-                        border: Border.all(color: Colors.white, width: 1.2),
-                        borderRadius: BorderRadius.circular(16),
                       ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Follow Pill Button
+                    InkWell(
+                      onTap: () {
+                        setState(() => _isFollowing = !_isFollowing);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(_isFollowing ? 'Following $authorName' : 'Unfollowed $authorName'),
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: _isFollowing ? Colors.white24 : Colors.transparent,
+                          border: Border.all(color: Colors.white, width: 1.2),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          _isFollowing ? 'Following' : 'Follow',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 8),
+
+                // Audio Info Line
+                Row(
+                  children: [
+                    const Icon(Icons.music_note_rounded, color: Colors.white, size: 14),
+                    const SizedBox(width: 4),
+                    Expanded(
                       child: Text(
-                        _isFollowing ? 'Following' : 'Follow',
+                        '$authorName · Original audio',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.w600,
                           fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+
+                // Caption / Content Text
+                if (post.content != null && post.content!.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() => _isCaptionExpanded = !_isCaptionExpanded);
+                    },
+                    child: Text(
+                      post.content!,
+                      maxLines: _isCaptionExpanded ? null : 2,
+                      overflow: _isCaptionExpanded ? null : TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          // Sticky Bottom Comment Bar
+          Positioned(
+            left: 12,
+            right: 12,
+            bottom: MediaQuery.of(context).padding.bottom + 8,
+            child: GestureDetector(
+              onTap: _openComments,
+              child: Container(
+                height: 44,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.white24, width: 0.8),
+                ),
+                child: Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Add a comment...',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 8),
-
-              // Audio Info Line
-              Row(
-                children: [
-                  const Icon(Icons.music_note_rounded, color: Colors.white, size: 14),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      '$authorName · Original audio',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
+                    Icon(Icons.alternate_email_rounded, color: Colors.white70, size: 20),
+                    const SizedBox(width: 12),
+                    Icon(Icons.emoji_emotions_outlined, color: Colors.white70, size: 20),
+                    const SizedBox(width: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.white70, width: 1.2),
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      child: const Text(
+                        'GIF',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-
-              // Caption / Content Text
-              if (post.content != null && post.content!.isNotEmpty) ...[
-                const SizedBox(height: 6),
-                GestureDetector(
-                  onTap: () {
-                    setState(() => _isCaptionExpanded = !_isCaptionExpanded);
-                  },
-                  child: Text(
-                    post.content!,
-                    maxLines: _isCaptionExpanded ? null : 2,
-                    overflow: _isCaptionExpanded ? null : TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      height: 1.35,
-                    ),
-                  ),
+                  ],
                 ),
-              ],
-            ],
-          ),
-        ),
-
-        // Sticky Bottom Comment Bar
-        Positioned(
-          left: 12,
-          right: 12,
-          bottom: MediaQuery.of(context).padding.bottom + 8,
-          child: GestureDetector(
-            onTap: _openComments,
-            child: Container(
-              height: 44,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.white24, width: 0.8),
-              ),
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      'Add a comment...',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                  Icon(Icons.alternate_email_rounded, color: Colors.white70, size: 20),
-                  const SizedBox(width: 12),
-                  Icon(Icons.emoji_emotions_outlined, color: Colors.white70, size: 20),
-                  const SizedBox(width: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.white70, width: 1.2),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: const Text(
-                      'GIF',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
               ),
             ),
           ),
-        ),
+        ] else ...[
+          // Clear Mode Floating Exit Indicator Button
+          Positioned(
+            right: 16,
+            bottom: MediaQuery.of(context).padding.bottom + 20,
+            child: GestureDetector(
+              onTap: () => setState(() => _isClearMode = false),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.65),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white24, width: 0.8),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.visibility_rounded, color: Colors.white, size: 16),
+                    SizedBox(width: 6),
+                    Text(
+                      'Exit Clear Mode',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
