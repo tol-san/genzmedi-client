@@ -84,13 +84,14 @@ void main() {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
-      expect(find.text('You + 51'), findsOneWidget);
+      expect(find.text('You and 51 others'), findsOneWidget);
       expect(find.text('Most relevant'), findsOneWidget);
       expect(find.text('Vattana'), findsOneWidget);
       expect(find.text('Time flies so fast Cher'), findsOneWidget);
       expect(find.text('Reply'), findsOneWidget);
       expect(find.text('View 1 reply'), findsOneWidget);
       expect(find.text('Comment as MrTol MrTol'), findsOneWidget);
+      expect(find.byIcon(Icons.favorite_rounded), findsWidgets);
     });
   });
 }

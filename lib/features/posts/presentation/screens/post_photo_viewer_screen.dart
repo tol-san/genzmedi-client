@@ -329,16 +329,16 @@ class _PostPhotoViewerScreenState extends State<PostPhotoViewerScreen> {
                       // Reaction & Comments Counters Row
                       Row(
                         children: [
-                          // Likes & Reactions Button
+                          // Likes Button
                           GestureDetector(
                             onTap: _toggleLike,
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  _isLiked ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
+                                  _isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
                                   size: 18,
-                                  color: _isLiked ? const Color(0xFF1877F2) : Colors.white70,
+                                  color: _isLiked ? AppColors.primaryCrimson : Colors.white70,
                                 ),
                                 const SizedBox(width: 6),
                                 GestureDetector(
@@ -351,7 +351,7 @@ class _PostPhotoViewerScreenState extends State<PostPhotoViewerScreen> {
                                   child: Text(
                                     _formatCount(_likeCount),
                                     style: TextStyle(
-                                      color: _isLiked ? const Color(0xFF1877F2) : Colors.white,
+                                      color: _isLiked ? AppColors.primaryCrimson : Colors.white,
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
                                     ),

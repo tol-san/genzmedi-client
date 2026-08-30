@@ -44,10 +44,10 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byIcon(Icons.thumb_up_outlined));
+      await tester.tap(find.byIcon(Icons.favorite_border_rounded));
       await tester.pump();
 
-      expect(find.byIcon(Icons.thumb_up_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.favorite_rounded), findsOneWidget);
     });
   });
 }

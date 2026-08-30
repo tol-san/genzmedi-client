@@ -173,7 +173,7 @@ class CommentTileWidget extends StatelessWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
-                                    Icons.thumb_up_outlined,
+                                    Icons.favorite_border_rounded,
                                     size: 14,
                                     color: isDark
                                         ? AppColors.textMuted

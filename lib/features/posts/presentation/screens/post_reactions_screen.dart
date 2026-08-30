@@ -28,7 +28,6 @@ class _PostReactionsScreenState extends ConsumerState<PostReactionsScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   PostReactionsModel? _reactions;
-  String _selectedFilter = 'all';
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
@@ -67,58 +66,22 @@ class _PostReactionsScreenState extends ConsumerState<PostReactionsScreen> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Failed to load reactions.';
+          _errorMessage = 'Failed to load likes.';
         });
       }
     }
   }
 
-  Widget _buildReactionIconBadge(String reactionType, {double size = 16}) {
-    Color bg;
-    IconData iconData;
-    switch (reactionType.toLowerCase()) {
-      case 'love':
-      case 'heart':
-        bg = AppColors.primaryCrimson;
-        iconData = Icons.favorite_rounded;
-        break;
-      case 'care':
-      case 'hug':
-        bg = const Color(0xFFF7B125);
-        iconData = Icons.emoji_emotions_rounded;
-        break;
-      case 'haha':
-        bg = const Color(0xFFF7B125);
-        iconData = Icons.sentiment_very_satisfied_rounded;
-        break;
-      case 'wow':
-        bg = const Color(0xFFF7B125);
-        iconData = Icons.sentiment_satisfied_alt_rounded;
-        break;
-      case 'sad':
-        bg = const Color(0xFFF7B125);
-        iconData = Icons.sentiment_dissatisfied_rounded;
-        break;
-      case 'angry':
-        bg = const Color(0xFFE53935);
-        iconData = Icons.sentiment_very_dissatisfied_rounded;
-        break;
-      case 'like':
-      default:
-        bg = AppColors.primaryElectricBlue;
-        iconData = Icons.thumb_up_rounded;
-        break;
-    }
-
+  Widget _buildReactionIconBadge({double size = 18}) {
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: bg,
+        color: AppColors.primaryCrimson,
         shape: BoxShape.circle,
         border: Border.all(color: Colors.white, width: 1.5),
       ),
-      child: Icon(iconData, size: size * 0.6, color: Colors.white),
+      child: Icon(Icons.favorite_rounded, size: size * 0.6, color: Colors.white),
     );
   }
 
@@ -127,15 +90,8 @@ class _PostReactionsScreenState extends ConsumerState<PostReactionsScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final totalCount = _reactions?.total ?? 0;
-    final counts = _reactions?.counts ?? {};
-    final likeCount = counts['like'] ?? totalCount;
-    final loveCount = counts['love'] ?? 0;
-    final careCount = counts['care'] ?? 0;
 
     final filteredUsers = (_reactions?.items ?? []).where((u) {
-      if (_selectedFilter != 'all' && u.reactionType.toLowerCase() != _selectedFilter) {
-        return false;
-      }
       if (_searchQuery.isNotEmpty) {
         final q = _searchQuery.toLowerCase();
         final name = (u.displayName ?? u.username).toLowerCase();
@@ -159,7 +115,7 @@ class _PostReactionsScreenState extends ConsumerState<PostReactionsScreen> {
                   color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
                 ),
                 decoration: const InputDecoration(
-                  hintText: 'Search reactions...',
+                  hintText: 'Search people who liked...',
                   border: InputBorder.none,
                 ),
                 onChanged: (val) {
@@ -167,7 +123,7 @@ class _PostReactionsScreenState extends ConsumerState<PostReactionsScreen> {
                 },
               )
             : Text(
-                'Reactions',
+                'Likes',
                 style: AppTypography.heading.copyWith(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -205,34 +161,11 @@ class _PostReactionsScreenState extends ConsumerState<PostReactionsScreen> {
               children: [
                 _buildFilterChip(
                   key: 'all',
+                  icon: _buildReactionIconBadge(size: 16),
                   label: 'All $totalCount',
-                  isSelected: _selectedFilter == 'all',
+                  isSelected: true,
                   isDark: isDark,
                 ),
-                if (likeCount > 0)
-                  _buildFilterChip(
-                    key: 'like',
-                    icon: _buildReactionIconBadge('like', size: 16),
-                    label: '$likeCount',
-                    isSelected: _selectedFilter == 'like',
-                    isDark: isDark,
-                  ),
-                if (loveCount > 0)
-                  _buildFilterChip(
-                    key: 'love',
-                    icon: _buildReactionIconBadge('love', size: 16),
-                    label: '$loveCount',
-                    isSelected: _selectedFilter == 'love',
-                    isDark: isDark,
-                  ),
-                if (careCount > 0)
-                  _buildFilterChip(
-                    key: 'care',
-                    icon: _buildReactionIconBadge('care', size: 16),
-                    label: '$careCount',
-                    isSelected: _selectedFilter == 'care',
-                    isDark: isDark,
-                  ),
               ],
             ),
           ),
@@ -252,15 +185,15 @@ class _PostReactionsScreenState extends ConsumerState<PostReactionsScreen> {
     return Padding(
       padding: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
       child: InkWell(
-        onTap: () => setState(() => _selectedFilter = key),
+        onTap: () {},
         borderRadius: BorderRadius.circular(20),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
             color: isSelected
                 ? (isDark
-                    ? AppColors.primaryElectricBlue.withValues(alpha: 0.2)
-                    : const Color(0xFFE7F3FF))
+                    ? AppColors.primaryCrimson.withValues(alpha: 0.2)
+                    : const Color(0xFFFFEBEF))
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(20),
           ),
@@ -275,7 +208,7 @@ class _PostReactionsScreenState extends ConsumerState<PostReactionsScreen> {
                 label,
                 style: TextStyle(
                   color: isSelected
-                      ? AppColors.primaryElectricBlue
+                      ? AppColors.primaryCrimson
                       : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   fontSize: 14,
@@ -341,13 +274,13 @@ class _PostReactionsScreenState extends ConsumerState<PostReactionsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.thumb_up_alt_outlined,
+              Icons.favorite_border_rounded,
               size: 48,
               color: AppColors.textMuted.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 12),
             Text(
-              _searchQuery.isNotEmpty ? 'No reactors match your search' : 'No reactions yet',
+              _searchQuery.isNotEmpty ? 'No users match your search' : 'No likes yet',
               style: AppTypography.body.copyWith(
                 color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
               ),
@@ -391,7 +324,7 @@ class _PostReactionsScreenState extends ConsumerState<PostReactionsScreen> {
                 Positioned(
                   bottom: -2,
                   right: -2,
-                  child: _buildReactionIconBadge(user.reactionType, size: 18),
+                  child: _buildReactionIconBadge(size: 18),
                 ),
               ],
             ),

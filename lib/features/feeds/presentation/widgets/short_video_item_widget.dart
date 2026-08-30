@@ -650,11 +650,11 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Like Button (Thumbs up matching screenshot)
+              // Like Button (Heart icon)
               _buildActionButton(
-                icon: post.isLiked ? Icons.thumb_up_rounded : Icons.thumb_up_alt_outlined,
+                icon: post.isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
                 label: _formatCount(post.likeCount),
-                color: post.isLiked ? const Color(0xFF1877F2) : Colors.white,
+                color: post.isLiked ? AppColors.primaryCrimson : Colors.white,
                 onTap: widget.onLike,
               ),
               const SizedBox(height: 18),

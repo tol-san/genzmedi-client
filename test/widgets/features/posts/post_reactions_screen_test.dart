@@ -13,7 +13,7 @@ void main() {
 
   const testReactions = PostReactionsModel(
     total: 399,
-    counts: {'all': 399, 'like': 312, 'love': 85, 'care': 2},
+    counts: {'all': 399, 'like': 399},
     items: [
       ReactorUserModel(
         id: 'u-react-1',
@@ -26,7 +26,7 @@ void main() {
         id: 'u-react-2',
         username: 'rayya_yuma',
         displayName: 'Rayya Yuma',
-        reactionType: 'love',
+        reactionType: 'like',
         mutualCount: 23,
       ),
     ],
@@ -48,32 +48,35 @@ void main() {
   }
 
   group('PostReactionsScreen Widget Tests', () {
-    testWidgets('renders reaction header, filter pill chips, and reactor user list', (tester) async {
+    testWidgets('renders likes header, filter chip, heart badges, and user list', (tester) async {
       when(() => mockPostRepository.getPostReactions('post-123', query: any(named: 'query')))
           .thenAnswer((_) async => testReactions);
 
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
-      expect(find.text('Reactions'), findsOneWidget);
+      expect(find.text('Likes'), findsOneWidget);
       expect(find.text('All 399'), findsOneWidget);
-      expect(find.text('312'), findsOneWidget);
-      expect(find.text('85'), findsOneWidget);
       expect(find.text('Kim Chanthorn'), findsOneWidget);
       expect(find.text('26 mutual connections'), findsOneWidget);
       expect(find.text('Rayya Yuma'), findsOneWidget);
       expect(find.text('Mention'), findsNWidgets(2));
+      expect(find.byIcon(Icons.favorite_rounded), findsWidgets);
     });
 
-    testWidgets('filters list by reaction type tab', (tester) async {
+    testWidgets('searches and filters user list dynamically', (tester) async {
       when(() => mockPostRepository.getPostReactions('post-123', query: any(named: 'query')))
           .thenAnswer((_) async => testReactions);
 
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
-      // Tap on the Love tab (85)
-      await tester.tap(find.text('85'));
+      // Open search
+      await tester.tap(find.byIcon(Icons.search_rounded));
+      await tester.pumpAndSettle();
+
+      // Enter query
+      await tester.enterText(find.byType(TextField), 'Rayya');
       await tester.pumpAndSettle();
 
       expect(find.text('Rayya Yuma'), findsOneWidget);

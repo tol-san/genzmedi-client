@@ -122,53 +122,24 @@ class _PostCommentsSheetState extends ConsumerState<PostCommentsSheet> {
               ),
               child: Row(
                 children: [
-                  // Stacked reaction icons
-                  SizedBox(
-                    width: 46,
-                    height: 22,
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          left: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(3),
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.primaryCrimson,
-                            ),
-                            child: const Icon(Icons.favorite_rounded, size: 10, color: Colors.white),
-                          ),
-                        ),
-                        Positioned(
-                          left: 14,
-                          child: Container(
-                            padding: const EdgeInsets.all(3),
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.primaryElectricBlue,
-                            ),
-                            child: const Icon(Icons.thumb_up_rounded, size: 10, color: Colors.white),
-                          ),
-                        ),
-                        Positioned(
-                          left: 28,
-                          child: Container(
-                            padding: const EdgeInsets.all(3),
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Color(0xFFF7B125),
-                            ),
-                            child: const Icon(Icons.emoji_emotions_rounded, size: 10, color: Colors.white),
-                          ),
-                        ),
-                      ],
+                  // Heart icon badge
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.primaryCrimson,
                     ),
+                    child: const Icon(Icons.favorite_rounded, size: 12, color: Colors.white),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     isLiked
-                        ? 'You + ${_formatCount((likeCount - 1).clamp(0, 999999))}'
-                        : (likeCount > 0 ? '${_formatCount(likeCount)} reactions' : 'Be the first to react'),
+                        ? (likeCount > 1
+                            ? 'You and ${_formatCount((likeCount - 1).clamp(0, 999999))} others'
+                            : 'Liked by you')
+                        : (likeCount > 0
+                            ? '${_formatCount(likeCount)} ${likeCount == 1 ? "like" : "likes"}'
+                            : 'Be the first to like'),
                     style: AppTypography.bodySmall.copyWith(
                       fontWeight: FontWeight.w600,
                       color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
