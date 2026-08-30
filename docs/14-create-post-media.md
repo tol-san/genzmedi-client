@@ -12,9 +12,14 @@
 
 ### 1. Creation Hub & Modes
 - **Hub Navigation (`CreateHubScreen`)**:
-  - Direct entry point for **Short Video**, **Photo Carousel**, and **Discussion / Thought**.
+  - Compact header titled `Create` with concise heading `What are you posting?`.
+  - Four content creation choices tailored for Gen Z:
+    - **🎬 Video**: Post a short video (routes to Short Video composer).
+    - **🖼️ Photo**: Share one or multiple photos (routes to Photo composer).
+    - **💬 Post**: Share a thought, story, or discussion (routes to Text composer).
+    - **📊 Poll**: Ask the community (Poll prompt banner).
 - **Composer Modes (`CreatePostScreen`)**:
-  - **Text**: Optional Title (max 100 chars), multiline content body (max 1000 chars), visibility selector.
+  - **Text**: Multiline content body (max 1000 chars), visibility selector, community selector.
   - **Photos**: Multi-image selector (up to 10 images) via `ImagePicker.pickMultiImage()`, horizontal thumbnail preview list with individual delete buttons, caption.
   - **Short Video**: Video picker via `ImagePicker.pickVideo()`, custom thumbnail picker via `ImagePicker.pickImage()`, file size/name display, caption.
 
