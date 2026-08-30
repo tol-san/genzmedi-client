@@ -486,11 +486,7 @@ class _ShortVideoItemWidgetState extends State<ShortVideoItemWidget> {
                           ),
                         )
                       else
-                        const Center(
-                          child: CircularProgressIndicator(
-                            color: AppColors.primaryCrimson,
-                          ),
-                        ),
+                        const SizedBox.shrink(),
                     ],
                   ),
           ),

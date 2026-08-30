@@ -167,9 +167,9 @@ class _FeedVideoPlayerWidgetState extends State<FeedVideoPlayerWidget> {
         child: GestureDetector(
           onTap: widget.onTap,
           child: Container(
-            color: Colors.black,
+            color: isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated,
             child: const Center(
-              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryCrimson),
+              child: Icon(Icons.play_circle_outline_rounded, color: AppColors.textMuted, size: 40),
             ),
           ),
         ),

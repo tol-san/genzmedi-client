@@ -14,17 +14,8 @@ class SplashScreen extends StatelessWidget {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const AppLogo.wordmark(width: 220, height: 40),
-            const SizedBox(height: 32),
-            const SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5,
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryCrimson),
-              ),
-            ),
+          children: const [
+            AppLogo.wordmark(width: 220, height: 40),
           ],
         ),
       ),

@@ -342,12 +342,7 @@ class _PostMediaViewerScreenState extends State<PostMediaViewerScreen> {
                                 child: CachedNetworkImage(
                                   imageUrl: resolvedUrl,
                                   fit: BoxFit.contain,
-                                  placeholder: (context, url) => Center(
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: AppColors.primaryCrimson,
-                                    ),
-                                  ),
+                                  placeholder: (context, url) => const SizedBox.shrink(),
                                   errorWidget: (context, url, error) =>
                                       const Icon(
                                     Icons.broken_image_rounded,

@@ -47,16 +47,7 @@ class AppAvatar extends StatelessWidget {
         fit: BoxFit.cover,
         width: size,
         height: size,
-        placeholder: (context, url) => Container(
-          color: isDark ? AppColors.darkSurfaceElevated : AppColors.lightBorder,
-          child: const Center(
-            child: SizedBox(
-              width: 14,
-              height: 14,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          ),
-        ),
+        placeholder: (context, url) => _buildFallback(isDark),
         errorWidget: (context, url, error) => _buildFallback(isDark),
       );
     } else {

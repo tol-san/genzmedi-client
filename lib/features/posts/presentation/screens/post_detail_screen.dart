@@ -213,10 +213,6 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                                             color: isDark
                                                 ? AppColors.darkSurfaceElevated
                                                 : AppColors.lightSurfaceElevated,
-                                            child: const Center(
-                                              child:
-                                                  CircularProgressIndicator(strokeWidth: 2),
-                                            ),
                                           ),
                                           errorWidget: (c, u, e) => Container(
                                             color: isDark

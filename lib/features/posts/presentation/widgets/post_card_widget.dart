@@ -502,9 +502,6 @@ class _PostCardWidgetState extends State<PostCardWidget> {
             fit: BoxFit.cover,
             placeholder: (context, url) => Container(
               color: isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated,
-              child: const Center(
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
             ),
             errorWidget: (context, url, error) => Container(
               color: isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated,

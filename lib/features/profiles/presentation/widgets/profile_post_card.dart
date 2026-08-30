@@ -42,13 +42,6 @@ class ProfilePostCard extends StatelessWidget {
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Container(
                   color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-                  child: const Center(
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  ),
                 ),
                 errorWidget: (context, url, error) => Container(
                   color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
