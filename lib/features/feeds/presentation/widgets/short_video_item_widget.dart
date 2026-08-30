@@ -678,7 +678,7 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
           // Right-Side Engagement Rail (Like, Comment, Bookmark, More)
           Positioned(
             right: 12,
-            bottom: 76,
+            bottom: MediaQuery.of(context).padding.bottom + 20,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -723,7 +723,7 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
           Positioned(
             left: 16,
             right: 80,
-            bottom: 74,
+            bottom: MediaQuery.of(context).padding.bottom + 16,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -858,57 +858,6 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
                   ),
                 ],
               ],
-            ),
-          ),
-
-          // Sticky Bottom Comment Bar
-          Positioned(
-            left: 12,
-            right: 12,
-            bottom: MediaQuery.of(context).padding.bottom + 8,
-            child: GestureDetector(
-              onTap: _openComments,
-              child: Container(
-                height: 44,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.6),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white24, width: 0.8),
-                ),
-                child: Row(
-                  children: [
-                    const Expanded(
-                      child: Text(
-                        'Add a comment...',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    Icon(Icons.alternate_email_rounded, color: Colors.white70, size: 20),
-                    const SizedBox(width: 12),
-                    Icon(Icons.emoji_emotions_outlined, color: Colors.white70, size: 20),
-                    const SizedBox(width: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.white70, width: 1.2),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Text(
-                        'GIF',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ),
           ),
         ] else ...[
