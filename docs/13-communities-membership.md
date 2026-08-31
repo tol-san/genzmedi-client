@@ -24,6 +24,7 @@
 
 ### 1. Public Communities
 - Anyone can discover, view, and tap **Join** to become an active member immediately.
+- Private community details and member lists are visible only to members, owners, and platform administrators. A user with a known ID may request access but cannot read private metadata before approval.
 - Once joined, members can publish posts directly to the community feed.
 
 ### 2. Private Communities

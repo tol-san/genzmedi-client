@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -95,8 +96,9 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
       if (mounted) {
         setState(() {
           _isResending = false;
-          _errorMessage =
-              e is AppException ? e.message : 'Failed to resend verification code.';
+          _errorMessage = e is AppException
+              ? e.message
+              : 'Failed to resend verification code.';
         });
       }
     }
@@ -123,26 +125,23 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
 
     try {
       if (widget.flow == 'signup') {
-        await ref.read(authNotifierProvider.notifier).verifySignupOtp(
-              email: widget.email,
-              otp: otp,
-            );
+        await ref
+            .read(authNotifierProvider.notifier)
+            .verifySignupOtp(email: widget.email, otp: otp);
 
         if (mounted) {
           context.goNamed(RouteNames.profileSetup);
         }
       } else {
-        final tokenModel =
-            await ref.read(authNotifierProvider.notifier).verifyOtp(
-                  email: widget.email,
-                  otp: otp,
-                );
+        final verification = await ref
+            .read(authNotifierProvider.notifier)
+            .verifyOtp(email: widget.email, otp: otp);
 
         if (mounted) {
           setState(() {
             _isLoading = false;
             _isVerified = true;
-            _resetToken = tokenModel.accessToken;
+            _resetToken = verification.resetToken;
           });
         }
       }
@@ -151,9 +150,9 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
       final cleanMessage = e is AppException
           ? e.message
           : e
-              .toString()
-              .replaceFirst(RegExp(r'^[A-Za-z_]+Exception:\s*'), '')
-              .replaceFirst(RegExp(r'\s*\(statusCode:\s*\d+\)'), '');
+                .toString()
+                .replaceFirst(RegExp(r'^[A-Za-z_]+Exception:\s*'), '')
+                .replaceFirst(RegExp(r'\s*\(statusCode:\s*\d+\)'), '');
 
       setState(() {
         _isLoading = false;
@@ -166,8 +165,10 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
     final authState = ref.read(authNotifierProvider);
     if (authState is AuthNeedsOnboarding) {
       context.goNamed(RouteNames.onboarding);
-    } else {
+    } else if (authState is AuthAuthenticated) {
       context.goNamed(RouteNames.homeFeed);
+    } else {
+      context.goNamed(RouteNames.login);
     }
   }
 
@@ -226,14 +227,15 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
           'Verification Successful! 🎉',
           textAlign: TextAlign.center,
           style: AppTypography.headingLarge.copyWith(
-            color:
-                isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+            color: isDark
+                ? AppColors.textPrimaryDark
+                : AppColors.textPrimaryLight,
             fontSize: 24,
           ),
         ),
         const SizedBox(height: AppSpacing.space12),
         Text(
-          'Your account is verified and you are now signed in.\nWould you like to update your password now or continue to your feed?',
+          'Your email is verified. Update your password now, or return to sign in without changing it.',
           textAlign: TextAlign.center,
           style: AppTypography.bodySmall.copyWith(
             color: isDark
@@ -257,7 +259,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
         ),
         const SizedBox(height: AppSpacing.space12),
         AppButton.secondary(
-          text: 'Skip to Feed',
+          text: 'Back to Sign In',
           onPressed: _navigateToFeedOrOnboarding,
         ),
       ],
@@ -269,16 +271,15 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Center(
-          child: AppLogo.icon(width: 60, height: 60),
-        ),
+        const Center(child: AppLogo.icon(width: 60, height: 60)),
         const SizedBox(height: AppSpacing.space20),
         Text(
           'Confirm Verification Code',
           textAlign: TextAlign.center,
           style: AppTypography.headingLarge.copyWith(
-            color:
-                isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+            color: isDark
+                ? AppColors.textPrimaryDark
+                : AppColors.textPrimaryLight,
             fontSize: 24,
           ),
         ),
@@ -330,9 +331,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
             decoration: BoxDecoration(
               color: AppColors.error.withValues(alpha: 0.08),
               borderRadius: AppSpacing.roundedSm,
-              border: Border.all(
-                color: AppColors.error.withValues(alpha: 0.3),
-              ),
+              border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
             ),
             child: Row(
               children: [
@@ -407,8 +406,10 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                 style: AppTypography.bodySmall.copyWith(
                   color: _resendCooldown > 0
                       ? (isDark
-                          ? AppColors.textSecondaryDark.withValues(alpha: 0.5)
-                          : AppColors.textSecondaryLight.withValues(alpha: 0.5))
+                            ? AppColors.textSecondaryDark.withValues(alpha: 0.5)
+                            : AppColors.textSecondaryLight.withValues(
+                                alpha: 0.5,
+                              ))
                       : AppColors.primaryCrimson,
                   fontWeight: FontWeight.w600,
                 ),

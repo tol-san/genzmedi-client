@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/core/auth/token_model.dart';
@@ -109,10 +110,7 @@ class AuthRepository {
       if (bio != null) data['bio'] = bio.trim();
       if (avatarUrl != null) data['avatar_url'] = avatarUrl;
 
-      final response = await dio.patch(
-        ApiEndpoints.myProfile,
-        data: data,
-      );
+      final response = await dio.patch(ApiEndpoints.myProfile, data: data);
 
       if (response.statusCode == 200 && response.data != null) {
         return UserModel.fromJson(response.data as Map<String, dynamic>);
@@ -137,10 +135,7 @@ class AuthRepository {
         ),
       });
 
-      final response = await dio.post(
-        ApiEndpoints.myAvatar,
-        data: formData,
-      );
+      final response = await dio.post(ApiEndpoints.myAvatar, data: formData);
 
       if (response.statusCode == 200 && response.data != null) {
         return UserModel.fromJson(response.data as Map<String, dynamic>);
@@ -214,11 +209,15 @@ class AuthRepository {
         final list = response.data;
         if (list is List) {
           return list
-              .map((item) => InterestModel.fromJson(item as Map<String, dynamic>))
+              .map(
+                (item) => InterestModel.fromJson(item as Map<String, dynamic>),
+              )
               .toList();
         } else if (list is Map && list['items'] is List) {
           return (list['items'] as List)
-              .map((item) => InterestModel.fromJson(item as Map<String, dynamic>))
+              .map(
+                (item) => InterestModel.fromJson(item as Map<String, dynamic>),
+              )
               .toList();
         }
       }
@@ -266,8 +265,8 @@ class AuthRepository {
     }
   }
 
-  /// Verify 6-digit OTP and authenticate session
-  Future<TokenModel> verifyOtp(VerifyOtpRequest request) async {
+  /// Verify a password-reset OTP and receive a reset-only grant.
+  Future<PasswordResetVerification> verifyOtp(VerifyOtpRequest request) async {
     try {
       final response = await dio.post(
         ApiEndpoints.verifyOtp,
@@ -275,7 +274,9 @@ class AuthRepository {
       );
 
       if (response.statusCode == 200 && response.data != null) {
-        return TokenModel.fromJson(response.data as Map<String, dynamic>);
+        return PasswordResetVerification.fromJson(
+          response.data as Map<String, dynamic>,
+        );
       }
       throw ErrorMapper.fromStatusCode(
         response.statusCode,

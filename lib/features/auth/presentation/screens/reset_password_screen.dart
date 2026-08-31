@@ -11,7 +11,6 @@ import 'package:client/core/theme/app_typography.dart';
 import 'package:client/core/widgets/app_button.dart';
 import 'package:client/core/widgets/app_logo.dart';
 import 'package:client/core/widgets/app_text_field.dart';
-import 'package:client/core/storage/secure_storage_service.dart';
 import 'package:client/features/auth/data/models/auth_models.dart';
 import 'package:client/features/auth/data/repositories/auth_repository.dart';
 
@@ -19,11 +18,7 @@ class ResetPasswordScreen extends ConsumerStatefulWidget {
   final String? initialToken;
   final String? initialEmail;
 
-  const ResetPasswordScreen({
-    super.key,
-    this.initialToken,
-    this.initialEmail,
-  });
+  const ResetPasswordScreen({super.key, this.initialToken, this.initialEmail});
 
   @override
   ConsumerState<ResetPasswordScreen> createState() =>
@@ -50,8 +45,10 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     final authState = ref.read(authNotifierProvider);
     if (authState is AuthNeedsOnboarding) {
       context.goNamed(RouteNames.onboarding);
-    } else {
+    } else if (authState is AuthAuthenticated) {
       context.goNamed(RouteNames.homeFeed);
+    } else {
+      context.goNamed(RouteNames.login);
     }
   }
 
@@ -95,18 +92,19 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
     try {
       final repository = ref.read(authRepositoryProvider);
-      final storage = ref.read(secureStorageServiceProvider);
-      final storedToken = await storage.getAccessToken();
-      final effectiveToken = (widget.initialToken != null && widget.initialToken!.isNotEmpty)
+      final effectiveToken =
+          (widget.initialToken != null && widget.initialToken!.isNotEmpty)
           ? widget.initialToken!
-          : (storedToken ?? '');
+          : '';
+
+      if (effectiveToken.isEmpty) {
+        throw const UnauthorizedException(
+          'Your password reset session has expired. Request a new code.',
+        );
+      }
 
       await repository.resetPassword(
-        ResetPasswordRequest(
-          token: effectiveToken,
-          email: widget.initialEmail,
-          newPassword: newPassword,
-        ),
+        ResetPasswordRequest(token: effectiveToken, newPassword: newPassword),
       );
 
       if (mounted) {
@@ -123,9 +121,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       final cleanMessage = e is AppException
           ? e.message
           : e
-              .toString()
-              .replaceFirst(RegExp(r'^[A-Za-z_]+Exception:\s*'), '')
-              .replaceFirst(RegExp(r'\s*\(statusCode:\s*\d+\)'), '');
+                .toString()
+                .replaceFirst(RegExp(r'^[A-Za-z_]+Exception:\s*'), '')
+                .replaceFirst(RegExp(r'\s*\(statusCode:\s*\d+\)'), '');
 
       setState(() {
         _errorMessage = cleanMessage;
@@ -160,7 +158,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
           TextButton(
             onPressed: _navigateToNextScreen,
             child: Text(
-              'Skip',
+              'Cancel',
               style: AppTypography.bodySmall.copyWith(
                 color: isDark
                     ? AppColors.textSecondaryDark
@@ -183,9 +181,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Center(
-                  child: AppLogo.icon(width: 60, height: 60),
-                ),
+                const Center(child: AppLogo.icon(width: 60, height: 60)),
                 const SizedBox(height: AppSpacing.space20),
                 Text(
                   'Set New Password',
@@ -282,8 +278,8 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                 const SizedBox(height: AppSpacing.space16),
 
                 AppButton.secondary(
-                  text: 'Skip to Feed',
-                  onPressed: () => context.goNamed(RouteNames.homeFeed),
+                  text: 'Back to Sign In',
+                  onPressed: () => context.goNamed(RouteNames.login),
                 ),
               ],
             ),

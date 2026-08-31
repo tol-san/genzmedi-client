@@ -7,11 +7,11 @@ void main() {
   group('Auth Models Unit Tests', () {
     test('LoginRequest serializes to JSON', () {
       const req = LoginRequest(username: 'alex', password: 'Password123!');
-      expect(req.toJson(), {
-        'username': 'alex',
-        'password': 'Password123!',
-      });
-      expect(req, equals(const LoginRequest(username: 'alex', password: 'Password123!')));
+      expect(req.toJson(), {'username': 'alex', 'password': 'Password123!'});
+      expect(
+        req,
+        equals(const LoginRequest(username: 'alex', password: 'Password123!')),
+      );
     });
 
     test('RegisterRequest serializes to JSON', () {
@@ -34,30 +34,21 @@ void main() {
 
     test('VerifyOtpRequest serializes to JSON', () {
       const req = VerifyOtpRequest(email: 'alex@example.com', otp: '123456');
-      expect(req.toJson(), {
-        'email': 'alex@example.com',
-        'otp': '123456',
-      });
-      expect(req, equals(const VerifyOtpRequest(email: 'alex@example.com', otp: '123456')));
+      expect(req.toJson(), {'email': 'alex@example.com', 'otp': '123456'});
+      expect(
+        req,
+        equals(
+          const VerifyOtpRequest(email: 'alex@example.com', otp: '123456'),
+        ),
+      );
     });
 
-    test('ResetPasswordRequest serializes to JSON with optional email', () {
-      const reqWithEmail = ResetPasswordRequest(
-        token: 'tok_123',
-        newPassword: 'NewPassword123!',
-        email: 'alex@example.com',
-      );
-      expect(reqWithEmail.toJson(), {
-        'token': 'tok_123',
-        'new_password': 'NewPassword123!',
-        'email': 'alex@example.com',
-      });
-
-      const reqWithoutEmail = ResetPasswordRequest(
+    test('ResetPasswordRequest serializes reset-specific token', () {
+      const request = ResetPasswordRequest(
         token: 'tok_123',
         newPassword: 'NewPassword123!',
       );
-      expect(reqWithoutEmail.toJson(), {
+      expect(request.toJson(), {
         'token': 'tok_123',
         'new_password': 'NewPassword123!',
       });

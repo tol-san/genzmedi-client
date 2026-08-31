@@ -11,7 +11,9 @@ import 'package:client/features/auth/data/models/auth_models.dart';
 import 'package:client/features/auth/data/repositories/auth_repository.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
+
 class MockSecureStorageService extends Mock implements SecureStorageService {}
+
 class MockPreferencesService extends Mock implements PreferencesService {}
 
 void main() {
@@ -21,7 +23,9 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(const LoginRequest(username: '', password: ''));
-    registerFallbackValue(const RegisterRequest(username: '', email: '', password: ''));
+    registerFallbackValue(
+      const RegisterRequest(username: '', email: '', password: ''),
+    );
     registerFallbackValue(const VerifyOtpRequest(email: '', otp: ''));
   });
 
@@ -57,8 +61,10 @@ void main() {
         interests: ['Gaming'],
       );
 
-      when(() => mockStorage.getAccessToken()).thenAnswer((_) async => 'valid_token');
-      when(() => mockRepository.getMyProfile()).thenAnswer((_) async => mockUser);
+      when(() => mockStorage.getAccessToken())
+          .thenAnswer((_) async => 'valid_token');
+      when(() => mockRepository.getMyProfile())
+          .thenAnswer((_) async => mockUser);
 
       final notifier = AuthNotifier(
         repository: mockRepository,
@@ -71,53 +77,70 @@ void main() {
       expect((notifier.state as AuthAuthenticated).user.username, 'sovandara');
     });
 
-    test('login saves tokens and transitions to AuthAuthenticated on success', () async {
-      const mockToken = TokenModel(
-        accessToken: 'access_123',
-        refreshToken: 'refresh_456',
-        tokenType: 'Bearer',
-      );
-      const mockUser = UserModel(
-        id: '1',
-        username: 'sovandara',
-        email: 's@genz.media',
-        interests: ['Anime', 'Music'],
-      );
+    test(
+      'login saves tokens and transitions to AuthAuthenticated on success',
+      () async {
+        const mockToken = TokenModel(
+          accessToken: 'access_123',
+          refreshToken: 'refresh_456',
+          tokenType: 'Bearer',
+        );
+        const mockUser = UserModel(
+          id: '1',
+          username: 'sovandara',
+          email: 's@genz.media',
+          interests: ['Anime', 'Music'],
+        );
 
-      when(() => mockRepository.login(any())).thenAnswer((_) async => mockToken);
-      when(() => mockStorage.saveTokens(
+        when(() => mockRepository.login(any()))
+            .thenAnswer((_) async => mockToken);
+        when(
+          () => mockStorage.saveTokens(
             accessToken: any(named: 'accessToken'),
             refreshToken: any(named: 'refreshToken'),
-          )).thenAnswer((_) async {});
-      when(() => mockRepository.getMyProfile()).thenAnswer((_) async => mockUser);
+          ),
+        ).thenAnswer((_) async {});
+        when(() => mockRepository.getMyProfile())
+            .thenAnswer((_) async => mockUser);
 
-      final notifier = AuthNotifier(
-        repository: mockRepository,
-        storage: mockStorage,
-        prefs: mockPrefs,
-      );
+        final notifier = AuthNotifier(
+          repository: mockRepository,
+          storage: mockStorage,
+          prefs: mockPrefs,
+        );
 
-      await notifier.login(username: 'sovandara', password: 'password123');
+        await notifier.login(username: 'sovandara', password: 'password123');
 
-      expect(notifier.state, isA<AuthAuthenticated>());
-      verify(() => mockStorage.saveTokens(accessToken: 'access_123', refreshToken: 'refresh_456')).called(1);
-    });
+        expect(notifier.state, isA<AuthAuthenticated>());
+        verify(
+          () => mockStorage.saveTokens(
+            accessToken: 'access_123',
+            refreshToken: 'refresh_456',
+          ),
+        ).called(1);
+      },
+    );
 
-    test('login rethrows on failure without transitioning to AuthAuthenticated', () async {
-      when(() => mockRepository.login(any())).thenThrow(const UnauthorizedException('Invalid credentials'));
+    test(
+      'login rethrows on failure without transitioning to AuthAuthenticated',
+      () async {
+        when(() => mockRepository.login(any()))
+            .thenThrow(const UnauthorizedException('Invalid credentials'));
 
-      final notifier = AuthNotifier(
-        repository: mockRepository,
-        storage: mockStorage,
-        prefs: mockPrefs,
-      );
+        final notifier = AuthNotifier(
+          repository: mockRepository,
+          storage: mockStorage,
+          prefs: mockPrefs,
+        );
 
-      await expectLater(
-        () => notifier.login(username: 'sovandara', password: 'wrongpassword'),
-        throwsA(isA<UnauthorizedException>()),
-      );
-      expect(notifier.state, isNot(isA<AuthAuthenticated>()));
-    });
+        await expectLater(
+          () =>
+              notifier.login(username: 'sovandara', password: 'wrongpassword'),
+          throwsA(isA<UnauthorizedException>()),
+        );
+        expect(notifier.state, isNot(isA<AuthAuthenticated>()));
+      },
+    );
 
     test('logout calls repository, clears storage, and transitions to AuthUnauthenticated', () async {
       when(() => mockRepository.logout()).thenAnswer((_) async {});
@@ -134,69 +157,66 @@ void main() {
       verify(() => mockStorage.clearAll()).called(1);
     });
 
-    test('verifyOtp saves tokens and transitions to AuthAuthenticated when interests exist', () async {
-      const mockToken = TokenModel(
-        accessToken: 'otp_access_token',
-        refreshToken: 'otp_refresh_token',
-        tokenType: 'Bearer',
-      );
-      const mockUser = UserModel(
-        id: '1',
-        username: 'sovandara',
-        email: 's@genz.media',
-        interests: ['Gaming'],
-      );
+    test(
+      'verifyOtp returns a reset grant without creating a session',
+      () async {
+        const verification = PasswordResetVerification(
+          resetToken: 'reset_token_123',
+          expiresIn: 420,
+        );
 
-      when(() => mockRepository.verifyOtp(any())).thenAnswer((_) async => mockToken);
-      when(() => mockStorage.saveTokens(
+        when(() => mockRepository.verifyOtp(any()))
+            .thenAnswer((_) async => verification);
+
+        final notifier = AuthNotifier(
+          repository: mockRepository,
+          storage: mockStorage,
+          prefs: mockPrefs,
+        );
+
+        final res = await notifier.verifyOtp(
+          email: 's@genz.media',
+          otp: '123456',
+        );
+
+        expect(res.resetToken, 'reset_token_123');
+        expect(res.expiresIn, 420);
+        expect(notifier.state, isNot(isA<AuthAuthenticated>()));
+        verifyNever(
+          () => mockStorage.saveTokens(
             accessToken: any(named: 'accessToken'),
             refreshToken: any(named: 'refreshToken'),
-          )).thenAnswer((_) async {});
-      when(() => mockRepository.getMyProfile()).thenAnswer((_) async => mockUser);
+          ),
+        );
+        verifyNever(() => mockRepository.getMyProfile());
+      },
+    );
 
-      final notifier = AuthNotifier(
-        repository: mockRepository,
-        storage: mockStorage,
-        prefs: mockPrefs,
-      );
+    test(
+      'verifyOtp rethrows invalid-code errors without creating a session',
+      () async {
+        when(
+          () => mockRepository.verifyOtp(any()),
+        ).thenThrow(const UnauthorizedException('Invalid verification code'));
 
-      final res = await notifier.verifyOtp(email: 's@genz.media', otp: '123456');
+        final notifier = AuthNotifier(
+          repository: mockRepository,
+          storage: mockStorage,
+          prefs: mockPrefs,
+        );
 
-      expect(res.accessToken, 'otp_access_token');
-      expect(notifier.state, isA<AuthAuthenticated>());
-      verify(() => mockStorage.saveTokens(accessToken: 'otp_access_token', refreshToken: 'otp_refresh_token')).called(1);
-    });
-
-    test('verifyOtp transitions to AuthNeedsOnboarding when interests are empty', () async {
-      const mockToken = TokenModel(
-        accessToken: 'otp_access_token',
-        refreshToken: 'otp_refresh_token',
-        tokenType: 'Bearer',
-      );
-      const mockUser = UserModel(
-        id: '1',
-        username: 'sovandara',
-        email: 's@genz.media',
-        interests: [],
-      );
-
-      when(() => mockPrefs.isOnboardingCompleted()).thenReturn(false);
-      when(() => mockRepository.verifyOtp(any())).thenAnswer((_) async => mockToken);
-      when(() => mockStorage.saveTokens(
+        await expectLater(
+          () => notifier.verifyOtp(email: 's@genz.media', otp: '000000'),
+          throwsA(isA<UnauthorizedException>()),
+        );
+        expect(notifier.state, isNot(isA<AuthAuthenticated>()));
+        verifyNever(
+          () => mockStorage.saveTokens(
             accessToken: any(named: 'accessToken'),
             refreshToken: any(named: 'refreshToken'),
-          )).thenAnswer((_) async {});
-      when(() => mockRepository.getMyProfile()).thenAnswer((_) async => mockUser);
-
-      final notifier = AuthNotifier(
-        repository: mockRepository,
-        storage: mockStorage,
-        prefs: mockPrefs,
-      );
-
-      await notifier.verifyOtp(email: 's@genz.media', otp: '123456');
-
-      expect(notifier.state, isA<AuthNeedsOnboarding>());
-    });
+          ),
+        );
+      },
+    );
   });
 }

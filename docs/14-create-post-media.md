@@ -25,6 +25,8 @@
 
 ### 2. Media Upload Pipeline & Real-Time Progress Tracking
 - Media files are uploaded to MinIO via `POST /api/v1/posts/media` using multipart form data.
+- Post objects live in a private bucket. Upload and post responses expose only short-lived signed URLs.
+- A post may attach only media under the current user's `posts/{user_id}/...` prefix; declared MIME types are checked against decoded file signatures.
 - **Progress Tracking**:
   - Dio's `onSendProgress(int sent, int total)` streams chunk progress directly to `CreatePostNotifier`.
   - Multi-image uploads calculate proportional cumulative progress `(i + fileFraction) / N`.

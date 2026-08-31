@@ -45,7 +45,7 @@ Read notification
 
 Backend exposes:
 - SSE: `GET /api/v1/notifications/stream`
-- WebSocket: `/api/v1/notifications/ws`
+- WebSocket: request a one-time ticket from `POST /api/v1/notifications/ws-ticket`, then connect to `/api/v1/notifications/ws?ticket=...`. Never place an access token in the URL.
 
 Frontend decision:
 - use **one real-time notification transport per session**;

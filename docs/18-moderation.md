@@ -13,11 +13,10 @@ RESOLVED / REJECTED
 ## Resolution actions
 
 - `none`
-- `content_deleted`
-- `user_warned`
 - `user_suspended`
-- `community_closed`
 - `dismissed`
+
+Only `none`, `user_suspended`, and `dismissed` are accepted. Report scope is derived from the target; clients must not invent a `community_id`. Duplicate open reports and reopening terminal reports are rejected, and suspension is platform-admin only.
 
 ## Roles
 

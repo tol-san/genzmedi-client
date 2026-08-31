@@ -41,7 +41,8 @@ abstract class ApiEndpoints {
   static String blockUser(String userId) => '/users/$userId/block';
   static String userFollowers(String userId) => '/users/$userId/followers';
   static String userFollowing(String userId) => '/users/$userId/following';
-  static String userRelationship(String userId) => '/users/$userId/relationship';
+  static String userRelationship(String userId) =>
+      '/users/$userId/relationship';
   static const String myBlockedUsers = '/users/me/blocked';
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -61,12 +62,18 @@ abstract class ApiEndpoints {
   // ─────────────────────────────────────────────────────────────────────────────
   static const String communities = '/communities';
   static const String myJoinedCommunities = '/communities/me/joined';
-  static String communityDetail(String communityId) => '/communities/$communityId';
-  static String communityCover(String communityId) => '/communities/$communityId/cover';
-  static String communityAvatar(String communityId) => '/communities/$communityId/avatar';
-  static String joinCommunity(String communityId) => '/communities/$communityId/join';
-  static String leaveCommunity(String communityId) => '/communities/$communityId/leave';
-  static String communityMembers(String communityId) => '/communities/$communityId/members';
+  static String communityDetail(String communityId) =>
+      '/communities/$communityId';
+  static String communityCover(String communityId) =>
+      '/communities/$communityId/cover';
+  static String communityAvatar(String communityId) =>
+      '/communities/$communityId/avatar';
+  static String joinCommunity(String communityId) =>
+      '/communities/$communityId/join';
+  static String leaveCommunity(String communityId) =>
+      '/communities/$communityId/leave';
+  static String communityMembers(String communityId) =>
+      '/communities/$communityId/members';
   static String kickCommunityMember(String communityId, String userId) =>
       '/communities/$communityId/members/$userId';
   static String communityJoinRequests(String communityId) =>
@@ -92,7 +99,8 @@ abstract class ApiEndpoints {
   // ─────────────────────────────────────────────────────────────────────────────
   static String postComments(String postId) => '/posts/$postId/comments';
   static String commentDetail(String commentId) => '/comments/$commentId';
-  static String commentReplies(String commentId) => '/comments/$commentId/replies';
+  static String commentReplies(String commentId) =>
+      '/comments/$commentId/replies';
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 8. Saved Posts (`/saved-posts`)
@@ -130,6 +138,7 @@ abstract class ApiEndpoints {
   static const String notificationStreamSse = '/notifications/stream';
   static const String notificationTyping = '/notifications/typing';
   static const String notificationWs = '/notifications/ws';
+  static const String notificationWsTicket = '/notifications/ws-ticket';
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 12. Reports & Moderation (`/reports`)
@@ -142,8 +151,10 @@ abstract class ApiEndpoints {
   // 13. Community Chat (`/chats`)
   // ─────────────────────────────────────────────────────────────────────────────
   static const String chatWsTicket = '/chats/ws-ticket';
-  static String chatHistory(String communityId) => '/chats/$communityId/messages';
-  static String chatPresence(String communityId) => '/chats/$communityId/presence';
+  static String chatHistory(String communityId) =>
+      '/chats/$communityId/messages';
+  static String chatPresence(String communityId) =>
+      '/chats/$communityId/presence';
   static String chatWs(String communityId, String ticket) =>
       '/chats/ws/$communityId?ticket=$ticket';
 

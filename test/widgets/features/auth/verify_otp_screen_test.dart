@@ -14,7 +14,9 @@ import 'package:client/features/auth/data/repositories/auth_repository.dart';
 import 'package:client/features/auth/presentation/screens/verify_otp_screen.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
+
 class MockSecureStorageService extends Mock implements SecureStorageService {}
+
 class MockPreferencesService extends Mock implements PreferencesService {}
 
 void main() {
@@ -33,10 +35,12 @@ void main() {
     mockPrefs = MockPreferencesService();
 
     when(() => mockStorage.getAccessToken()).thenAnswer((_) async => null);
-    when(() => mockStorage.saveTokens(
-          accessToken: any(named: 'accessToken'),
-          refreshToken: any(named: 'refreshToken'),
-        )).thenAnswer((_) async {});
+    when(
+      () => mockStorage.saveTokens(
+        accessToken: any(named: 'accessToken'),
+        refreshToken: any(named: 'refreshToken'),
+      ),
+    ).thenAnswer((_) async {});
     when(() => mockPrefs.hasSession()).thenReturn(false);
     when(() => mockPrefs.setHasSession(any())).thenAnswer((_) async {});
     when(() => mockPrefs.isOnboardingCompleted()).thenReturn(false);
@@ -84,7 +88,9 @@ void main() {
       expect(find.text('Please enter the 6-digit code.'), findsOneWidget);
     });
 
-    testWidgets('Shows error if submitted with less than 6 digits', (tester) async {
+    testWidgets('Shows error if submitted with less than 6 digits', (
+      tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pump();
 
@@ -95,12 +101,13 @@ void main() {
       expect(find.text('Verification code must be 6 digits.'), findsOneWidget);
     });
 
-    testWidgets('Displays Decision View on valid OTP verification', (tester) async {
+    testWidgets('Displays Decision View on valid OTP verification', (
+      tester,
+    ) async {
       when(() => mockRepository.verifyOtp(any())).thenAnswer(
-        (_) async => const TokenModel(
-          accessToken: 'mock_access_token',
-          refreshToken: 'mock_refresh_token',
-          tokenType: 'bearer',
+        (_) async => const PasswordResetVerification(
+          resetToken: 'mock_reset_token',
+          expiresIn: 420,
         ),
       );
 
@@ -121,7 +128,7 @@ void main() {
       // Should display the post-verification decision UI
       expect(find.text('Verification Successful! 🎉'), findsOneWidget);
       expect(find.text('Update Password Now'), findsOneWidget);
-      expect(find.text('Skip to Feed'), findsOneWidget);
+      expect(find.text('Back to Sign In'), findsOneWidget);
     });
   });
 }

@@ -38,6 +38,8 @@ Trending / more content
 
 Backend docs define Meilisearch-backed typo-tolerant search with PostgreSQL fallback.
 
+Community and post results are always authorized from live PostgreSQL state. Private communities require membership; post visibility also accounts for ownership, follows, bidirectional blocks, and private-community membership. Hidden resources are treated as not found.
+
 ### Unified
 `GET /api/v1/search`
 

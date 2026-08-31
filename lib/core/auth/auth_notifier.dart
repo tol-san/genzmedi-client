@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/core/auth/auth_state.dart';
 import 'package:client/core/auth/token_model.dart';
@@ -10,17 +11,14 @@ import 'package:client/core/storage/secure_storage_service.dart';
 import 'package:client/features/auth/data/models/auth_models.dart';
 import 'package:client/features/auth/data/repositories/auth_repository.dart';
 
-final authNotifierProvider =
-    StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((
+  ref,
+) {
   final repository = ref.watch(authRepositoryProvider);
   final storage = ref.watch(secureStorageServiceProvider);
   final prefs = ref.watch(preferencesServiceProvider);
 
-  return AuthNotifier(
-    repository: repository,
-    storage: storage,
-    prefs: prefs,
-  );
+  return AuthNotifier(repository: repository, storage: storage, prefs: prefs);
 });
 
 class AuthNotifier extends StateNotifier<AuthState> {
@@ -48,7 +46,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// Helper to fetch user profile and transition to authenticated or onboarding state
   Future<UserModel> _fetchAndSetUser({bool forceOnboarding = false}) async {
     final user = await repository.getMyProfile();
-    final needsOnboarding = forceOnboarding ||
+    final needsOnboarding =
+        forceOnboarding ||
         (user.interests.isEmpty && !prefs.isOnboardingCompleted());
 
     if (needsOnboarding) {
@@ -84,8 +83,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       try {
         final user = await repository.getMyProfile().timeout(
-              const Duration(seconds: 4),
-            );
+          const Duration(seconds: 4),
+        );
         if (user.interests.isEmpty && !prefs.isOnboardingCompleted()) {
           state = AuthNeedsOnboarding(user);
         } else {
@@ -130,18 +129,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  /// Verify 6-digit OTP code, save session tokens, and transition to authenticated
-  Future<TokenModel> verifyOtp({
+  /// Verify a password-reset OTP without creating an authenticated session.
+  Future<PasswordResetVerification> verifyOtp({
     required String email,
     required String otp,
   }) async {
     try {
-      final tokenModel = await repository.verifyOtp(
+      final verification = await repository.verifyOtp(
         VerifyOtpRequest(email: email, otp: otp),
       );
-      await _saveSession(tokenModel);
-      await _fetchAndSetUser();
-      return tokenModel;
+      return verification;
     } on AppException {
       rethrow;
     } catch (e) {
@@ -258,11 +255,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }) async {
     try {
       final tokenModel = await repository.register(
-        RegisterRequest(
-          username: username,
-          email: email,
-          password: password,
-        ),
+        RegisterRequest(username: username, email: email, password: password),
       );
 
       if (tokenModel != null) {

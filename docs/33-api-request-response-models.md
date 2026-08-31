@@ -240,20 +240,33 @@ Used for high-frequency chat message history (`GET /chats/{community_id}/message
 ```json
 {
   "message": "If this email is registered, password reset instructions have been generated.",
-  "reset_token": "optional-token-in-debug-mode"
+  "reset_token": null
 }
 ```
 
 ---
 
-### 2.6 Reset Password
+### 2.6 Verify Password-Reset OTP
+- **Endpoint:** `POST /api/v1/auth/verify-otp`
+- **Status:** `200 OK`
+
+```json
+{
+  "reset_token": "one-time-password-reset-jwt",
+  "expires_in": 420
+}
+```
+
+No access or refresh token is issued by this endpoint.
+
+### 2.7 Reset Password
 - **Endpoint:** `POST /api/v1/auth/reset-password`
 - **Status:** `200 OK`
 
 **Request Body (`ResetPasswordRequest`):**
 ```json
 {
-  "token": "reset_token_from_email",
+  "token": "reset_token_from_verify_otp",
   "new_password": "NewSecurePassword123!"
 }
 ```
@@ -267,7 +280,7 @@ Used for high-frequency chat message history (`GET /chats/{community_id}/message
 
 ---
 
-### 2.7 Change Password
+### 2.8 Change Password
 - **Endpoint:** `POST /api/v1/auth/change-password`
 - **Status:** `200 OK`
 - **Auth:** `Bearer <access_token>`
@@ -1541,14 +1554,14 @@ Used for high-frequency chat message history (`GET /chats/{community_id}/message
 ```json
 {
   "status": "RESOLVED",
-  "resolution_action": "content_deleted",
+  "resolution_action": "dismissed",
   "resolution_notes": "Spam verified and post deleted."
 }
 ```
 | Field | Type | Required | Allowed Values |
 |---|---|---|---|
 | `status` | `string` | Yes | `"PENDING"`, `"REVIEWING"`, `"RESOLVED"`, `"REJECTED"` |
-| `resolution_action` | `string` | No | `"none"`, `"content_deleted"`, `"user_warned"`, `"user_suspended"`, `"community_closed"`, `"dismissed"` |
+| `resolution_action` | `string` | No | `"none"`, `"user_suspended"`, `"dismissed"` |
 | `resolution_notes` | `string` | No | Max 1000 chars |
 
 ---

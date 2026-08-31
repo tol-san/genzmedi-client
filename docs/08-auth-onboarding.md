@@ -13,8 +13,8 @@
   - `POST /api/v1/auth/logout`: Revoke session tokens.
 - **Password Reset Flow**:
   - `POST /api/v1/auth/forgot-password`: Dispatch 6-digit reset OTP to email (7-minute TTL).
-  - `POST /api/v1/auth/verify-otp`: Verify reset OTP and issue access token for password change.
-  - `POST /api/v1/auth/reset-password`: Set new password with verified token.
+  - `POST /api/v1/auth/verify-otp`: Verify the email-bound reset OTP and issue a reset-only, single-use token. This does not sign the user in.
+  - `POST /api/v1/auth/reset-password`: Consume the reset token, set the password, revoke older sessions, then return to sign in.
 - **Interest Onboarding**:
   - `GET /api/v1/interests`: Retrieve catalog of interest categories.
   - `PUT /api/v1/profiles/me/interests`: Save selected user interests.
@@ -76,8 +76,8 @@ Verify OTP Screen (/verify-otp)
 (User enters 6-digit code)
   ↓
 Decision View (Modal / Prompt)
-  ├─ "Update Password Now" → Reset Password Screen (/reset-password) → Success → Main Shell Feed
-  └─ "Skip to Feed" → Main Shell Feed (/feed)
+  ├─ "Update Password Now" → Reset Password Screen (/reset-password) → Success → Login
+  └─ "Back to Sign In" → Login
 ```
 
 ---

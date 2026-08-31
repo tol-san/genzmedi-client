@@ -17,7 +17,7 @@
 | POST | `/auth/refresh` | `RefreshTokenRequest` (JSON) | `TokenRefreshResponse` (200) | Rotate and refresh access token |
 | POST | `/auth/logout` | `RefreshTokenRequest` (JSON, optional) | `MessageResponse` (200) | Revoke refresh token & session |
 | POST | `/auth/forgot-password` | `ForgotPasswordRequest` (JSON) | `ForgotPasswordResponse` (200) | Request password reset OTP (7-min TTL) |
-| POST | `/auth/verify-otp` | `VerifyOtpRequest` (JSON) | `TokenResponse` (200) | Verify password reset OTP code |
+| POST | `/auth/verify-otp` | `VerifyOtpRequest` (JSON) | `VerifyOtpResponse` (200) | Return reset-only one-time grant; does not authenticate |
 | POST | `/auth/reset-password` | `ResetPasswordRequest` (JSON) | `MessageResponse` (200) | Set new password with reset token |
 | POST | `/auth/change-password` | `ChangePasswordRequest` (JSON) | `MessageResponse` (200) | Update password for current user |
 

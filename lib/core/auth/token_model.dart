@@ -30,3 +30,23 @@ class TokenModel extends Equatable {
   @override
   List<Object?> get props => [accessToken, refreshToken, tokenType];
 }
+
+class PasswordResetVerification extends Equatable {
+  final String resetToken;
+  final int expiresIn;
+
+  const PasswordResetVerification({
+    required this.resetToken,
+    required this.expiresIn,
+  });
+
+  factory PasswordResetVerification.fromJson(Map<String, dynamic> json) {
+    return PasswordResetVerification(
+      resetToken: json['reset_token'] as String,
+      expiresIn: json['expires_in'] as int,
+    );
+  }
+
+  @override
+  List<Object?> get props => [resetToken, expiresIn];
+}

@@ -12,13 +12,17 @@ import 'package:client/features/auth/data/repositories/auth_repository.dart';
 import 'package:client/features/auth/presentation/screens/reset_password_screen.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
+
 class MockSecureStorageService extends Mock implements SecureStorageService {}
+
 class MockPreferencesService extends Mock implements PreferencesService {}
 
 void main() {
   setUpAll(() {
     GoogleFonts.config.allowRuntimeFetching = false;
-    registerFallbackValue(const ResetPasswordRequest(token: '', newPassword: ''));
+    registerFallbackValue(
+      const ResetPasswordRequest(token: '', newPassword: ''),
+    );
   });
 
   late MockAuthRepository mockRepository;
@@ -30,7 +34,8 @@ void main() {
     mockStorage = MockSecureStorageService();
     mockPrefs = MockPreferencesService();
 
-    when(() => mockStorage.getAccessToken()).thenAnswer((_) async => 'mock_token');
+    when(() => mockStorage.getAccessToken())
+        .thenAnswer((_) async => 'mock_token');
     when(() => mockPrefs.hasSession()).thenReturn(true);
     when(() => mockPrefs.isOnboardingCompleted()).thenReturn(true);
   });
@@ -67,10 +72,12 @@ void main() {
       expect(find.text('New Password'), findsOneWidget);
       expect(find.text('Confirm Password'), findsOneWidget);
       expect(find.text('Save Password'), findsOneWidget);
-      expect(find.text('Skip to Feed'), findsOneWidget);
+      expect(find.text('Back to Sign In'), findsOneWidget);
     });
 
-    testWidgets('Shows error if password is less than 8 characters', (tester) async {
+    testWidgets('Shows error if password is less than 8 characters', (
+      tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pump();
 
@@ -80,7 +87,10 @@ void main() {
       await tester.tap(find.text('Save Password'));
       await tester.pump();
 
-      expect(find.text('Password must be at least 8 characters long.'), findsOneWidget);
+      expect(
+        find.text('Password must be at least 8 characters long.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('Shows error if passwords do not match', (tester) async {
@@ -96,10 +106,16 @@ void main() {
       expect(find.text('Passwords do not match.'), findsOneWidget);
     });
 
-    testWidgets('Calls resetPassword when valid passwords are submitted', (tester) async {
+    testWidgets('Calls resetPassword when valid passwords are submitted', (
+      tester,
+    ) async {
       when(() => mockRepository.resetPassword(any())).thenAnswer((_) async {});
       when(() => mockRepository.getMyProfile()).thenAnswer(
-        (_) async => const UserModel(id: '1', email: 'alex@example.com', username: 'alex'),
+        (_) async => const UserModel(
+          id: '1',
+          email: 'alex@example.com',
+          username: 'alex',
+        ),
       );
 
       await tester.pumpWidget(createWidgetUnderTest());
