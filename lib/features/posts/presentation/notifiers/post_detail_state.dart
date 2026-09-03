@@ -44,8 +44,9 @@ class PostDetailState extends Equatable {
       isLoadingPost: isLoadingPost ?? this.isLoadingPost,
       isLoadingComments: isLoadingComments ?? this.isLoadingComments,
       isPostingComment: isPostingComment ?? this.isPostingComment,
-      replyingToComment:
-          clearReplyingTo ? null : (replyingToComment ?? this.replyingToComment),
+      replyingToComment: clearReplyingTo
+          ? null
+          : (replyingToComment ?? this.replyingToComment),
       hasMoreComments: hasMoreComments ?? this.hasMoreComments,
       commentsOffset: commentsOffset ?? this.commentsOffset,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
@@ -54,14 +55,14 @@ class PostDetailState extends Equatable {
 
   @override
   List<Object?> get props => [
-        post,
-        comments,
-        isLoadingPost,
-        isLoadingComments,
-        isPostingComment,
-        replyingToComment,
-        hasMoreComments,
-        commentsOffset,
-        errorMessage,
-      ];
+    post,
+    comments,
+    isLoadingPost,
+    isLoadingComments,
+    isPostingComment,
+    replyingToComment,
+    hasMoreComments,
+    commentsOffset,
+    errorMessage,
+  ];
 }

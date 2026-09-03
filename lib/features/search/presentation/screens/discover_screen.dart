@@ -134,8 +134,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
               child: ListView(
                 controller: _scrollController,
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding:
-                    const EdgeInsets.only(bottom: AppSpacing.space32),
+                padding: const EdgeInsets.only(bottom: AppSpacing.space32),
                 children: [
                   // ── Hero ──────────────────────────────────────
                   FadeTransition(
@@ -182,13 +181,12 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                           return DiscoverCreatorCard(
                             width: 272,
                             item: item,
-                            isPending: state.pendingUserIds
-                                .contains(item.user.id),
+                            isPending: state.pendingUserIds.contains(
+                              item.user.id,
+                            ),
                             onTap: () => context.pushNamed(
                               RouteNames.publicProfile,
-                              pathParameters: {
-                                'username': item.user.username,
-                              },
+                              pathParameters: {'username': item.user.username},
                             ),
                             onFollowToggle: () =>
                                 notifier.toggleFollow(item.user.id),
@@ -226,8 +224,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                           return DiscoverCommunityCard(
                             width: 296,
                             item: item,
-                            isPending: state.pendingCommunityIds
-                                .contains(item.community.id),
+                            isPending: state.pendingCommunityIds.contains(
+                              item.community.id,
+                            ),
                             onTap: () => context.pushNamed(
                               RouteNames.communityDetail,
                               pathParameters: {
@@ -259,8 +258,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                       child: EmptyStateWidget(
                         icon: Icons.dynamic_feed_outlined,
                         title: 'No recommendations yet',
-                        subtitle:
-                            'Choose interests or follow creators to personalise your Discover feed.',
+                        subtitle: 'Choose interests or follow creators to personalise your Discover feed.',
                       ),
                     )
                   else
@@ -295,8 +293,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                     const Padding(
                       padding: EdgeInsets.all(AppSpacing.space20),
                       child: Center(
-                        child:
-                            CircularProgressIndicator(strokeWidth: 2),
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       ),
                     ),
                 ],
@@ -315,10 +312,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: isDark
-                ? [
-                    AppColors.darkSurfaceElevated,
-                    AppColors.darkSurface,
-                  ]
+                ? [AppColors.darkSurfaceElevated, AppColors.darkSurface]
                 : [AppColors.primarySoft, const Color(0xFFFFFAFA)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -479,9 +473,10 @@ class _TopicChipState extends State<_TopicChip>
       duration: AppSpacing.durationFast,
       value: 1.0,
     );
-    _scale = Tween<double>(begin: 0.94, end: 1.0).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeOut),
-    );
+    _scale = Tween<double>(
+      begin: 0.94,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
   }
 
   @override
@@ -514,9 +509,7 @@ class _TopicChipState extends State<_TopicChip>
           decoration: BoxDecoration(
             color: topic.color.withValues(alpha: 0.08),
             borderRadius: AppSpacing.roundedFull,
-            border: Border.all(
-              color: topic.color.withValues(alpha: 0.2),
-            ),
+            border: Border.all(color: topic.color.withValues(alpha: 0.2)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -638,10 +631,7 @@ class _DiscoverSkeleton extends StatelessWidget {
         SizedBox(height: AppSpacing.space24),
         AppSkeleton.text(width: 180, height: 18),
         SizedBox(height: AppSpacing.space12),
-        AppSkeleton.rectangular(
-          height: 44,
-          borderRadius: AppSpacing.roundedMd,
-        ),
+        AppSkeleton.rectangular(height: 44, borderRadius: AppSpacing.roundedMd),
         SizedBox(height: AppSpacing.space24),
         AppSkeleton.text(width: 160, height: 18),
         SizedBox(height: AppSpacing.space12),

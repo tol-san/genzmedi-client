@@ -20,15 +20,24 @@ class OfflineBanner extends StatelessWidget {
       children: [
         AnimatedCrossFade(
           duration: AppSpacing.durationFast,
-          crossFadeState: isOffline ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+          crossFadeState: isOffline
+              ? CrossFadeState.showFirst
+              : CrossFadeState.showSecond,
           firstChild: Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: AppSpacing.space16),
+            padding: const EdgeInsets.symmetric(
+              vertical: 6,
+              horizontal: AppSpacing.space16,
+            ),
             color: AppColors.warning,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.wifi_off_rounded, size: 14, color: AppColors.midnightNavy),
+                const Icon(
+                  Icons.wifi_off_rounded,
+                  size: 14,
+                  color: AppColors.midnightNavy,
+                ),
                 const SizedBox(width: 6),
                 Text(
                   'You are currently offline. Some features may be unavailable.',

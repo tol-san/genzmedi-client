@@ -65,7 +65,9 @@ class _AppTextFieldState extends State<AppTextField> {
     if (widget.isPassword) {
       suffix = IconButton(
         icon: Icon(
-          _obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+          _obscureText
+              ? Icons.visibility_outlined
+              : Icons.visibility_off_outlined,
           color: AppColors.textMuted,
           size: 20,
         ),
@@ -87,7 +89,9 @@ class _AppTextFieldState extends State<AppTextField> {
             style: AppTypography.label.copyWith(
               color: widget.errorText != null
                   ? AppColors.error
-                  : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                  : (isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight),
             ),
           ),
           const SizedBox(height: AppSpacing.space8),
@@ -105,7 +109,9 @@ class _AppTextFieldState extends State<AppTextField> {
           maxLength: widget.maxLength,
           maxLines: widget.isPassword ? 1 : widget.maxLines,
           style: AppTypography.body.copyWith(
-            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+            color: isDark
+                ? AppColors.textPrimaryDark
+                : AppColors.textPrimaryLight,
           ),
           decoration: InputDecoration(
             hintText: widget.hintText,
@@ -113,7 +119,9 @@ class _AppTextFieldState extends State<AppTextField> {
             prefixIcon: widget.prefixIcon,
             suffixIcon: suffix,
             counterText: widget.showCounter ? null : '',
-            counterStyle: AppTypography.caption.copyWith(color: AppColors.textMuted),
+            counterStyle: AppTypography.caption.copyWith(
+              color: AppColors.textMuted,
+            ),
           ),
         ),
       ],

@@ -8,13 +8,25 @@ String? resolveMediaUrl(String? url) {
 
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
     if (trimmed.contains('http://localhost:9000')) {
-      trimmed = trimmed.replaceAll('http://localhost:9000', 'http://10.0.2.2:9000');
+      trimmed = trimmed.replaceAll(
+        'http://localhost:9000',
+        'http://10.0.2.2:9000',
+      );
     } else if (trimmed.contains('http://127.0.0.1:9000')) {
-      trimmed = trimmed.replaceAll('http://127.0.0.1:9000', 'http://10.0.2.2:9000');
+      trimmed = trimmed.replaceAll(
+        'http://127.0.0.1:9000',
+        'http://10.0.2.2:9000',
+      );
     } else if (trimmed.contains('http://localhost:8000')) {
-      trimmed = trimmed.replaceAll('http://localhost:8000', 'http://10.0.2.2:8000');
+      trimmed = trimmed.replaceAll(
+        'http://localhost:8000',
+        'http://10.0.2.2:8000',
+      );
     } else if (trimmed.contains('http://127.0.0.1:8000')) {
-      trimmed = trimmed.replaceAll('http://127.0.0.1:8000', 'http://10.0.2.2:8000');
+      trimmed = trimmed.replaceAll(
+        'http://127.0.0.1:8000',
+        'http://10.0.2.2:8000',
+      );
     }
   }
 

@@ -14,6 +14,9 @@ abstract class RouteNames {
   static const String publicProfile = 'publicProfile';
   static const String followList = 'followList';
 
+  // Notification Routes
+  static const String notifications = 'notifications';
+
   // Post Routes
   static const String createPost = 'createPost';
   static const String postDetail = 'postDetail';
@@ -21,6 +24,10 @@ abstract class RouteNames {
   static const String photoViewer = 'photoViewer';
   static const String shortsViewer = 'shortsViewer';
   static const String postReactions = 'postReactions';
+
+  // Moderation Routes
+  static const String reports = 'reports';
+  static const String reportDetail = 'reportDetail';
 
   // Community Routes
   static const String communityList = 'communityList';

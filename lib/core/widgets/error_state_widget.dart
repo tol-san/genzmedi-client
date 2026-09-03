@@ -46,7 +46,9 @@ class ErrorStateWidget extends StatelessWidget {
               title,
               textAlign: TextAlign.center,
               style: AppTypography.title.copyWith(
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
               ),
             ),
             const SizedBox(height: AppSpacing.space8),

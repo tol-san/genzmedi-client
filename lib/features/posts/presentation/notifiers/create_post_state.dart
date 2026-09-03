@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:equatable/equatable.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
 
@@ -70,8 +71,9 @@ class CreatePostState extends Equatable {
       communityId: clearCommunity ? null : (communityId ?? this.communityId),
       selectedImages: selectedImages ?? this.selectedImages,
       selectedVideo: clearVideo ? null : (selectedVideo ?? this.selectedVideo),
-      selectedThumbnail:
-          clearThumbnail ? null : (selectedThumbnail ?? this.selectedThumbnail),
+      selectedThumbnail: clearThumbnail
+          ? null
+          : (selectedThumbnail ?? this.selectedThumbnail),
       videoDuration: videoDuration ?? this.videoDuration,
       isUploadingMedia: isUploadingMedia ?? this.isUploadingMedia,
       uploadProgress: uploadProgress ?? this.uploadProgress,
@@ -87,21 +89,21 @@ class CreatePostState extends Equatable {
 
   @override
   List<Object?> get props => [
-        postType,
-        title,
-        content,
-        visibility,
-        communityId,
-        selectedImages,
-        selectedVideo,
-        selectedThumbnail,
-        videoDuration,
-        isUploadingMedia,
-        uploadProgress,
-        uploadStatusText,
-        isSubmitting,
-        isSuccess,
-        errorMessage,
-        createdPost,
-      ];
+    postType,
+    title,
+    content,
+    visibility,
+    communityId,
+    selectedImages,
+    selectedVideo,
+    selectedThumbnail,
+    videoDuration,
+    isUploadingMedia,
+    uploadProgress,
+    uploadStatusText,
+    isSubmitting,
+    isSuccess,
+    errorMessage,
+    createdPost,
+  ];
 }

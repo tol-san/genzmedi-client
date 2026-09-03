@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -46,10 +47,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authState = ref.read(authNotifierProvider);
       if (authState is AuthNeedsOnboarding) {
-        _displayNameController.text = authState.user.displayName ?? authState.user.username;
+        _displayNameController.text =
+            authState.user.displayName ?? authState.user.username;
         _usernameController.text = authState.user.username;
       } else if (authState is AuthAuthenticated) {
-        _displayNameController.text = authState.user.displayName ?? authState.user.username;
+        _displayNameController.text =
+            authState.user.displayName ?? authState.user.username;
         _usernameController.text = authState.user.username;
       }
     });
@@ -67,8 +70,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     final seed = _usernameController.text.trim().isNotEmpty
         ? _usernameController.text.trim().toLowerCase()
         : (_displayNameController.text.trim().isNotEmpty
-            ? _displayNameController.text.trim().toLowerCase()
-            : 'GenZ');
+              ? _displayNameController.text.trim().toLowerCase()
+              : 'GenZ');
     return 'https://api.dicebear.com/9.x/$style/png?seed=$seed';
   }
 
@@ -107,12 +110,16 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       _usernameStatus = null;
     });
 
-    final isAvailable = await ref.read(authNotifierProvider.notifier).checkUsername(clean);
+    final isAvailable = await ref
+        .read(authNotifierProvider.notifier)
+        .checkUsername(clean);
 
     if (mounted) {
       setState(() {
         _isCheckingUsername = false;
-        _usernameStatus = isAvailable ? '✓ Username is available' : '✗ Username is already taken';
+        _usernameStatus = isAvailable
+            ? '✓ Username is available'
+            : '✗ Username is already taken';
       });
     }
   }
@@ -128,14 +135,20 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
     try {
       if (_customImageFile != null) {
-        await ref.read(authNotifierProvider.notifier).uploadAvatar(_customImageFile!);
-        await ref.read(authNotifierProvider.notifier).updateProfile(
+        await ref
+            .read(authNotifierProvider.notifier)
+            .uploadAvatar(_customImageFile!);
+        await ref
+            .read(authNotifierProvider.notifier)
+            .updateProfile(
               displayName: displayName.isNotEmpty ? displayName : null,
               username: username.isNotEmpty ? username : null,
             );
       } else {
         final avatarUrl = _getDicebearUrl(_selectedPresetIndex);
-        await ref.read(authNotifierProvider.notifier).updateProfile(
+        await ref
+            .read(authNotifierProvider.notifier)
+            .updateProfile(
               displayName: displayName.isNotEmpty ? displayName : null,
               username: username.isNotEmpty ? username : null,
               avatarUrl: avatarUrl,
@@ -149,7 +162,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _errorMessage = e.toString().replaceFirst(RegExp(r'^[A-Za-z_]+Exception:\s*'), '');
+        _errorMessage = e.toString().replaceFirst(
+          RegExp(r'^[A-Za-z_]+Exception:\s*'),
+          '',
+        );
       });
     } finally {
       if (mounted && _isLoading) {
@@ -181,7 +197,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   'Set Up Your Profile',
                   textAlign: TextAlign.center,
                   style: AppTypography.headingLarge.copyWith(
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
                     fontSize: 24,
                   ),
                 ),
@@ -190,7 +208,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   'Personalize how creators and friends see you on GenZ Media.',
                   textAlign: TextAlign.center,
                   style: AppTypography.bodySmall.copyWith(
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                     fontSize: 14,
                   ),
                 ),
@@ -205,14 +225,20 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         height: 104,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: isDark ? AppColors.darkSurface : AppColors.lightSurfaceElevated,
+                          color: isDark
+                              ? AppColors.darkSurface
+                              : AppColors.lightSurfaceElevated,
                           border: Border.all(
-                            color: AppColors.primaryCrimson.withValues(alpha: 0.5),
+                            color: AppColors.primaryCrimson.withValues(
+                              alpha: 0.5,
+                            ),
                             width: 2.5,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primaryCrimson.withValues(alpha: 0.25),
+                              color: AppColors.primaryCrimson.withValues(
+                                alpha: 0.25,
+                              ),
                               blurRadius: 18,
                               offset: const Offset(0, 6),
                             ),
@@ -220,30 +246,35 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         ),
                         child: ClipOval(
                           child: _customImageFile != null
-                              ? Image.file(
-                                  _customImageFile!,
-                                  fit: BoxFit.cover,
-                                )
+                              ? Image.file(_customImageFile!, fit: BoxFit.cover)
                               : Image.network(
                                   currentAvatarUrl,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) => Center(
-                                    child: Icon(
-                                      Icons.person_rounded,
-                                      size: 48,
-                                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                                    ),
-                                  ),
-                                  loadingBuilder: (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
-                                    return Center(
-                                      child: Icon(
-                                        Icons.person_rounded,
-                                        size: 48,
-                                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Center(
+                                        child: Icon(
+                                          Icons.person_rounded,
+                                          size: 48,
+                                          color: isDark
+                                              ? AppColors.textSecondaryDark
+                                              : AppColors.textSecondaryLight,
+                                        ),
                                       ),
-                                    );
-                                  },
+                                  loadingBuilder:
+                                      (context, child, loadingProgress) {
+                                        if (loadingProgress == null) {
+                                          return child;
+                                        }
+                                        return Center(
+                                          child: Icon(
+                                            Icons.person_rounded,
+                                            size: 48,
+                                            color: isDark
+                                                ? AppColors.textSecondaryDark
+                                                : AppColors.textSecondaryLight,
+                                          ),
+                                        );
+                                      },
                                 ),
                         ),
                       ),
@@ -259,7 +290,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                               shape: BoxShape.circle,
                               color: AppColors.primaryCrimson,
                               border: Border.all(
-                                color: isDark ? AppColors.midnightNavy : Colors.white,
+                                color: isDark
+                                    ? AppColors.midnightNavy
+                                    : Colors.white,
                                 width: 2,
                               ),
                               boxShadow: [
@@ -288,9 +321,13 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      _customImageFile != null ? 'Custom Photo Selected' : 'Choose Avatar Style',
+                      _customImageFile != null
+                          ? 'Custom Photo Selected'
+                          : 'Choose Avatar Style',
                       style: AppTypography.caption.copyWith(
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -317,7 +354,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   spacing: 8,
                   runSpacing: 8,
                   children: List.generate(_dicebearStyles.length, (index) {
-                    final isSelected = _customImageFile == null && _selectedPresetIndex == index;
+                    final isSelected =
+                        _customImageFile == null &&
+                        _selectedPresetIndex == index;
                     final name = _dicebearStyles[index]['name']!;
                     return FilterChip(
                       selected: isSelected,
@@ -325,11 +364,19 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       labelStyle: AppTypography.caption.copyWith(
                         color: isSelected
                             ? Colors.white
-                            : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
+                            : (isDark
+                                  ? AppColors.textPrimaryDark
+                                  : AppColors.textPrimaryLight),
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.normal,
                       ),
-                      selectedColor: isDark ? AppColors.darkSurfaceElevated : AppColors.midnightNavy,
-                      backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurfaceElevated,
+                      selectedColor: isDark
+                          ? AppColors.darkSurfaceElevated
+                          : AppColors.midnightNavy,
+                      backgroundColor: isDark
+                          ? AppColors.darkSurface
+                          : AppColors.lightSurfaceElevated,
                       checkmarkColor: Colors.white,
                       onSelected: (_) {
                         setState(() {
@@ -349,11 +396,15 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.error.withValues(alpha: 0.08),
                       borderRadius: AppSpacing.roundedSm,
-                      border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                      border: Border.all(
+                        color: AppColors.error.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Text(
                       _errorMessage!,
-                      style: AppTypography.bodySmall.copyWith(color: AppColors.error),
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.error,
+                      ),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.space16),
@@ -387,7 +438,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 if (_usernameStatus != null || _isCheckingUsername) ...[
                   const SizedBox(height: 6),
                   Text(
-                    _isCheckingUsername ? 'Checking availability...' : _usernameStatus!,
+                    _isCheckingUsername
+                        ? 'Checking availability...'
+                        : _usernameStatus!,
                     style: AppTypography.caption.copyWith(
                       color: _usernameStatus?.startsWith('✓') == true
                           ? AppColors.signalMint

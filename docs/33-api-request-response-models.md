@@ -1308,7 +1308,8 @@ No access or refresh token is issued by this endpoint.
       "display_name": "Flutter Guru",
       "avatar_url": "https://.../guru.webp",
       "bio": "Dart & Flutter Expert",
-      "follower_count": 1200
+      "follower_count": 1200,
+      "is_following": false
     }
   ],
   "communities": [
@@ -1329,14 +1330,20 @@ No access or refresh token is issued by this endpoint.
       "id": "p1a2b3c4-5678-90ab-cdef-1234567890ab",
       "title": "Flutter 3.28 Roadmap",
       "content": "Exciting updates in Flutter!",
-      "post_type": "text",
+      "post_type": "image",
       "visibility": "public",
       "author_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
       "author_username": "flutter_guru",
+      "author_avatar_url": "https://.../guru.webp",
       "community_id": "c1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c",
       "community_name": "Flutter Developers",
       "like_count": 35,
       "comment_count": 12,
+      "thumbnail_url": "https://.../roadmap_thumb.webp",
+      "highlight": {
+        "title": "<em>Flutter</em> 3.28 Roadmap",
+        "content": "Exciting updates in <em>Flutter</em>!"
+      },
       "created_at": "2026-08-28T10:00:00Z"
     }
   ],

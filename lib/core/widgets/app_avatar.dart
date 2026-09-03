@@ -55,11 +55,7 @@ class AppAvatar extends StatelessWidget {
     }
 
     Widget content = ClipOval(
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: avatarChild,
-      ),
+      child: SizedBox(width: size, height: size, child: avatarChild),
     );
 
     // Live or Online indicator
@@ -109,7 +105,9 @@ class AppAvatar extends StatelessWidget {
                 color: AppColors.signalMint,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isDark ? AppColors.midnightNavy : AppColors.lightSurface,
+                  color: isDark
+                      ? AppColors.midnightNavy
+                      : AppColors.lightSurface,
                   width: 2,
                 ),
               ),
@@ -120,10 +118,7 @@ class AppAvatar extends StatelessWidget {
     }
 
     if (onTap != null) {
-      return GestureDetector(
-        onTap: onTap,
-        child: content,
-      );
+      return GestureDetector(onTap: onTap, child: content);
     }
 
     return content;

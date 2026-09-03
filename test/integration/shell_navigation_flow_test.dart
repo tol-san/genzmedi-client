@@ -9,6 +9,8 @@ import 'package:client/core/storage/preferences_service.dart';
 import 'package:client/core/storage/secure_storage_service.dart';
 import 'package:client/features/auth/data/repositories/auth_repository.dart';
 import 'package:client/features/feeds/presentation/screens/shorts_feed_screen.dart';
+import 'package:client/features/notifications/data/repositories/notification_repository.dart';
+import 'package:client/features/notifications/presentation/notifiers/notification_center_notifier.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/profiles/data/repositories/profile_repository.dart';
 import 'package:client/features/search/data/models/discovery_models.dart';
@@ -16,10 +18,17 @@ import 'package:client/features/search/data/repositories/discovery_repository.da
 import 'package:client/features/search/presentation/screens/discover_screen.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
+
 class MockProfileRepository extends Mock implements ProfileRepository {}
+
 class MockSecureStorageService extends Mock implements SecureStorageService {}
+
 class MockPreferencesService extends Mock implements PreferencesService {}
+
 class MockDiscoveryRepository extends Mock implements DiscoveryRepository {}
+
+class MockNotificationRepository extends Mock
+    implements NotificationRepository {}
 
 void main() {
   setUpAll(() {
@@ -31,6 +40,7 @@ void main() {
   late MockSecureStorageService mockStorage;
   late MockPreferencesService mockPrefs;
   late MockDiscoveryRepository mockDiscoveryRepository;
+  late MockNotificationRepository mockNotificationRepository;
 
   setUp(() {
     mockRepository = MockAuthRepository();
@@ -38,8 +48,10 @@ void main() {
     mockStorage = MockSecureStorageService();
     mockPrefs = MockPreferencesService();
     mockDiscoveryRepository = MockDiscoveryRepository();
+    mockNotificationRepository = MockNotificationRepository();
 
-    when(() => mockStorage.getAccessToken()).thenAnswer((_) async => 'valid_access_token');
+    when(() => mockStorage.getAccessToken())
+        .thenAnswer((_) async => 'valid_access_token');
     when(() => mockPrefs.hasSession()).thenReturn(true);
     when(() => mockPrefs.isOnboardingCompleted()).thenReturn(true);
 
@@ -51,26 +63,72 @@ void main() {
     );
 
     when(() => mockRepository.getMyProfile()).thenAnswer((_) async => user);
-    when(() => mockProfileRepository.getMyProfile()).thenAnswer((_) async => user);
-    when(() => mockProfileRepository.getUserPosts(authorId: '123')).thenAnswer((_) async => <PostModel>[]);
-    when(() => mockProfileRepository.getSavedPosts()).thenAnswer((_) async => <PostModel>[]);
+    when(() => mockProfileRepository.getMyProfile())
+        .thenAnswer((_) async => user);
+    when(() => mockProfileRepository.getUserPosts(authorId: '123'))
+        .thenAnswer((_) async => <PostModel>[]);
+    when(() => mockProfileRepository.getSavedPosts())
+        .thenAnswer((_) async => <PostModel>[]);
 
-    when(() => mockDiscoveryRepository.getDiscoverPosts(limit: any(named: 'limit'), offset: any(named: 'offset')))
-        .thenAnswer((_) async => const DiscoveryPage<PostModel>(items: [], total: 0, limit: 10, offset: 0));
-    when(() => mockDiscoveryRepository.getRecommendedUsers(limit: any(named: 'limit'), offset: any(named: 'offset')))
-        .thenAnswer((_) async => const DiscoveryPage<DiscoverUserModel>(items: [], total: 0, limit: 10, offset: 0));
-    when(() => mockDiscoveryRepository.getRecommendedCommunities(limit: any(named: 'limit'), offset: any(named: 'offset')))
-        .thenAnswer((_) async => const DiscoveryPage<DiscoverCommunityModel>(items: [], total: 0, limit: 10, offset: 0));
+    when(
+      () => mockDiscoveryRepository.getDiscoverPosts(
+        limit: any(named: 'limit'),
+        offset: any(named: 'offset'),
+      ),
+    ).thenAnswer(
+      (_) async => const DiscoveryPage<PostModel>(
+        items: [],
+        total: 0,
+        limit: 10,
+        offset: 0,
+      ),
+    );
+    when(
+      () => mockDiscoveryRepository.getRecommendedUsers(
+        limit: any(named: 'limit'),
+        offset: any(named: 'offset'),
+      ),
+    ).thenAnswer(
+      (_) async => const DiscoveryPage<DiscoverUserModel>(
+        items: [],
+        total: 0,
+        limit: 10,
+        offset: 0,
+      ),
+    );
+    when(
+      () => mockDiscoveryRepository.getRecommendedCommunities(
+        limit: any(named: 'limit'),
+        offset: any(named: 'offset'),
+      ),
+    ).thenAnswer(
+      (_) async => const DiscoveryPage<DiscoverCommunityModel>(
+        items: [],
+        total: 0,
+        limit: 10,
+        offset: 0,
+      ),
+    );
   });
 
   group('Full E2E Shell Navigation Flow Integration Test', () {
-    testWidgets('Switches tabs across the 5 Shell destinations smoothly', (tester) async {
+    testWidgets('Switches tabs across the 5 Shell destinations smoothly', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             authRepositoryProvider.overrideWithValue(mockRepository),
             profileRepositoryProvider.overrideWithValue(mockProfileRepository),
-            discoveryRepositoryProvider.overrideWithValue(mockDiscoveryRepository),
+            discoveryRepositoryProvider.overrideWithValue(
+              mockDiscoveryRepository,
+            ),
+            notificationCenterProvider.overrideWith(
+              (ref) => NotificationCenterNotifier(
+                repository: mockNotificationRepository,
+                loadOnCreate: false,
+              ),
+            ),
             secureStorageServiceProvider.overrideWithValue(mockStorage),
             preferencesServiceProvider.overrideWithValue(mockPrefs),
             authNotifierProvider.overrideWith(

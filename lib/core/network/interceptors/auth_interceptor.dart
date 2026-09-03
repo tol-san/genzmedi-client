@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:client/core/network/api_endpoints.dart';
@@ -26,7 +27,8 @@ class AuthInterceptor extends QueuedInterceptor {
     RequestInterceptorHandler handler,
   ) async {
     // Avoid attaching authorization to unauthenticated auth routes
-    final isAuthRoute = options.path.contains('/auth/login') ||
+    final isAuthRoute =
+        options.path.contains('/auth/login') ||
         options.path.contains('/auth/register') ||
         options.path.contains('/auth/refresh') ||
         options.path.contains('/auth/forgot-password') ||
@@ -50,7 +52,8 @@ class AuthInterceptor extends QueuedInterceptor {
     ErrorInterceptorHandler handler,
   ) async {
     final response = err.response;
-    final isAuthRoute = err.requestOptions.path.contains('/auth/login') ||
+    final isAuthRoute =
+        err.requestOptions.path.contains('/auth/login') ||
         err.requestOptions.path.contains('/auth/register') ||
         err.requestOptions.path.contains('/auth/refresh') ||
         err.requestOptions.path.contains('/auth/forgot-password') ||
@@ -105,7 +108,8 @@ class AuthInterceptor extends QueuedInterceptor {
 
       if (response.statusCode == 200 && response.data != null) {
         final newAccessToken = response.data['access_token'] as String;
-        final newRefreshToken = (response.data['refresh_token'] as String?) ?? refreshToken;
+        final newRefreshToken =
+            (response.data['refresh_token'] as String?) ?? refreshToken;
 
         await storage.saveTokens(
           accessToken: newAccessToken,

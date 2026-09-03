@@ -9,11 +9,7 @@ class ProfilePostCard extends StatelessWidget {
   final PostModel post;
   final VoidCallback? onTap;
 
-  const ProfilePostCard({
-    super.key,
-    required this.post,
-    this.onTap,
-  });
+  const ProfilePostCard({super.key, required this.post, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +22,9 @@ class ProfilePostCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated,
+          color: isDark
+              ? AppColors.darkSurfaceElevated
+              : AppColors.lightSurfaceElevated,
           borderRadius: AppSpacing.roundedMd,
           border: Border.all(
             color: isDark ? AppColors.navyBorder : AppColors.lightBorder,
@@ -41,11 +39,18 @@ class ProfilePostCard extends StatelessWidget {
                 imageUrl: imageUrl,
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Container(
-                  color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                  color: isDark
+                      ? AppColors.darkSurface
+                      : AppColors.lightSurface,
                 ),
                 errorWidget: (context, url, error) => Container(
-                  color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-                  child: const Icon(Icons.broken_image_rounded, color: AppColors.textMuted),
+                  color: isDark
+                      ? AppColors.darkSurface
+                      : AppColors.lightSurface,
+                  child: const Icon(
+                    Icons.broken_image_rounded,
+                    color: AppColors.textMuted,
+                  ),
                 ),
               )
             else
@@ -56,7 +61,10 @@ class ProfilePostCard extends StatelessWidget {
                   gradient: LinearGradient(
                     colors: isDark
                         ? [AppColors.darkSurface, AppColors.darkSurfaceElevated]
-                        : [AppColors.lightSurface, AppColors.lightSurfaceElevated],
+                        : [
+                            AppColors.lightSurface,
+                            AppColors.lightSurfaceElevated,
+                          ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -72,7 +80,9 @@ class ProfilePostCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: AppTypography.bodySmall.copyWith(
                           fontSize: 12,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
                         ),
                       ),
                   ],
@@ -124,10 +134,7 @@ class ProfilePostCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withAlpha(180),
-                    ],
+                    colors: [Colors.transparent, Colors.black.withAlpha(180)],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
@@ -135,18 +142,34 @@ class ProfilePostCard extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    const Icon(Icons.favorite_rounded, size: 12, color: Colors.white70),
+                    const Icon(
+                      Icons.favorite_rounded,
+                      size: 12,
+                      color: Colors.white70,
+                    ),
                     const SizedBox(width: 3),
                     Text(
                       '${post.likeCount}',
-                      style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(width: 8),
-                    const Icon(Icons.mode_comment_rounded, size: 12, color: Colors.white70),
+                    const Icon(
+                      Icons.mode_comment_rounded,
+                      size: 12,
+                      color: Colors.white70,
+                    ),
                     const SizedBox(width: 3),
                     Text(
                       '${post.commentCount}',
-                      style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),

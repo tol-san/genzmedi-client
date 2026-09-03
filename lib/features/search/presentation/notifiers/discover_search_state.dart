@@ -15,6 +15,9 @@ class DiscoverSearchState extends Equatable {
   final bool hasMore;
   final Set<String> pendingUserIds;
   final Set<String> pendingCommunityIds;
+  final Set<String> pendingPostLikeIds;
+  final Set<String> pendingPostSaveIds;
+  final Set<String> pendingInterestIds;
   final String? errorMessage;
 
   const DiscoverSearchState({
@@ -30,6 +33,9 @@ class DiscoverSearchState extends Equatable {
     this.hasMore = false,
     this.pendingUserIds = const {},
     this.pendingCommunityIds = const {},
+    this.pendingPostLikeIds = const {},
+    this.pendingPostSaveIds = const {},
+    this.pendingInterestIds = const {},
     this.errorMessage,
   });
 
@@ -67,6 +73,9 @@ class DiscoverSearchState extends Equatable {
     bool? hasMore,
     Set<String>? pendingUserIds,
     Set<String>? pendingCommunityIds,
+    Set<String>? pendingPostLikeIds,
+    Set<String>? pendingPostSaveIds,
+    Set<String>? pendingInterestIds,
     String? errorMessage,
     bool clearError = false,
   }) {
@@ -83,6 +92,9 @@ class DiscoverSearchState extends Equatable {
       hasMore: hasMore ?? this.hasMore,
       pendingUserIds: pendingUserIds ?? this.pendingUserIds,
       pendingCommunityIds: pendingCommunityIds ?? this.pendingCommunityIds,
+      pendingPostLikeIds: pendingPostLikeIds ?? this.pendingPostLikeIds,
+      pendingPostSaveIds: pendingPostSaveIds ?? this.pendingPostSaveIds,
+      pendingInterestIds: pendingInterestIds ?? this.pendingInterestIds,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
@@ -101,6 +113,9 @@ class DiscoverSearchState extends Equatable {
     hasMore,
     pendingUserIds,
     pendingCommunityIds,
+    pendingPostLikeIds,
+    pendingPostSaveIds,
+    pendingInterestIds,
     errorMessage,
   ];
 }

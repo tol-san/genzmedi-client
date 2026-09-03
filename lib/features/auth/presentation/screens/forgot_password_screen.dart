@@ -81,9 +81,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       final cleanMessage = e is AppException
           ? e.message
           : e
-              .toString()
-              .replaceFirst(RegExp(r'^[A-Za-z_]+Exception:\s*'), '')
-              .replaceFirst(RegExp(r'\s*\(statusCode:\s*\d+\)'), '');
+                .toString()
+                .replaceFirst(RegExp(r'^[A-Za-z_]+Exception:\s*'), '')
+                .replaceFirst(RegExp(r'\s*\(statusCode:\s*\d+\)'), '');
 
       setState(() {
         _isLoading = false;
@@ -152,7 +152,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         text: 'Enter Verification Code',
                         onPressed: () => context.pushNamed(
                           RouteNames.resetPassword,
-                          queryParameters: {'email': _emailController.text.trim()},
+                          queryParameters: {
+                            'email': _emailController.text.trim(),
+                          },
                         ),
                       ),
                       const SizedBox(height: AppSpacing.space12),
@@ -166,9 +168,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Center(
-                        child: AppLogo.icon(width: 60, height: 60),
-                      ),
+                      const Center(child: AppLogo.icon(width: 60, height: 60)),
                       const SizedBox(height: AppSpacing.space20),
                       Text(
                         'Reset Password',

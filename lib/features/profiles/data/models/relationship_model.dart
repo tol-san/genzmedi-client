@@ -24,11 +24,11 @@ class RelationshipModel extends Equatable {
   }
 
   Map<String, dynamic> toJson() => {
-        'is_following': isFollowing,
-        'is_followed_by': isFollowedBy,
-        'is_blocking': isBlocking,
-        'is_blocked_by': isBlockedBy,
-      };
+    'is_following': isFollowing,
+    'is_followed_by': isFollowedBy,
+    'is_blocking': isBlocking,
+    'is_blocked_by': isBlockedBy,
+  };
 
   RelationshipModel copyWith({
     bool? isFollowing,
@@ -45,5 +45,10 @@ class RelationshipModel extends Equatable {
   }
 
   @override
-  List<Object?> get props => [isFollowing, isFollowedBy, isBlocking, isBlockedBy];
+  List<Object?> get props => [
+    isFollowing,
+    isFollowedBy,
+    isBlocking,
+    isBlockedBy,
+  ];
 }

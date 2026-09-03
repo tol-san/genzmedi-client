@@ -46,6 +46,7 @@ lib/
 - cached_network_image
 - image_picker
 - video_player
+- web_socket_channel
 - SharedPreferences or equivalent for non-sensitive preferences
 
 For LiveKit, use the provider SDK that matches the implemented backend.

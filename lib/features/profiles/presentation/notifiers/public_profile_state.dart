@@ -45,12 +45,12 @@ class PublicProfileState extends Equatable {
 
   @override
   List<Object?> get props => [
-        user,
-        relationship,
-        posts,
-        isLoading,
-        isActionLoading,
-        isRefreshing,
-        errorMessage,
-      ];
+    user,
+    relationship,
+    posts,
+    isLoading,
+    isActionLoading,
+    isRefreshing,
+    errorMessage,
+  ];
 }

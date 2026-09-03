@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-enum AppLogoVariant {
-  icon,
-  wordmark,
-}
+enum AppLogoVariant { icon, wordmark }
 
 /// Official GenZ Media logo rendering widget.
 class AppLogo extends StatelessWidget {
@@ -21,12 +18,8 @@ class AppLogo extends StatelessWidget {
     this.color,
   });
 
-  const AppLogo.icon({
-    super.key,
-    this.width = 44,
-    this.height = 34,
-    this.color,
-  }) : variant = AppLogoVariant.icon;
+  const AppLogo.icon({super.key, this.width = 44, this.height = 34, this.color})
+    : variant = AppLogoVariant.icon;
 
   const AppLogo.wordmark({
     super.key,

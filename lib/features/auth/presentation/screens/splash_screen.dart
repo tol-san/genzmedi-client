@@ -14,9 +14,7 @@ class SplashScreen extends StatelessWidget {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            AppLogo.wordmark(width: 220, height: 40),
-          ],
+          children: const [AppLogo.wordmark(width: 220, height: 40)],
         ),
       ),
     );

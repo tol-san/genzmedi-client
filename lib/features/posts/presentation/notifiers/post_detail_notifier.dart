@@ -7,14 +7,14 @@ import 'package:client/features/posts/presentation/notifiers/post_detail_state.d
 
 final postDetailNotifierProvider = StateNotifierProvider.autoDispose
     .family<PostDetailNotifier, PostDetailState, String>((ref, postId) {
-  final postRepo = ref.watch(postRepositoryProvider);
-  final commentRepo = ref.watch(commentRepositoryProvider);
-  return PostDetailNotifier(
-    postId: postId,
-    postRepository: postRepo,
-    commentRepository: commentRepo,
-  );
-});
+      final postRepo = ref.watch(postRepositoryProvider);
+      final commentRepo = ref.watch(commentRepositoryProvider);
+      return PostDetailNotifier(
+        postId: postId,
+        postRepository: postRepo,
+        commentRepository: commentRepo,
+      );
+    });
 
 class PostDetailNotifier extends StateNotifier<PostDetailState> {
   final String postId;
@@ -26,7 +26,9 @@ class PostDetailNotifier extends StateNotifier<PostDetailState> {
     required this.postId,
     required this.postRepository,
     required this.commentRepository,
-  }) : super(const PostDetailState(isLoadingPost: true, isLoadingComments: true)) {
+  }) : super(
+         const PostDetailState(isLoadingPost: true, isLoadingComments: true),
+       ) {
     loadPost();
     loadComments();
   }
@@ -39,7 +41,10 @@ class PostDetailNotifier extends StateNotifier<PostDetailState> {
     } on AppException catch (e) {
       state = state.copyWith(isLoadingPost: false, errorMessage: e.message);
     } catch (_) {
-      state = state.copyWith(isLoadingPost: false, errorMessage: 'Failed to load post.');
+      state = state.copyWith(
+        isLoadingPost: false,
+        errorMessage: 'Failed to load post.',
+      );
     }
   }
 
@@ -160,10 +165,7 @@ class PostDetailNotifier extends StateNotifier<PostDetailState> {
 
       return true;
     } on AppException catch (e) {
-      state = state.copyWith(
-        isPostingComment: false,
-        errorMessage: e.message,
-      );
+      state = state.copyWith(isPostingComment: false, errorMessage: e.message);
       return false;
     } catch (_) {
       state = state.copyWith(
@@ -182,8 +184,9 @@ class PostDetailNotifier extends StateNotifier<PostDetailState> {
         final parentIndex = state.comments.indexWhere((c) => c.id == parentId);
         if (parentIndex != -1) {
           final parent = state.comments[parentIndex];
-          final updatedReplies =
-              parent.replies.where((r) => r.id != commentId).toList();
+          final updatedReplies = parent.replies
+              .where((r) => r.id != commentId)
+              .toList();
           final updatedComments = List<CommentModel>.from(state.comments);
           updatedComments[parentIndex] = parent.copyWith(
             replies: updatedReplies,
@@ -192,8 +195,9 @@ class PostDetailNotifier extends StateNotifier<PostDetailState> {
           state = state.copyWith(comments: updatedComments);
         }
       } else {
-        final updatedComments =
-            state.comments.where((c) => c.id != commentId).toList();
+        final updatedComments = state.comments
+            .where((c) => c.id != commentId)
+            .toList();
         state = state.copyWith(comments: updatedComments);
       }
 

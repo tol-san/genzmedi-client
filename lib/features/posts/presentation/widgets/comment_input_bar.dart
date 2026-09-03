@@ -29,7 +29,8 @@ class _CommentInputBarState extends State<CommentInputBar> {
   @override
   void didUpdateWidget(covariant CommentInputBar oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.replyingTo != null && oldWidget.replyingTo != widget.replyingTo) {
+    if (widget.replyingTo != null &&
+        oldWidget.replyingTo != widget.replyingTo) {
       _focusNode.requestFocus();
     }
   }
@@ -78,7 +79,9 @@ class _CommentInputBarState extends State<CommentInputBar> {
               margin: const EdgeInsets.only(bottom: 6),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated,
+                color: isDark
+                    ? AppColors.darkSurfaceElevated
+                    : AppColors.lightSurfaceElevated,
                 borderRadius: AppSpacing.roundedSm,
               ),
               child: Row(
@@ -122,13 +125,17 @@ class _CommentInputBarState extends State<CommentInputBar> {
                   maxLines: 4,
                   minLines: 1,
                   style: AppTypography.body.copyWith(
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
                   ),
                   decoration: InputDecoration(
                     hintText: widget.replyingTo != null
                         ? 'Write a reply...'
                         : 'Add a comment...',
-                    hintStyle: AppTypography.body.copyWith(color: AppColors.textMuted),
+                    hintStyle: AppTypography.body.copyWith(
+                      color: AppColors.textMuted,
+                    ),
                     isDense: true,
                     filled: true,
                     fillColor: isDark

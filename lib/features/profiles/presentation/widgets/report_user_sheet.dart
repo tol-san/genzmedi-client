@@ -4,6 +4,8 @@ import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/theme/app_typography.dart';
 import 'package:client/core/widgets/app_button.dart';
 import 'package:client/core/widgets/app_text_field.dart';
+import 'package:client/features/reports/data/models/report_models.dart';
+import 'package:client/features/reports/presentation/widgets/report_sheet.dart';
 
 class ReportUserSheet extends StatefulWidget {
   final String username;
@@ -20,16 +22,12 @@ class ReportUserSheet extends StatefulWidget {
     required String username,
     required Future<bool> Function(String reason, String? description) onReport,
   }) {
-    return showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLg)),
-      ),
-      builder: (ctx) => ReportUserSheet(
-        username: username,
-        onReport: onReport,
-      ),
+    return ReportSheet.show(
+      context,
+      targetType: ReportTargetType.user,
+      targetId: username,
+      targetLabel: '@$username',
+      onSubmit: (reason, description) => onReport(reason.apiValue, description),
     );
   }
 
@@ -45,7 +43,10 @@ class _ReportUserSheetState extends State<ReportUserSheet> {
   static const List<Map<String, String>> _reasons = [
     {'value': 'spam', 'label': 'Spam or automated bots'},
     {'value': 'harassment', 'label': 'Harassment or cyberbullying'},
-    {'value': 'inappropriate_content', 'label': 'Inappropriate or explicit content'},
+    {
+      'value': 'inappropriate_content',
+      'label': 'Inappropriate or explicit content',
+    },
     {'value': 'hate_speech', 'label': 'Hate speech or discrimination'},
     {'value': 'violence', 'label': 'Violence or dangerous acts'},
     {'value': 'copyright', 'label': 'Intellectual property / copyright'},
@@ -115,7 +116,9 @@ class _ReportUserSheetState extends State<ReportUserSheet> {
             const SizedBox(height: 4),
             Text(
               'Help us keep the community safe. Reports are reviewed by our moderation team.',
-              style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.textMuted,
+              ),
             ),
             const SizedBox(height: AppSpacing.space16),
             Text(
@@ -129,7 +132,10 @@ class _ReportUserSheetState extends State<ReportUserSheet> {
                 onTap: () => setState(() => _selectedReason = r['value']!),
                 borderRadius: AppSpacing.roundedSm,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 4,
+                  ),
                   child: Row(
                     children: [
                       Icon(
@@ -137,14 +143,18 @@ class _ReportUserSheetState extends State<ReportUserSheet> {
                             ? Icons.radio_button_checked_rounded
                             : Icons.radio_button_unchecked_rounded,
                         size: 20,
-                        color: isSelected ? AppColors.primaryCrimson : AppColors.textMuted,
+                        color: isSelected
+                            ? AppColors.primaryCrimson
+                            : AppColors.textMuted,
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           r['label']!,
                           style: AppTypography.body.copyWith(
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.w400,
                           ),
                         ),
                       ),
@@ -159,7 +169,7 @@ class _ReportUserSheetState extends State<ReportUserSheet> {
               label: 'Additional Details (Optional)',
               hintText: 'Provide any context to assist moderators...',
               maxLines: 3,
-              maxLength: 500,
+              maxLength: 1000,
             ),
             const SizedBox(height: AppSpacing.space20),
             AppButton.destructive(

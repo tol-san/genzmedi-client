@@ -6,16 +6,16 @@ import 'package:client/features/posts/data/models/post_models.dart';
 
 final homeFeedNotifierProvider =
     StateNotifierProvider<HomeFeedNotifier, HomeFeedState>((ref) {
-  final repository = ref.watch(feedRepositoryProvider);
-  return HomeFeedNotifier(repository: repository);
-});
+      final repository = ref.watch(feedRepositoryProvider);
+      return HomeFeedNotifier(repository: repository);
+    });
 
 class HomeFeedNotifier extends StateNotifier<HomeFeedState> {
   final FeedRepository repository;
   static const int _pageSize = 20;
 
   HomeFeedNotifier({required this.repository})
-      : super(const HomeFeedState(isLoading: true)) {
+    : super(const HomeFeedState(isLoading: true)) {
     loadInitial();
   }
 
@@ -30,10 +30,7 @@ class HomeFeedNotifier extends StateNotifier<HomeFeedState> {
         isLoading: false,
       );
     } on AppException catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: e.message,
-      );
+      state = state.copyWith(isLoading: false, errorMessage: e.message);
     } catch (_) {
       state = state.copyWith(
         isLoading: false,
@@ -53,10 +50,7 @@ class HomeFeedNotifier extends StateNotifier<HomeFeedState> {
         isRefreshing: false,
       );
     } on AppException catch (e) {
-      state = state.copyWith(
-        isRefreshing: false,
-        errorMessage: e.message,
-      );
+      state = state.copyWith(isRefreshing: false, errorMessage: e.message);
     } catch (_) {
       state = state.copyWith(
         isRefreshing: false,
@@ -93,7 +87,10 @@ class HomeFeedNotifier extends StateNotifier<HomeFeedState> {
     final post = state.posts[index];
     final wasLiked = post.isLiked;
     final targetLiked = !wasLiked;
-    final newLikeCount = (post.likeCount + (targetLiked ? 1 : -1)).clamp(0, 999999999);
+    final newLikeCount = (post.likeCount + (targetLiked ? 1 : -1)).clamp(
+      0,
+      999999999,
+    );
 
     final updatedPosts = List<PostModel>.from(state.posts);
     updatedPosts[index] = post.copyWith(
@@ -127,7 +124,10 @@ class HomeFeedNotifier extends StateNotifier<HomeFeedState> {
     final post = state.posts[index];
     final wasSaved = post.isSaved;
     final targetSaved = !wasSaved;
-    final newSaveCount = (post.saveCount + (targetSaved ? 1 : -1)).clamp(0, 999999999);
+    final newSaveCount = (post.saveCount + (targetSaved ? 1 : -1)).clamp(
+      0,
+      999999999,
+    );
 
     final updatedPosts = List<PostModel>.from(state.posts);
     updatedPosts[index] = post.copyWith(

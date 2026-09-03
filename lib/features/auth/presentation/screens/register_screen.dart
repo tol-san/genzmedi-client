@@ -75,18 +75,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     });
 
     try {
-      await ref.read(authNotifierProvider.notifier).requestSignupOtp(
-            email: email,
-            password: password,
-          );
+      await ref
+          .read(authNotifierProvider.notifier)
+          .requestSignupOtp(email: email, password: password);
 
       if (mounted) {
         context.goNamed(
           RouteNames.verifyOtp,
-          queryParameters: {
-            'email': email,
-            'flow': 'signup',
-          },
+          queryParameters: {'email': email, 'flow': 'signup'},
         );
       }
     } catch (e) {
@@ -94,9 +90,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       final cleanMessage = e is AppException
           ? e.message
           : e
-              .toString()
-              .replaceFirst(RegExp(r'^[A-Za-z_]+Exception:\s*'), '')
-              .replaceFirst(RegExp(r'\s*\(statusCode:\s*\d+\)'), '');
+                .toString()
+                .replaceFirst(RegExp(r'^[A-Za-z_]+Exception:\s*'), '')
+                .replaceFirst(RegExp(r'\s*\(statusCode:\s*\d+\)'), '');
 
       final msgLower = cleanMessage.toLowerCase();
       setState(() {
@@ -147,9 +143,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Center(
-                    child: AppLogo.icon(width: 60, height: 60),
-                  ),
+                  const Center(child: AppLogo.icon(width: 60, height: 60)),
                   const SizedBox(height: AppSpacing.space16),
                   Text(
                     'Create Account',

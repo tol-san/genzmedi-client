@@ -42,7 +42,10 @@ class FeedRepository {
   }
 
   /// Fetch vertical short video feed
-  Future<List<PostModel>> getShortsFeed({int limit = 20, int offset = 0}) async {
+  Future<List<PostModel>> getShortsFeed({
+    int limit = 20,
+    int offset = 0,
+  }) async {
     try {
       final response = await dio.get(
         ApiEndpoints.shortsFeed,

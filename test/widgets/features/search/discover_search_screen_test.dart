@@ -275,5 +275,82 @@ void main() {
 
       expect(find.text('Clear all'), findsOneWidget);
     });
+
+    // ── Post and Interest Card Actions ─────────────────────────────────────
+
+    testWidgets('shows post result card and interest tile in search results',
+        (tester) async {
+      when(() => mockRepo.searchAll('matrix')).thenAnswer(
+        (_) async => UnifiedDiscoverySearch(
+          query: 'matrix',
+          users: [],
+          communities: [],
+          posts: [_post],
+          interests: [_interest],
+          totalResults: 2,
+        ),
+      );
+
+      await tester.pumpWidget(buildWidget(initialQuery: 'matrix'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('The matrix is everywhere'), findsOneWidget);
+      expect(find.text('Simulation Theory'), findsOneWidget);
+      expect(find.text('Add'), findsOneWidget);
+    });
+
+    testWidgets('tapping like on post card calls likePost on repo',
+        (tester) async {
+      when(() => mockRepo.searchAll('matrix')).thenAnswer(
+        (_) async => UnifiedDiscoverySearch(
+          query: 'matrix',
+          users: [],
+          communities: [],
+          posts: [_post],
+          interests: [],
+          totalResults: 1,
+        ),
+      );
+      when(() => mockRepo.likePost('p-1', like: true))
+          .thenAnswer((_) async => true);
+
+      await tester.pumpWidget(buildWidget(initialQuery: 'matrix'));
+      await tester.pumpAndSettle();
+
+      final heartIcon = find.byIcon(Icons.favorite_border_rounded);
+      expect(heartIcon, findsOneWidget);
+
+      await tester.tap(heartIcon);
+      await tester.pump();
+
+      verify(() => mockRepo.likePost('p-1', like: true)).called(1);
+    });
+
+    testWidgets('tapping Add on interest tile calls toggleUserInterest on repo',
+        (tester) async {
+      when(() => mockRepo.searchAll('matrix')).thenAnswer(
+        (_) async => UnifiedDiscoverySearch(
+          query: 'matrix',
+          users: [],
+          communities: [],
+          posts: [],
+          interests: [_interest],
+          totalResults: 1,
+        ),
+      );
+      when(() => mockRepo.toggleUserInterest('i-1', add: true))
+          .thenAnswer((_) async {});
+
+      await tester.pumpWidget(buildWidget(initialQuery: 'matrix'));
+      await tester.pumpAndSettle();
+
+      final addButton = find.text('Add');
+      expect(addButton, findsOneWidget);
+
+      await tester.tap(addButton);
+      await tester.pump();
+
+      verify(() => mockRepo.toggleUserInterest('i-1', add: true)).called(1);
+    });
   });
 }

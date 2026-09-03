@@ -8,29 +8,29 @@ import 'package:client/features/profiles/presentation/notifiers/my_profile_state
 
 final myProfileNotifierProvider =
     StateNotifierProvider.autoDispose<MyProfileNotifier, MyProfileState>((ref) {
-  final repository = ref.watch(profileRepositoryProvider);
-  final authState = ref.watch(authNotifierProvider);
+      final repository = ref.watch(profileRepositoryProvider);
+      final authState = ref.watch(authNotifierProvider);
 
-  final initialUser = authState is AuthAuthenticated
-      ? authState.user
-      : (authState is AuthNeedsOnboarding ? authState.user : null);
+      final initialUser = authState is AuthAuthenticated
+          ? authState.user
+          : (authState is AuthNeedsOnboarding ? authState.user : null);
 
-  return MyProfileNotifier(
-    repository: repository,
-    initialUser: initialUser,
-  );
-});
+      return MyProfileNotifier(
+        repository: repository,
+        initialUser: initialUser,
+      );
+    });
 
 class MyProfileNotifier extends StateNotifier<MyProfileState> {
   final ProfileRepository repository;
 
-  MyProfileNotifier({
-    required this.repository,
-    UserModel? initialUser,
-  }) : super(MyProfileState(
+  MyProfileNotifier({required this.repository, UserModel? initialUser})
+    : super(
+        MyProfileState(
           user: initialUser,
           isLoadingProfile: initialUser == null,
-        )) {
+        ),
+      ) {
     loadProfile();
   }
 
@@ -39,20 +39,11 @@ class MyProfileNotifier extends StateNotifier<MyProfileState> {
     state = state.copyWith(isLoadingProfile: true, clearError: true);
     try {
       final user = await repository.getMyProfile();
-      state = state.copyWith(
-        user: user,
-        isLoadingProfile: false,
-      );
+      state = state.copyWith(user: user, isLoadingProfile: false);
       // Fetch posts and saved posts concurrently
-      await Future.wait([
-        loadPosts(userId: user.id),
-        loadSavedPosts(),
-      ]);
+      await Future.wait([loadPosts(userId: user.id), loadSavedPosts()]);
     } on AppException catch (e) {
-      state = state.copyWith(
-        isLoadingProfile: false,
-        errorMessage: e.message,
-      );
+      state = state.copyWith(isLoadingProfile: false, errorMessage: e.message);
     } catch (e) {
       state = state.copyWith(
         isLoadingProfile: false,
@@ -68,10 +59,7 @@ class MyProfileNotifier extends StateNotifier<MyProfileState> {
       final user = await repository.getMyProfile();
       state = state.copyWith(user: user);
 
-      await Future.wait([
-        loadPosts(userId: user.id),
-        loadSavedPosts(),
-      ]);
+      await Future.wait([loadPosts(userId: user.id), loadSavedPosts()]);
     } on AppException catch (e) {
       state = state.copyWith(errorMessage: e.message);
     } catch (e) {
@@ -89,10 +77,7 @@ class MyProfileNotifier extends StateNotifier<MyProfileState> {
     state = state.copyWith(isLoadingPosts: true);
     try {
       final posts = await repository.getUserPosts(authorId: targetId);
-      state = state.copyWith(
-        posts: posts,
-        isLoadingPosts: false,
-      );
+      state = state.copyWith(posts: posts, isLoadingPosts: false);
     } on AppException {
       state = state.copyWith(isLoadingPosts: false);
     } catch (_) {
@@ -105,10 +90,7 @@ class MyProfileNotifier extends StateNotifier<MyProfileState> {
     state = state.copyWith(isLoadingSaved: true);
     try {
       final savedPosts = await repository.getSavedPosts();
-      state = state.copyWith(
-        savedPosts: savedPosts,
-        isLoadingSaved: false,
-      );
+      state = state.copyWith(savedPosts: savedPosts, isLoadingSaved: false);
     } on AppException {
       state = state.copyWith(isLoadingSaved: false);
     } catch (_) {

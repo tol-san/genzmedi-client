@@ -1,21 +1,22 @@
 import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/core/errors/app_exception.dart';
 import 'package:client/features/communities/data/models/community_models.dart';
 import 'package:client/features/communities/data/repositories/community_repository.dart';
 import 'package:client/features/communities/presentation/notifiers/create_community_state.dart';
 
-final createCommunityNotifierProvider = StateNotifierProvider<
-    CreateCommunityNotifier, CreateCommunityState>((ref) {
-  final repository = ref.watch(communityRepositoryProvider);
-  return CreateCommunityNotifier(repository: repository);
-});
+final createCommunityNotifierProvider =
+    StateNotifierProvider<CreateCommunityNotifier, CreateCommunityState>((ref) {
+      final repository = ref.watch(communityRepositoryProvider);
+      return CreateCommunityNotifier(repository: repository);
+    });
 
 class CreateCommunityNotifier extends StateNotifier<CreateCommunityState> {
   final CommunityRepository repository;
 
   CreateCommunityNotifier({required this.repository})
-      : super(const CreateCommunityState());
+    : super(const CreateCommunityState());
 
   void setName(String name) {
     // Auto generate slug from name if not manually modified
@@ -57,7 +58,8 @@ class CreateCommunityNotifier extends StateNotifier<CreateCommunityState> {
   Future<bool> submitCommunity() async {
     if (state.name.trim().length < 2) {
       state = state.copyWith(
-          errorMessage: 'Community name must be at least 2 characters.');
+        errorMessage: 'Community name must be at least 2 characters.',
+      );
       return false;
     }
 
@@ -77,14 +79,18 @@ class CreateCommunityNotifier extends StateNotifier<CreateCommunityState> {
 
       // Upload cover if chosen
       if (state.selectedCover != null) {
-        community =
-            await repository.uploadCover(community.id, state.selectedCover!);
+        community = await repository.uploadCover(
+          community.id,
+          state.selectedCover!,
+        );
       }
 
       // Upload avatar if chosen
       if (state.selectedAvatar != null) {
-        community =
-            await repository.uploadAvatar(community.id, state.selectedAvatar!);
+        community = await repository.uploadAvatar(
+          community.id,
+          state.selectedAvatar!,
+        );
       }
 
       state = state.copyWith(
@@ -94,10 +100,7 @@ class CreateCommunityNotifier extends StateNotifier<CreateCommunityState> {
       );
       return true;
     } on AppException catch (e) {
-      state = state.copyWith(
-        isSubmitting: false,
-        errorMessage: e.message,
-      );
+      state = state.copyWith(isSubmitting: false, errorMessage: e.message);
       return false;
     } catch (_) {
       state = state.copyWith(

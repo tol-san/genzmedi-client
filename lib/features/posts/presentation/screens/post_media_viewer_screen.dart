@@ -279,7 +279,11 @@ class _PostMediaViewerScreenState extends State<PostMediaViewerScreen> {
                 const Spacer(),
                 GestureDetector(
                   onTap: () {
-                    PostCommentsSheet.show(context, postId: post.id, post: post);
+                    PostCommentsSheet.show(
+                      context,
+                      postId: post.id,
+                      post: post,
+                    );
                   },
                   child: Text(
                     '${_formatCount(_commentCount)} comments',
@@ -342,13 +346,14 @@ class _PostMediaViewerScreenState extends State<PostMediaViewerScreen> {
                                 child: CachedNetworkImage(
                                   imageUrl: resolvedUrl,
                                   fit: BoxFit.contain,
-                                  placeholder: (context, url) => const SizedBox.shrink(),
+                                  placeholder: (context, url) =>
+                                      const SizedBox.shrink(),
                                   errorWidget: (context, url, error) =>
                                       const Icon(
-                                    Icons.broken_image_rounded,
-                                    color: AppColors.textMuted,
-                                    size: 48,
-                                  ),
+                                        Icons.broken_image_rounded,
+                                        color: AppColors.textMuted,
+                                        size: 48,
+                                      ),
                                 ),
                               ),
                             ),
@@ -417,8 +422,8 @@ class _PostMediaViewerScreenState extends State<PostMediaViewerScreen> {
                               color: _isLiked
                                   ? AppColors.primaryCrimson
                                   : (isDark
-                                      ? AppColors.textSecondaryDark
-                                      : AppColors.textSecondaryLight),
+                                        ? AppColors.textSecondaryDark
+                                        : AppColors.textSecondaryLight),
                             ),
                             const SizedBox(width: 6),
                             Text(
@@ -427,8 +432,8 @@ class _PostMediaViewerScreenState extends State<PostMediaViewerScreen> {
                                 color: _isLiked
                                     ? AppColors.primaryCrimson
                                     : (isDark
-                                        ? AppColors.textSecondaryDark
-                                        : AppColors.textSecondaryLight),
+                                          ? AppColors.textSecondaryDark
+                                          : AppColors.textSecondaryLight),
                                 fontSize: 13,
                                 fontWeight: _isLiked
                                     ? FontWeight.w700
@@ -443,7 +448,11 @@ class _PostMediaViewerScreenState extends State<PostMediaViewerScreen> {
                   Expanded(
                     child: InkWell(
                       onTap: () {
-                        PostCommentsSheet.show(context, postId: post.id, post: post);
+                        PostCommentsSheet.show(
+                          context,
+                          postId: post.id,
+                          post: post,
+                        );
                       },
                       borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                       child: Padding(

@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/core/errors/app_exception.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
@@ -7,15 +8,15 @@ import 'package:client/features/posts/presentation/notifiers/create_post_state.d
 
 final createPostNotifierProvider =
     StateNotifierProvider<CreatePostNotifier, CreatePostState>((ref) {
-  final repository = ref.watch(postRepositoryProvider);
-  return CreatePostNotifier(repository: repository);
-});
+      final repository = ref.watch(postRepositoryProvider);
+      return CreatePostNotifier(repository: repository);
+    });
 
 class CreatePostNotifier extends StateNotifier<CreatePostState> {
   final PostRepository repository;
 
   CreatePostNotifier({required this.repository})
-      : super(const CreatePostState());
+    : super(const CreatePostState());
 
   void setPostType(String postType) {
     state = state.copyWith(postType: postType);
@@ -78,12 +79,18 @@ class CreatePostNotifier extends StateNotifier<CreatePostState> {
 
   Future<bool> submitPost() async {
     // 1. Validation
-    if (state.postType == 'text' && state.content.trim().isEmpty && state.title.trim().isEmpty) {
-      state = state.copyWith(errorMessage: 'Please enter content or a title for your post.');
+    if (state.postType == 'text' &&
+        state.content.trim().isEmpty &&
+        state.title.trim().isEmpty) {
+      state = state.copyWith(
+        errorMessage: 'Please enter content or a title for your post.',
+      );
       return false;
     }
     if (state.postType == 'image' && state.selectedImages.isEmpty) {
-      state = state.copyWith(errorMessage: 'Please select at least one image to upload.');
+      state = state.copyWith(
+        errorMessage: 'Please select at least one image to upload.',
+      );
       return false;
     }
     if (state.postType == 'video' && state.selectedVideo == null) {
@@ -122,7 +129,8 @@ class CreatePostNotifier extends StateNotifier<CreatePostState> {
                 final percent = (overallProgress * 100).toInt();
                 state = state.copyWith(
                   uploadProgress: overallProgress,
-                  uploadStatusText: 'Uploading photo ${i + 1} of $totalImages ($percent%)',
+                  uploadStatusText:
+                      'Uploading photo ${i + 1} of $totalImages ($percent%)',
                 );
               }
             },

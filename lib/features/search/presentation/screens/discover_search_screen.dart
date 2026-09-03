@@ -154,8 +154,7 @@ class _DiscoverSearchScreenState extends ConsumerState<DiscoverSearchScreen>
   }
 
   void _resetScroll() {
-    if (_scrollController.hasClients &&
-        _scrollController.position.pixels > 0) {
+    if (_scrollController.hasClients && _scrollController.position.pixels > 0) {
       _scrollController.animateTo(
         0,
         duration: AppSpacing.durationMedium,
@@ -321,9 +320,7 @@ class _DiscoverSearchScreenState extends ConsumerState<DiscoverSearchScreen>
         if (state.isLoadingMore)
           const Padding(
             padding: EdgeInsets.all(AppSpacing.space20),
-            child: Center(
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
           ),
       ],
     );
@@ -340,7 +337,9 @@ class _DiscoverSearchScreenState extends ConsumerState<DiscoverSearchScreen>
           count: state.users.length,
           onSeeAll: () => notifier.setCategory(DiscoverSearchCategory.users),
         ),
-        ...state.users.take(3).map((item) => _creatorTile(item, state, notifier)),
+        ...state.users
+            .take(3)
+            .map((item) => _creatorTile(item, state, notifier)),
         const SizedBox(height: AppSpacing.space20),
       ],
       if (state.communities.isNotEmpty) ...[
@@ -361,7 +360,7 @@ class _DiscoverSearchScreenState extends ConsumerState<DiscoverSearchScreen>
           count: state.posts.length,
           onSeeAll: () => notifier.setCategory(DiscoverSearchCategory.posts),
         ),
-        ...state.posts.take(3).map(_postTile),
+        ...state.posts.take(3).map((post) => _postTile(post, state, notifier)),
         const SizedBox(height: AppSpacing.space20),
       ],
       if (state.interests.isNotEmpty) ...[
@@ -371,15 +370,9 @@ class _DiscoverSearchScreenState extends ConsumerState<DiscoverSearchScreen>
           onSeeAll: () =>
               notifier.setCategory(DiscoverSearchCategory.interests),
         ),
-        ...state.interests.take(3).map(
-              (interest) => Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.space8),
-                child: DiscoverInterestTile(
-                  interest: interest,
-                  onTap: () => _searchInterest(interest, notifier),
-                ),
-              ),
-            ),
+        ...state.interests
+            .take(3)
+            .map((interest) => _interestTile(interest, state, notifier)),
       ],
     ];
   }
@@ -398,18 +391,12 @@ class _DiscoverSearchScreenState extends ConsumerState<DiscoverSearchScreen>
             .map((item) => _communityTile(item, state, notifier))
             .toList();
       case DiscoverSearchCategory.posts:
-        return state.posts.map(_postTile).toList();
+        return state.posts
+            .map((post) => _postTile(post, state, notifier))
+            .toList();
       case DiscoverSearchCategory.interests:
         return state.interests
-            .map(
-              (interest) => Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.space8),
-                child: DiscoverInterestTile(
-                  interest: interest,
-                  onTap: () => _searchInterest(interest, notifier),
-                ),
-              ),
-            )
+            .map((interest) => _interestTile(interest, state, notifier))
             .toList();
       case DiscoverSearchCategory.all:
         return const [];
@@ -431,6 +418,10 @@ class _DiscoverSearchScreenState extends ConsumerState<DiscoverSearchScreen>
           pathParameters: {'username': item.user.username},
         ),
         onFollowToggle: () => notifier.toggleFollow(item.user.id),
+        onFollowersTap: () => context.pushNamed(
+          RouteNames.followList,
+          pathParameters: {'username': item.user.username},
+        ),
       ),
     );
   }
@@ -454,15 +445,64 @@ class _DiscoverSearchScreenState extends ConsumerState<DiscoverSearchScreen>
     );
   }
 
-  Widget _postTile(PostModel post) {
+  Widget _postTile(
+    PostModel post,
+    DiscoverSearchState state,
+    DiscoverSearchNotifier notifier,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.space8),
       child: DiscoverPostResultCard(
         post: post,
+        isLikePending: state.pendingPostLikeIds.contains(post.id),
+        isSavePending: state.pendingPostSaveIds.contains(post.id),
         onTap: () => context.pushNamed(
           RouteNames.postDetail,
           pathParameters: {'postId': post.id},
         ),
+        onAuthorTap: () => context.pushNamed(
+          RouteNames.publicProfile,
+          pathParameters: {'username': post.author.username},
+        ),
+        onCommunityTap: post.communityId != null
+            ? () => context.pushNamed(
+                RouteNames.communityDetail,
+                pathParameters: {'communityId': post.communityId!},
+              )
+            : null,
+        onLikeToggle: () => notifier.toggleLike(post.id),
+        onSaveToggle: () => notifier.toggleSave(post.id),
+        onShareTap: () async {
+          final url = await notifier.sharePost(post.id);
+          if (mounted && url != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Link copied: $url'),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        },
+        onCommentTap: () => context.pushNamed(
+          RouteNames.postDetail,
+          pathParameters: {'postId': post.id},
+        ),
+      ),
+    );
+  }
+
+  Widget _interestTile(
+    DiscoverInterestModel interest,
+    DiscoverSearchState state,
+    DiscoverSearchNotifier notifier,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.space8),
+      child: DiscoverInterestTile(
+        interest: interest,
+        isPending: state.pendingInterestIds.contains(interest.id),
+        onTap: () => _searchInterest(interest, notifier),
+        onToggleAdded: () => notifier.toggleInterest(interest),
       ),
     );
   }
@@ -513,8 +553,9 @@ class _SearchBar extends StatelessWidget {
             borderRadius: AppSpacing.roundedFull,
             boxShadow: [
               BoxShadow(
-                color: AppColors.primaryCrimson
-                    .withValues(alpha: 0.18 * glowAnimation.value),
+                color: AppColors.primaryCrimson.withValues(
+                  alpha: 0.18 * glowAnimation.value,
+                ),
                 blurRadius: 12 * glowAnimation.value,
                 spreadRadius: 1 * glowAnimation.value,
               ),
@@ -541,10 +582,7 @@ class _SearchBar extends StatelessWidget {
             hintStyle: AppTypography.bodySmall.copyWith(
               color: AppColors.textMuted,
             ),
-            prefixIcon: const Icon(
-              Icons.search_rounded,
-              size: 20,
-            ),
+            prefixIcon: const Icon(Icons.search_rounded, size: 20),
             suffixIcon: controller.text.isEmpty
                 ? null
                 : IconButton(
@@ -630,9 +668,7 @@ class _CategoryTabBar extends StatelessWidget {
                 border: Border.all(
                   color: selected
                       ? AppColors.primaryCrimson
-                      : (isDark
-                          ? AppColors.navyBorder
-                          : AppColors.lightBorder),
+                      : (isDark ? AppColors.navyBorder : AppColors.lightBorder),
                 ),
               ),
               child: Row(
@@ -644,8 +680,8 @@ class _CategoryTabBar extends StatelessWidget {
                       color: selected
                           ? Colors.white
                           : (isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.textPrimaryLight),
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -722,8 +758,7 @@ class _RecentSearches extends StatelessWidget {
       return const EmptyStateWidget(
         icon: Icons.manage_search_rounded,
         title: 'Search GenZ Media',
-        subtitle:
-            'Find creators, communities, posts, and interests all in one place.',
+        subtitle: 'Find creators, communities, posts, and interests all in one place.',
       );
     }
 
@@ -780,9 +815,7 @@ class _RecentSearches extends StatelessWidget {
               tooltip: 'Remove',
             ),
             onTap: () => onTap(query),
-            shape: RoundedRectangleBorder(
-              borderRadius: AppSpacing.roundedMd,
-            ),
+            shape: RoundedRectangleBorder(borderRadius: AppSpacing.roundedMd),
           ),
         ),
       ],

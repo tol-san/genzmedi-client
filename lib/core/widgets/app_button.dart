@@ -3,18 +3,9 @@ import 'package:client/core/theme/app_colors.dart';
 import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/theme/app_typography.dart';
 
-enum AppButtonVariant {
-  primary,
-  secondary,
-  ghost,
-  destructive,
-}
+enum AppButtonVariant { primary, secondary, ghost, destructive }
 
-enum AppButtonSize {
-  small,
-  medium,
-  large,
-}
+enum AppButtonSize { small, medium, large }
 
 /// Standard minimal customizable button for GenZ Media.
 class AppButton extends StatelessWidget {
@@ -114,12 +105,20 @@ class AppButton extends StatelessWidget {
 
     switch (variant) {
       case AppButtonVariant.primary:
-        backgroundColor = isDark ? AppColors.textPrimaryDark : AppColors.buttonDark;
-        foregroundColor = isDark ? AppColors.midnightNavy : AppColors.textInverse;
+        backgroundColor = isDark
+            ? AppColors.textPrimaryDark
+            : AppColors.buttonDark;
+        foregroundColor = isDark
+            ? AppColors.midnightNavy
+            : AppColors.textInverse;
         break;
       case AppButtonVariant.secondary:
-        backgroundColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
-        foregroundColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+        backgroundColor = isDark
+            ? AppColors.darkSurface
+            : AppColors.lightSurface;
+        foregroundColor = isDark
+            ? AppColors.textPrimaryDark
+            : AppColors.textPrimaryLight;
         borderSide = BorderSide(
           color: isDark ? AppColors.navyBorder : AppColors.lightBorder,
           width: 1.0,
@@ -127,7 +126,9 @@ class AppButton extends StatelessWidget {
         break;
       case AppButtonVariant.ghost:
         backgroundColor = AppColors.transparent;
-        foregroundColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+        foregroundColor = isDark
+            ? AppColors.textPrimaryDark
+            : AppColors.textPrimaryLight;
         break;
       case AppButtonVariant.destructive:
         backgroundColor = AppColors.error;
@@ -135,7 +136,8 @@ class AppButton extends StatelessWidget {
         break;
     }
 
-    final effectivePrefixIcon = prefixIcon ??
+    final effectivePrefixIcon =
+        prefixIcon ??
         (icon != null
             ? Icon(
                 icon,
@@ -189,7 +191,9 @@ class AppButton extends StatelessWidget {
       height: _height,
       width: isFullWidth ? double.infinity : null,
       child: Material(
-        color: onPressed == null ? backgroundColor.withValues(alpha: 0.4) : backgroundColor,
+        color: onPressed == null
+            ? backgroundColor.withValues(alpha: 0.4)
+            : backgroundColor,
         borderRadius: effectiveRadius,
         child: InkWell(
           onTap: isLoading ? null : onPressed,
@@ -199,7 +203,9 @@ class AppButton extends StatelessWidget {
             padding: _padding,
             decoration: BoxDecoration(
               borderRadius: effectiveRadius,
-              border: borderSide != null ? Border.fromBorderSide(borderSide) : null,
+              border: borderSide != null
+                  ? Border.fromBorderSide(borderSide)
+                  : null,
             ),
             alignment: Alignment.center,
             child: buttonChild,

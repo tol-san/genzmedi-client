@@ -57,9 +57,9 @@ Not every item must be a separate Flutter route. Some are sheets, tabs, dialogs,
 42. Report Sheet
 
 ## Notifications
-43. Notification Center
-44. Notification Filter / unread state
-45. Notification deletion confirmation if desired
+43. Notification Center — implemented
+44. Notification Filter / unread state — implemented
+45. Notification deletion confirmation — implemented
 
 ## Moderation
 46. Reports List

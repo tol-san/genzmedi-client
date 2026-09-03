@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -115,12 +116,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final user = authState is AuthAuthenticated
         ? authState.user
         : (authState is AuthNeedsOnboarding ? authState.user : null);
-    final hasAvatar = _customImageFile != null || (user?.avatarUrl != null && !_removeAvatar);
+    final hasAvatar =
+        _customImageFile != null || (user?.avatarUrl != null && !_removeAvatar);
 
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLg)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppSpacing.radiusLg),
+        ),
       ),
       builder: (ctx) => SafeArea(
         child: Padding(
@@ -131,7 +135,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               Text('Change Profile Photo', style: AppTypography.title),
               const SizedBox(height: AppSpacing.space16),
               ListTile(
-                leading: const Icon(Icons.photo_camera_rounded, color: AppColors.primaryCrimson),
+                leading: const Icon(
+                  Icons.photo_camera_rounded,
+                  color: AppColors.primaryCrimson,
+                ),
                 title: const Text('Take Photo'),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -139,7 +146,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.photo_library_rounded, color: AppColors.primaryCrimson),
+                leading: const Icon(
+                  Icons.photo_library_rounded,
+                  color: AppColors.primaryCrimson,
+                ),
                 title: const Text('Choose from Gallery'),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -148,8 +158,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               ),
               if (hasAvatar)
                 ListTile(
-                  leading: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
-                  title: const Text('Remove Photo', style: TextStyle(color: AppColors.error)),
+                  leading: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: AppColors.error,
+                  ),
+                  title: const Text(
+                    'Remove Photo',
+                    style: TextStyle(color: AppColors.error),
+                  ),
                   onTap: () {
                     Navigator.pop(ctx);
                     setState(() {
@@ -170,7 +186,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLg)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppSpacing.radiusLg),
+        ),
       ),
       builder: (ctx) => StatefulBuilder(
         builder: (context, setSheetState) {
@@ -201,7 +219,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   const SizedBox(height: 4),
                   Text(
                     'Pick topics that best represent your passions.',
-                    style: AppTypography.caption.copyWith(color: AppColors.textMuted),
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.textMuted,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.space16),
                   Expanded(
@@ -214,7 +234,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                               runSpacing: AppSpacing.space8,
                               children: _availableInterests.map((interest) {
                                 final isSelected =
-                                    _selectedInterests.contains(interest.slug) ||
+                                    _selectedInterests.contains(
+                                      interest.slug,
+                                    ) ||
                                     _selectedInterests.contains(interest.name);
 
                                 return FilterChip(
@@ -230,17 +252,27 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                   checkmarkColor: AppColors.primaryCrimson,
                                   labelStyle: TextStyle(
                                     color: isSelected
-                                        ? (isDark ? AppColors.textPrimaryDark : AppColors.primaryCrimson)
-                                        : (isDark ? AppColors.textSecondaryDark : AppColors.textPrimaryLight),
-                                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                        ? (isDark
+                                              ? AppColors.textPrimaryDark
+                                              : AppColors.primaryCrimson)
+                                        : (isDark
+                                              ? AppColors.textSecondaryDark
+                                              : AppColors.textPrimaryLight),
+                                    fontWeight: isSelected
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
                                   ),
                                   onSelected: (selected) {
                                     setSheetState(() {
                                       if (selected) {
                                         _selectedInterests.add(interest.slug);
                                       } else {
-                                        _selectedInterests.remove(interest.slug);
-                                        _selectedInterests.remove(interest.name);
+                                        _selectedInterests.remove(
+                                          interest.slug,
+                                        );
+                                        _selectedInterests.remove(
+                                          interest.name,
+                                        );
                                       }
                                     });
                                     setState(() {});
@@ -251,10 +283,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           ),
                   ),
                   const SizedBox(height: AppSpacing.space16),
-                  AppButton(
-                    text: 'Done',
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
+                  AppButton(text: 'Done', onPressed: () => Navigator.pop(ctx)),
                 ],
               ),
             ),
@@ -267,7 +296,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Future<void> _checkUsername(String username) async {
     final clean = username.trim().toLowerCase();
     if (clean.length < 3) {
-      setState(() => _usernameStatus = 'Username must be at least 3 characters.');
+      setState(
+        () => _usernameStatus = 'Username must be at least 3 characters.',
+      );
       return;
     }
 
@@ -276,7 +307,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       _usernameStatus = null;
     });
 
-    final isAvailable = await ref.read(authNotifierProvider.notifier).checkUsername(clean);
+    final isAvailable = await ref
+        .read(authNotifierProvider.notifier)
+        .checkUsername(clean);
 
     if (mounted) {
       setState(() {
@@ -336,7 +369,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _errorMessage = e.toString().replaceFirst(RegExp(r'^[A-Za-z_]+Exception:\s*'), '');
+        _errorMessage = e.toString().replaceFirst(
+          RegExp(r'^[A-Za-z_]+Exception:\s*'),
+          '',
+        );
       });
     } finally {
       if (mounted && _isLoading) {
@@ -399,16 +435,22 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     child: _customImageFile != null
                         ? Image.file(_customImageFile!, fit: BoxFit.cover)
                         : (_removeAvatar
-                            ? AppAvatar(
-                                size: 96,
-                                name: user?.displayName ?? user?.username ?? 'User',
-                                imageUrl: null,
-                              )
-                            : AppAvatar(
-                                size: 96,
-                                name: user?.displayName ?? user?.username ?? 'User',
-                                imageUrl: user?.avatarUrl,
-                              )),
+                              ? AppAvatar(
+                                  size: 96,
+                                  name:
+                                      user?.displayName ??
+                                      user?.username ??
+                                      'User',
+                                  imageUrl: null,
+                                )
+                              : AppAvatar(
+                                  size: 96,
+                                  name:
+                                      user?.displayName ??
+                                      user?.username ??
+                                      'User',
+                                  imageUrl: user?.avatarUrl,
+                                )),
                   ),
                 ),
                 Positioned(
@@ -427,7 +469,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           width: 2,
                         ),
                       ),
-                      child: const Icon(Icons.camera_alt_rounded, size: 16, color: Colors.white),
+                      child: const Icon(
+                        Icons.camera_alt_rounded,
+                        size: 16,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
@@ -453,11 +499,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.error.withValues(alpha: 0.1),
                   borderRadius: AppSpacing.roundedSm,
-                  border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: AppColors.error.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Text(
                   _errorMessage!,
-                  style: AppTypography.bodySmall.copyWith(color: AppColors.error),
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.error,
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.space16),
@@ -479,7 +529,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               hintText: 'unique_handle',
               textInputAction: TextInputAction.next,
               onChanged: (val) {
-                if (val.trim().length >= 3 && val.trim().toLowerCase() != user?.username.toLowerCase()) {
+                if (val.trim().length >= 3 &&
+                    val.trim().toLowerCase() != user?.username.toLowerCase()) {
                   _checkUsername(val);
                 } else {
                   setState(() => _usernameStatus = null);
@@ -491,7 +542,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  _isCheckingUsername ? 'Checking availability...' : _usernameStatus!,
+                  _isCheckingUsername
+                      ? 'Checking availability...'
+                      : _usernameStatus!,
                   style: AppTypography.caption.copyWith(
                     color: _usernameStatus?.startsWith('✓') == true
                         ? AppColors.signalMint
@@ -520,7 +573,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 Text(
                   'My Interests',
                   style: AppTypography.label.copyWith(
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
                     fontSize: 16,
                   ),
                 ),
@@ -549,10 +604,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           vertical: AppSpacing.space4,
                         ),
                         decoration: BoxDecoration(
-                          color: isDark ? AppColors.darkSurface : AppColors.primarySoft,
+                          color: isDark
+                              ? AppColors.darkSurface
+                              : AppColors.primarySoft,
                           borderRadius: AppSpacing.roundedFull,
                           border: Border.all(
-                            color: isDark ? AppColors.navyBorder : AppColors.primarySoft,
+                            color: isDark
+                                ? AppColors.navyBorder
+                                : AppColors.primarySoft,
                           ),
                         ),
                         child: Row(
@@ -561,7 +620,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                             Text(
                               '#$item',
                               style: AppTypography.caption.copyWith(
-                                color: isDark ? AppColors.textPrimaryDark : AppColors.primaryCrimson,
+                                color: isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.primaryCrimson,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -573,7 +634,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                               child: Icon(
                                 Icons.close_rounded,
                                 size: 14,
-                                color: isDark ? AppColors.textMuted : AppColors.primaryCrimson,
+                                color: isDark
+                                    ? AppColors.textMuted
+                                    : AppColors.primaryCrimson,
                               ),
                             ),
                           ],
@@ -587,7 +650,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'No interests selected. Tap "+ Add / Edit" to customize.',
-                  style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.textMuted,
+                  ),
                 ),
               ),
           ],

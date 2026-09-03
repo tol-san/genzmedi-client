@@ -43,12 +43,12 @@ class HomeFeedState extends Equatable {
 
   @override
   List<Object?> get props => [
-        posts,
-        isLoading,
-        isRefreshing,
-        isLoadingMore,
-        hasMore,
-        offset,
-        errorMessage,
-      ];
+    posts,
+    isLoading,
+    isRefreshing,
+    isLoadingMore,
+    hasMore,
+    offset,
+    errorMessage,
+  ];
 }

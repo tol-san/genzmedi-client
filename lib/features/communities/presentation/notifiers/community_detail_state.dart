@@ -56,15 +56,15 @@ class CommunityDetailState extends Equatable {
 
   @override
   List<Object?> get props => [
-        detail,
-        posts,
-        members,
-        joinRequests,
-        isLoading,
-        isLoadingPosts,
-        isLoadingMembers,
-        isLoadingRequests,
-        isActionLoading,
-        errorMessage,
-      ];
+    detail,
+    posts,
+    members,
+    joinRequests,
+    isLoading,
+    isLoadingPosts,
+    isLoadingMembers,
+    isLoadingRequests,
+    isActionLoading,
+    errorMessage,
+  ];
 }

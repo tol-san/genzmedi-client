@@ -42,7 +42,9 @@ class _ShortsFeedScreenState extends ConsumerState<ShortsFeedScreen> {
 
   List<PostModel> _computeShortsList(List<PostModel> fetchedShorts) {
     if (widget.initialPost != null) {
-      final existingIndex = fetchedShorts.indexWhere((p) => p.id == widget.initialPost!.id);
+      final existingIndex = fetchedShorts.indexWhere(
+        (p) => p.id == widget.initialPost!.id,
+      );
       if (existingIndex >= 0) {
         final list = List<PostModel>.from(fetchedShorts);
         final item = list.removeAt(existingIndex);
@@ -52,7 +54,9 @@ class _ShortsFeedScreenState extends ConsumerState<ShortsFeedScreen> {
         return [widget.initialPost!, ...fetchedShorts];
       }
     } else if (widget.initialPostId != null) {
-      final existingIndex = fetchedShorts.indexWhere((p) => p.id == widget.initialPostId);
+      final existingIndex = fetchedShorts.indexWhere(
+        (p) => p.id == widget.initialPostId,
+      );
       if (existingIndex > 0) {
         final list = List<PostModel>.from(fetchedShorts);
         final item = list.removeAt(existingIndex);
@@ -109,7 +113,9 @@ class _ShortsFeedScreenState extends ConsumerState<ShortsFeedScreen> {
                 Text(
                   'Check back later or follow creators who share short videos.',
                   textAlign: TextAlign.center,
-                  style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.textMuted,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.space24),
                 ElevatedButton.icon(

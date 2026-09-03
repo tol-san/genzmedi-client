@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/core/auth/user_model.dart';
@@ -56,7 +57,9 @@ class ProfileRepository {
     try {
       final response = await dio.get(ApiEndpoints.userRelationship(userId));
       if (response.statusCode == 200 && response.data != null) {
-        return RelationshipModel.fromJson(response.data as Map<String, dynamic>);
+        return RelationshipModel.fromJson(
+          response.data as Map<String, dynamic>,
+        );
       }
       return const RelationshipModel();
     } on DioException catch (e) {
@@ -130,10 +133,7 @@ class ProfileRepository {
       if (bio != null) data['bio'] = bio.trim();
       if (avatarUrl != null) data['avatar_url'] = avatarUrl;
 
-      final response = await dio.patch(
-        ApiEndpoints.myProfile,
-        data: data,
-      );
+      final response = await dio.patch(ApiEndpoints.myProfile, data: data);
 
       if (response.statusCode == 200 && response.data != null) {
         return UserModel.fromJson(response.data as Map<String, dynamic>);
@@ -158,10 +158,7 @@ class ProfileRepository {
         ),
       });
 
-      final response = await dio.post(
-        ApiEndpoints.myAvatar,
-        data: formData,
-      );
+      final response = await dio.post(ApiEndpoints.myAvatar, data: formData);
 
       if (response.statusCode == 200 && response.data != null) {
         return UserModel.fromJson(response.data as Map<String, dynamic>);
@@ -183,11 +180,15 @@ class ProfileRepository {
         final list = response.data;
         if (list is List) {
           return list
-              .map((item) => InterestModel.fromJson(item as Map<String, dynamic>))
+              .map(
+                (item) => InterestModel.fromJson(item as Map<String, dynamic>),
+              )
               .toList();
         } else if (list is Map && list['items'] is List) {
           return (list['items'] as List)
-              .map((item) => InterestModel.fromJson(item as Map<String, dynamic>))
+              .map(
+                (item) => InterestModel.fromJson(item as Map<String, dynamic>),
+              )
               .toList();
         }
       }
@@ -258,10 +259,7 @@ class ProfileRepository {
     try {
       final response = await dio.get(
         ApiEndpoints.savedPosts,
-        queryParameters: {
-          'limit': limit,
-          'offset': offset,
-        },
+        queryParameters: {'limit': limit, 'offset': offset},
       );
 
       if (response.statusCode == 200 && response.data != null) {
@@ -377,10 +375,7 @@ class ProfileRepository {
         data['community_id'] = communityId;
       }
 
-      final response = await dio.post(
-        ApiEndpoints.reports,
-        data: data,
-      );
+      final response = await dio.post(ApiEndpoints.reports, data: data);
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw ErrorMapper.fromStatusCode(

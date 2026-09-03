@@ -11,6 +11,8 @@ import 'package:client/core/widgets/app_avatar.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/posts/presentation/widgets/feed_video_player_widget.dart';
 import 'package:client/features/posts/presentation/widgets/post_comments_sheet.dart';
+import 'package:client/features/reports/data/models/report_models.dart';
+import 'package:client/features/reports/presentation/widgets/report_sheet.dart';
 
 /// Full-width seamless post item (No isolated card containers) for home and community feeds.
 /// Features auto-playing inline video, edge-to-edge media collages, author header, and 3-button action bar (Like, Comment, Share).
@@ -65,7 +67,8 @@ class _PostCardWidgetState extends State<PostCardWidget> {
     if (widget.onShare != null) {
       shareUrl = await widget.onShare!();
     }
-    final urlToCopy = shareUrl ?? 'https://genzmedia.app/posts/${widget.post.id}';
+    final urlToCopy =
+        shareUrl ?? 'https://genzmedia.app/posts/${widget.post.id}';
     await Clipboard.setData(ClipboardData(text: urlToCopy));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -81,9 +84,13 @@ class _PostCardWidgetState extends State<PostCardWidget> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
-      backgroundColor: isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurface,
+      backgroundColor: isDark
+          ? AppColors.darkSurfaceElevated
+          : AppColors.lightSurface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLg)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppSpacing.radiusLg),
+        ),
       ),
       builder: (ctx) => SafeArea(
         child: Padding(
@@ -118,21 +125,35 @@ class _PostCardWidgetState extends State<PostCardWidget> {
               ),
               ListTile(
                 leading: Icon(
-                  widget.post.isSaved ? Icons.bookmark_remove_outlined : Icons.bookmark_add_outlined,
+                  widget.post.isSaved
+                      ? Icons.bookmark_remove_outlined
+                      : Icons.bookmark_add_outlined,
                 ),
-                title: Text(widget.post.isSaved ? 'Remove from saved' : 'Save post'),
+                title: Text(
+                  widget.post.isSaved ? 'Remove from saved' : 'Save post',
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   widget.onSave?.call();
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.flag_outlined, color: AppColors.error),
-                title: const Text('Report post', style: TextStyle(color: AppColors.error)),
+                leading: const Icon(
+                  Icons.flag_outlined,
+                  color: AppColors.error,
+                ),
+                title: const Text(
+                  'Report post',
+                  style: TextStyle(color: AppColors.error),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Post reported. Thank you for keeping our community safe.')),
+                  ReportSheet.show(
+                    context,
+                    targetType: ReportTargetType.post,
+                    targetId: widget.post.id,
+                    targetLabel: 'post',
+                    communityId: widget.post.communityId,
                   );
                 },
               ),
@@ -161,7 +182,8 @@ class _PostCardWidgetState extends State<PostCardWidget> {
           _buildContentText(post, isDark),
 
           // 3. Edge-to-Edge Media Grid (Collage Layout with Auto-Playing Video)
-          if (post.media.isNotEmpty) _buildMediaCollage(context, post.media, isDark),
+          if (post.media.isNotEmpty)
+            _buildMediaCollage(context, post.media, isDark),
 
           // 4. Reactions & Counters Row
           _buildCountersRow(post, isDark),
@@ -215,7 +237,9 @@ class _PostCardWidgetState extends State<PostCardWidget> {
                     style: AppTypography.label.copyWith(
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -232,7 +256,9 @@ class _PostCardWidgetState extends State<PostCardWidget> {
                       ),
                       const SizedBox(width: 4),
                       Icon(
-                        post.visibility == 'private' ? Icons.lock_outline_rounded : Icons.public_rounded,
+                        post.visibility == 'private'
+                            ? Icons.lock_outline_rounded
+                            : Icons.public_rounded,
                         size: 12,
                         color: AppColors.textMuted,
                       ),
@@ -245,7 +271,9 @@ class _PostCardWidgetState extends State<PostCardWidget> {
           IconButton(
             icon: Icon(
               Icons.more_horiz_rounded,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondaryLight,
             ),
             splashRadius: 20,
             onPressed: () => _showOptionsModal(context),
@@ -292,7 +320,11 @@ class _PostCardWidgetState extends State<PostCardWidget> {
       );
     } else {
       // Text-only post -> Open Comments Bottom Sheet directly
-      PostCommentsSheet.show(context, postId: widget.post.id, post: widget.post);
+      PostCommentsSheet.show(
+        context,
+        postId: widget.post.id,
+        post: widget.post,
+      );
     }
   }
 
@@ -340,7 +372,9 @@ class _PostCardWidgetState extends State<PostCardWidget> {
         child: Text(
           post.content!,
           style: AppTypography.body.copyWith(
-            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+            color: isDark
+                ? AppColors.textPrimaryDark
+                : AppColors.textPrimaryLight,
             fontSize: 14,
             height: 1.45,
           ),
@@ -349,13 +383,18 @@ class _PostCardWidgetState extends State<PostCardWidget> {
     );
   }
 
-  Widget _buildMediaCollage(BuildContext context, List<MediaItemModel> media, bool isDark) {
+  Widget _buildMediaCollage(
+    BuildContext context,
+    List<MediaItemModel> media,
+    bool isDark,
+  ) {
     if (media.isEmpty) return const SizedBox.shrink();
 
     if (media.length == 1) {
       final item = media[0];
       if (item.isVideo) {
-        final explicitRatio = (item.width != null && item.height != null && item.height! > 0)
+        final explicitRatio =
+            (item.width != null && item.height != null && item.height! > 0)
             ? (item.width! / item.height!).clamp(4 / 5, 16 / 9)
             : 16 / 9;
 
@@ -367,7 +406,8 @@ class _PostCardWidgetState extends State<PostCardWidget> {
         );
       }
       return AspectRatio(
-        aspectRatio: (item.width != null && item.height != null && item.height! > 0)
+        aspectRatio:
+            (item.width != null && item.height != null && item.height! > 0)
             ? (item.width! / item.height!).clamp(0.75, 1.8)
             : 16 / 9,
         child: _buildMediaItem(context, item, isDark, index: 0),
@@ -379,9 +419,13 @@ class _PostCardWidgetState extends State<PostCardWidget> {
         height: 320,
         child: Row(
           children: [
-            Expanded(child: _buildMediaItem(context, media[0], isDark, index: 0)),
+            Expanded(
+              child: _buildMediaItem(context, media[0], isDark, index: 0),
+            ),
             const SizedBox(width: 2),
-            Expanded(child: _buildMediaItem(context, media[1], isDark, index: 1)),
+            Expanded(
+              child: _buildMediaItem(context, media[1], isDark, index: 1),
+            ),
           ],
         ),
       );
@@ -392,15 +436,22 @@ class _PostCardWidgetState extends State<PostCardWidget> {
         height: 320,
         child: Row(
           children: [
-            Expanded(flex: 3, child: _buildMediaItem(context, media[0], isDark, index: 0)),
+            Expanded(
+              flex: 3,
+              child: _buildMediaItem(context, media[0], isDark, index: 0),
+            ),
             const SizedBox(width: 2),
             Expanded(
               flex: 2,
               child: Column(
                 children: [
-                  Expanded(child: _buildMediaItem(context, media[1], isDark, index: 1)),
+                  Expanded(
+                    child: _buildMediaItem(context, media[1], isDark, index: 1),
+                  ),
                   const SizedBox(height: 2),
-                  Expanded(child: _buildMediaItem(context, media[2], isDark, index: 2)),
+                  Expanded(
+                    child: _buildMediaItem(context, media[2], isDark, index: 2),
+                  ),
                 ],
               ),
             ),
@@ -417,9 +468,13 @@ class _PostCardWidgetState extends State<PostCardWidget> {
             Expanded(
               child: Row(
                 children: [
-                  Expanded(child: _buildMediaItem(context, media[0], isDark, index: 0)),
+                  Expanded(
+                    child: _buildMediaItem(context, media[0], isDark, index: 0),
+                  ),
                   const SizedBox(width: 2),
-                  Expanded(child: _buildMediaItem(context, media[1], isDark, index: 1)),
+                  Expanded(
+                    child: _buildMediaItem(context, media[1], isDark, index: 1),
+                  ),
                 ],
               ),
             ),
@@ -427,9 +482,13 @@ class _PostCardWidgetState extends State<PostCardWidget> {
             Expanded(
               child: Row(
                 children: [
-                  Expanded(child: _buildMediaItem(context, media[2], isDark, index: 2)),
+                  Expanded(
+                    child: _buildMediaItem(context, media[2], isDark, index: 2),
+                  ),
                   const SizedBox(width: 2),
-                  Expanded(child: _buildMediaItem(context, media[3], isDark, index: 3)),
+                  Expanded(
+                    child: _buildMediaItem(context, media[3], isDark, index: 3),
+                  ),
                 ],
               ),
             ),
@@ -446,9 +505,13 @@ class _PostCardWidgetState extends State<PostCardWidget> {
           Expanded(
             child: Row(
               children: [
-                Expanded(child: _buildMediaItem(context, media[0], isDark, index: 0)),
+                Expanded(
+                  child: _buildMediaItem(context, media[0], isDark, index: 0),
+                ),
                 const SizedBox(width: 2),
-                Expanded(child: _buildMediaItem(context, media[1], isDark, index: 1)),
+                Expanded(
+                  child: _buildMediaItem(context, media[1], isDark, index: 1),
+                ),
               ],
             ),
           ),
@@ -456,7 +519,9 @@ class _PostCardWidgetState extends State<PostCardWidget> {
           Expanded(
             child: Row(
               children: [
-                Expanded(child: _buildMediaItem(context, media[2], isDark, index: 2)),
+                Expanded(
+                  child: _buildMediaItem(context, media[2], isDark, index: 2),
+                ),
                 const SizedBox(width: 2),
                 Expanded(
                   child: _buildMediaItem(
@@ -501,11 +566,18 @@ class _PostCardWidgetState extends State<PostCardWidget> {
             imageUrl: resolvedImageUrl,
             fit: BoxFit.cover,
             placeholder: (context, url) => Container(
-              color: isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated,
+              color: isDark
+                  ? AppColors.darkSurfaceElevated
+                  : AppColors.lightSurfaceElevated,
             ),
             errorWidget: (context, url, error) => Container(
-              color: isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated,
-              child: const Icon(Icons.broken_image_rounded, color: AppColors.textMuted),
+              color: isDark
+                  ? AppColors.darkSurfaceElevated
+                  : AppColors.lightSurfaceElevated,
+              child: const Icon(
+                Icons.broken_image_rounded,
+                color: AppColors.textMuted,
+              ),
             ),
           ),
           if (overlayCount != null && overlayCount > 0)
@@ -562,7 +634,9 @@ class _PostCardWidgetState extends State<PostCardWidget> {
                 Text(
                   _formatCount(post.likeCount),
                   style: AppTypography.caption.copyWith(
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -581,7 +655,9 @@ class _PostCardWidgetState extends State<PostCardWidget> {
                 child: Text(
                   '${_formatCount(post.commentCount)} comments',
                   style: AppTypography.caption.copyWith(
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
                 ),
               ),
@@ -589,7 +665,9 @@ class _PostCardWidgetState extends State<PostCardWidget> {
               Text(
                 '${_formatCount(post.shareCount)} shares',
                 style: AppTypography.caption.copyWith(
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
                 ),
               ),
             ],
@@ -605,12 +683,17 @@ class _PostCardWidgetState extends State<PostCardWidget> {
       children: [
         Divider(height: 1, thickness: 0.8, color: borderColor),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space8, vertical: 2),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.space8,
+            vertical: 2,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildActionButton(
-                icon: post.isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                icon: post.isLiked
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
                 label: 'Like',
                 activeColor: AppColors.primaryCrimson,
                 isActive: post.isLiked,
@@ -621,9 +704,14 @@ class _PostCardWidgetState extends State<PostCardWidget> {
                 label: 'Comment',
                 activeColor: AppColors.primaryCrimson,
                 isActive: false,
-                onTap: widget.onComment ??
+                onTap:
+                    widget.onComment ??
                     () {
-                      PostCommentsSheet.show(context, postId: post.id, post: post);
+                      PostCommentsSheet.show(
+                        context,
+                        postId: post.id,
+                        post: post,
+                      );
                     },
               ),
               _buildActionButton(

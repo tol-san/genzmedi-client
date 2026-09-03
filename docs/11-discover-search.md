@@ -92,21 +92,27 @@ Body:
 
 - **Debounced search**: 350 ms after user stops typing.
 - **Query submit**: saves to recent-searches history (`SharedPreferences`, max 8).
-- **Recent searches**: shown when query is empty; each entry can be tapped to re-search or swiped to delete; "Clear all" removes all.
-- **Category switching**: resets scroll to top and reloads results.
+- **Recent searches**: shown when query is empty; each entry can be tapped to re-search or removed; "Clear all" removes all.
+- **Category switching**: resets scroll to top and reloads results with active count badges.
 - **Pagination**: scroll-to-bottom on non-All categories appends next page.
-- **Optimistic actions**: Follow/Unfollow and Join/Leave directly from result cards.
+- **Optimistic actions**:
+  - Follow/Unfollow user from creator cards with error rollback.
+  - Join/Request/Leave community from community cards with error rollback.
+  - Like/Unlike post from post cards with instant like count update.
+  - Save/Unsave post from post cards.
+  - Share post from post cards with link copying.
+  - Add/Remove interest from profile from interest tiles.
 
 ---
 
 ## Result widgets (`discover_result_cards.dart`)
 
-| Widget                  | Shows                                      |
-|-------------------------|--------------------------------------------|
-| `DiscoverCreatorCard`   | Avatar, display name + verified badge, `@handle`, follower count, bio, shared-interest pill, Follow button |
-| `DiscoverCommunityCard` | Cover image banner, avatar, name, public/private badge, description, member + post count, matched-interest badge, Join button |
-| `DiscoverPostResultCard`| Author avatar + name, post-type icon, title, content preview, media thumbnail, like + comment counts |
-| `DiscoverInterestTile`  | Colored icon (slug-based), name, description or slug, arrow |
+| Widget                  | Shows                                      | Expected Actions |
+|-------------------------|--------------------------------------------|------------------|
+| `DiscoverCreatorCard`   | Avatar, display name + verified badge, `@handle`, follower count, bio, shared-interest pill, Follow button | Open public profile, follow/unfollow, view followers |
+| `DiscoverCommunityCard` | Cover image banner, avatar, name, public/private badge, description, member + post count, matched-interest badge, Join button | Open community, join/request/leave community |
+| `DiscoverPostResultCard`| Author avatar + name, post-type badge, community chip, visibility badge, relative creation date, title, content preview, media thumbnail, like + comment counts | Open post details, like, comment, save, share, open author profile, open community |
+| `DiscoverInterestTile`  | Colored icon (slug-based), name, description or slug, Add/Added button, explore arrow | View related content, add/remove interest from user profile, discover related creators/communities |
 
 ---
 
@@ -127,10 +133,17 @@ Stored in `SharedPreferences` under key `discover_recent_searches` as a JSON-enc
 
 ## Backend search features
 
-- Typo-tolerant Meilisearch with PostgreSQL fallback.
-- Visibility, blocking, and private-community access filtering applied server-side.
-- Pagination: `limit` + `offset`, max 100 per request.
-- Admin-only search index sync: `POST /api/v1/search/sync` — not exposed in consumer UI.
+- **Typo-tolerant Meilisearch**:
+  - Direct full-text search with block-safety filtering for Users and Interests.
+  - Two-stage candidate filtering for Communities and Posts: Meilisearch retrieves full-text candidate IDs, followed by PostgreSQL access-control re-verification (visibility, blocks, private community membership).
+  - Search highlighting via Meilisearch `_formatted` (`<em>` wrapped tokens) surfaced in `PostSearchResult.highlight`.
+- **Enriched search models**:
+  - `PostSearchResult`: includes `author_avatar_url`, `thumbnail_url` (derived from first media item for instant previews in `DiscoverPostResultCard`), and `highlight`.
+  - `UserSearchResult`: includes `is_following` boolean flag when caller is authenticated, allowing creator cards to render live follow states directly from search.
+- **Client parsing**: `postFromSearchJson` injects synthetic media entries from `thumbnail_url` and author avatar URLs for `PostModel` and `PostAuthorModel`.
+- **Fallbacks**: Graceful fallback to PostgreSQL `LIKE` queries if Meilisearch service is unreachable or indexing is pending.
+- **Pagination**: `limit` + `offset`, max 100 per request.
+- **Admin-only search index sync**: `POST /api/v1/search/sync` — synchronizes users, communities, posts, and interests.
 
 ---
 
@@ -139,6 +152,6 @@ Stored in `SharedPreferences` under key `discover_recent_searches` as a JSON-enc
 | File | Coverage |
 |------|----------|
 | `test/unit/features/search/discover_notifier_test.dart` | loadInitial, loadMorePosts, toggleFollow, toggleCommunity, toggleLike, toggleSave, refresh |
-| `test/unit/features/search/discover_search_notifier_test.dart` | updateQuery, setCategory, loadMore, error handling, toggleFollow, toggleCommunity, activeCount |
+| `test/unit/features/search/discover_search_notifier_test.dart` | updateQuery, setCategory, loadMore, error handling, toggleFollow, toggleCommunity, toggleLike, toggleSave, toggleInterest, activeCount |
 | `test/widgets/features/search/discover_screen_test.dart` | skeleton, topic chips, creators/communities/posts sections, empty state, error state, follow tap |
-| `test/widgets/features/search/discover_search_screen_test.dart` | empty prompt, category chips, all-results grouping, user/community cards, no-results, error, loading, category switch, recent searches |
+| `test/widgets/features/search/discover_search_screen_test.dart` | empty prompt, category chips, all-results grouping, user/community/post/interest cards, no-results, error, loading, category switch, recent searches, interactive card actions |

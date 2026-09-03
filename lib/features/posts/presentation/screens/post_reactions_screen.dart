@@ -15,13 +15,11 @@ import 'package:client/features/posts/data/repositories/post_repository.dart';
 class PostReactionsScreen extends ConsumerStatefulWidget {
   final String postId;
 
-  const PostReactionsScreen({
-    super.key,
-    required this.postId,
-  });
+  const PostReactionsScreen({super.key, required this.postId});
 
   @override
-  ConsumerState<PostReactionsScreen> createState() => _PostReactionsScreenState();
+  ConsumerState<PostReactionsScreen> createState() =>
+      _PostReactionsScreenState();
 }
 
 class _PostReactionsScreenState extends ConsumerState<PostReactionsScreen> {
@@ -81,7 +79,11 @@ class _PostReactionsScreenState extends ConsumerState<PostReactionsScreen> {
         shape: BoxShape.circle,
         border: Border.all(color: Colors.white, width: 1.5),
       ),
-      child: Icon(Icons.favorite_rounded, size: size * 0.6, color: Colors.white),
+      child: Icon(
+        Icons.favorite_rounded,
+        size: size * 0.6,
+        color: Colors.white,
+      ),
     );
   }
 
@@ -112,7 +114,9 @@ class _PostReactionsScreenState extends ConsumerState<PostReactionsScreen> {
                 controller: _searchController,
                 autofocus: true,
                 style: AppTypography.body.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
                 decoration: const InputDecoration(
                   hintText: 'Search people who liked...',
@@ -131,7 +135,9 @@ class _PostReactionsScreenState extends ConsumerState<PostReactionsScreen> {
               ),
         actions: [
           IconButton(
-            icon: Icon(_isSearching ? Icons.close_rounded : Icons.search_rounded),
+            icon: Icon(
+              _isSearching ? Icons.close_rounded : Icons.search_rounded,
+            ),
             onPressed: () {
               setState(() {
                 if (_isSearching) {
@@ -192,24 +198,23 @@ class _PostReactionsScreenState extends ConsumerState<PostReactionsScreen> {
           decoration: BoxDecoration(
             color: isSelected
                 ? (isDark
-                    ? AppColors.primaryCrimson.withValues(alpha: 0.2)
-                    : const Color(0xFFFFEBEF))
+                      ? AppColors.primaryCrimson.withValues(alpha: 0.2)
+                      : const Color(0xFFFFEBEF))
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (icon != null) ...[
-                icon,
-                const SizedBox(width: 6),
-              ],
+              if (icon != null) ...[icon, const SizedBox(width: 6)],
               Text(
                 label,
                 style: TextStyle(
                   color: isSelected
                       ? AppColors.primaryCrimson
-                      : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                      : (isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight),
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   fontSize: 14,
                 ),
@@ -221,7 +226,11 @@ class _PostReactionsScreenState extends ConsumerState<PostReactionsScreen> {
     );
   }
 
-  Widget _buildBody(BuildContext context, List<ReactorUserModel> users, bool isDark) {
+  Widget _buildBody(
+    BuildContext context,
+    List<ReactorUserModel> users,
+    bool isDark,
+  ) {
     if (_isLoading) {
       return ListView.builder(
         padding: const EdgeInsets.all(AppSpacing.space16),
@@ -280,9 +289,13 @@ class _PostReactionsScreenState extends ConsumerState<PostReactionsScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              _searchQuery.isNotEmpty ? 'No users match your search' : 'No likes yet',
+              _searchQuery.isNotEmpty
+                  ? 'No users match your search'
+                  : 'No likes yet',
               style: AppTypography.body.copyWith(
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondaryLight,
               ),
             ),
           ],
@@ -340,7 +353,9 @@ class _PostReactionsScreenState extends ConsumerState<PostReactionsScreen> {
                 style: AppTypography.label.copyWith(
                   fontWeight: FontWeight.w700,
                   fontSize: 15,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
               ),
             ),
@@ -360,11 +375,16 @@ class _PostReactionsScreenState extends ConsumerState<PostReactionsScreen> {
               icon: const Icon(Icons.alternate_email_rounded, size: 14),
               label: const Text('Mention'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                foregroundColor: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
                 side: BorderSide(
                   color: isDark ? AppColors.navyBorder : AppColors.lightBorder,
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(

@@ -45,14 +45,14 @@ class ReactorUserModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        username,
-        displayName,
-        avatarUrl,
-        reactionType,
-        mutualCount,
-        isFollowing,
-      ];
+    id,
+    username,
+    displayName,
+    avatarUrl,
+    reactionType,
+    mutualCount,
+    isFollowing,
+  ];
 }
 
 class PostReactionsModel extends Equatable {

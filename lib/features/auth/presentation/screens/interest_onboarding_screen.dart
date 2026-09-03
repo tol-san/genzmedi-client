@@ -32,14 +32,54 @@ class _InterestOnboardingScreenState
     InterestModel(id: '1', name: 'Technology', slug: 'technology', icon: '💻'),
     InterestModel(id: '2', name: 'Gaming', slug: 'gaming', icon: '🎮'),
     InterestModel(id: '3', name: 'Music', slug: 'music', icon: '🎵'),
-    InterestModel(id: '4', name: 'Movies & Anime', slug: 'movies-anime', icon: '🎬'),
-    InterestModel(id: '5', name: 'Sports & Fitness', slug: 'sports-fitness', icon: '💪'),
-    InterestModel(id: '6', name: 'Art & Design', slug: 'art-design', icon: '🎨'),
-    InterestModel(id: '7', name: 'Photography', slug: 'photography', icon: '📸'),
-    InterestModel(id: '8', name: 'Travel & Adventure', slug: 'travel-adventure', icon: '✈️'),
-    InterestModel(id: '9', name: 'Fashion & Lifestyle', slug: 'fashion-lifestyle', icon: '✨'),
-    InterestModel(id: '10', name: 'Food & Cooking', slug: 'food-cooking', icon: '🍜'),
-    InterestModel(id: '11', name: 'Programming & AI', slug: 'programming-ai', icon: '🤖'),
+    InterestModel(
+      id: '4',
+      name: 'Movies & Anime',
+      slug: 'movies-anime',
+      icon: '🎬',
+    ),
+    InterestModel(
+      id: '5',
+      name: 'Sports & Fitness',
+      slug: 'sports-fitness',
+      icon: '💪',
+    ),
+    InterestModel(
+      id: '6',
+      name: 'Art & Design',
+      slug: 'art-design',
+      icon: '🎨',
+    ),
+    InterestModel(
+      id: '7',
+      name: 'Photography',
+      slug: 'photography',
+      icon: '📸',
+    ),
+    InterestModel(
+      id: '8',
+      name: 'Travel & Adventure',
+      slug: 'travel-adventure',
+      icon: '✈️',
+    ),
+    InterestModel(
+      id: '9',
+      name: 'Fashion & Lifestyle',
+      slug: 'fashion-lifestyle',
+      icon: '✨',
+    ),
+    InterestModel(
+      id: '10',
+      name: 'Food & Cooking',
+      slug: 'food-cooking',
+      icon: '🍜',
+    ),
+    InterestModel(
+      id: '11',
+      name: 'Programming & AI',
+      slug: 'programming-ai',
+      icon: '🤖',
+    ),
   ];
 
   @override
@@ -117,7 +157,9 @@ class _InterestOnboardingScreenState
       body: SafeArea(
         child: _isLoadingCatalog
             ? const Center(
-                child: CircularProgressIndicator(color: AppColors.primaryCrimson),
+                child: CircularProgressIndicator(
+                  color: AppColors.primaryCrimson,
+                ),
               )
             : Padding(
                 padding: const EdgeInsets.symmetric(
@@ -160,18 +202,21 @@ class _InterestOnboardingScreenState
                           vertical: AppSpacing.space4,
                         ),
                         decoration: BoxDecoration(
-                          color: _selectedInterests.length >= _minSelectedRequired
+                          color:
+                              _selectedInterests.length >= _minSelectedRequired
                               ? AppColors.success.withValues(alpha: 0.12)
                               : (isDark
-                                  ? AppColors.darkSurface
-                                  : AppColors.lightSurface),
+                                    ? AppColors.darkSurface
+                                    : AppColors.lightSurface),
                           borderRadius: AppSpacing.roundedFull,
                           border: Border.all(
-                            color: _selectedInterests.length >= _minSelectedRequired
+                            color:
+                                _selectedInterests.length >=
+                                    _minSelectedRequired
                                 ? AppColors.success.withValues(alpha: 0.4)
                                 : (isDark
-                                    ? AppColors.navyBorder
-                                    : AppColors.lightBorder),
+                                      ? AppColors.navyBorder
+                                      : AppColors.lightBorder),
                           ),
                         ),
                         child: Text(
@@ -179,11 +224,13 @@ class _InterestOnboardingScreenState
                               ? '✓ ${_selectedInterests.length} selected'
                               : 'Select $remaining more',
                           style: AppTypography.caption.copyWith(
-                            color: _selectedInterests.length >= _minSelectedRequired
+                            color:
+                                _selectedInterests.length >=
+                                    _minSelectedRequired
                                 ? AppColors.success
                                 : (isDark
-                                    ? AppColors.textSecondaryDark
-                                    : AppColors.textSecondaryLight),
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondaryLight),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -213,8 +260,9 @@ class _InterestOnboardingScreenState
                           runSpacing: AppSpacing.space12,
                           alignment: WrapAlignment.center,
                           children: _availableInterests.map((interest) {
-                            final isSelected =
-                                _selectedInterests.contains(interest.slug);
+                            final isSelected = _selectedInterests.contains(
+                              interest.slug,
+                            );
 
                             return InkWell(
                               onTap: () => _toggleInterest(interest.slug),
@@ -228,32 +276,35 @@ class _InterestOnboardingScreenState
                                 decoration: BoxDecoration(
                                   color: isSelected
                                       ? (isDark
-                                          ? AppColors.darkSurfaceElevated
-                                          : AppColors.midnightNavy)
+                                            ? AppColors.darkSurfaceElevated
+                                            : AppColors.midnightNavy)
                                       : (isDark
-                                          ? AppColors.darkSurface
-                                          : AppColors.lightSurface),
+                                            ? AppColors.darkSurface
+                                            : AppColors.lightSurface),
                                   borderRadius: AppSpacing.roundedFull,
                                   border: Border.all(
                                     color: isSelected
                                         ? (isDark
-                                            ? AppColors.primaryCrimson
-                                            : AppColors.midnightNavy)
+                                              ? AppColors.primaryCrimson
+                                              : AppColors.midnightNavy)
                                         : (isDark
-                                            ? AppColors.navyBorder
-                                            : AppColors.lightBorder),
+                                              ? AppColors.navyBorder
+                                              : AppColors.lightBorder),
                                     width: isSelected ? 1.5 : 1.0,
                                   ),
                                   boxShadow: isSelected
                                       ? [
                                           BoxShadow(
-                                            color: (isDark
-                                                    ? AppColors.primaryCrimson
-                                                    : AppColors.midnightNavy)
-                                                .withValues(alpha: 0.15),
+                                            color:
+                                                (isDark
+                                                        ? AppColors
+                                                              .primaryCrimson
+                                                        : AppColors
+                                                              .midnightNavy)
+                                                    .withValues(alpha: 0.15),
                                             blurRadius: 6,
                                             offset: const Offset(0, 2),
-                                          )
+                                          ),
                                         ]
                                       : null,
                                 ),
@@ -273,8 +324,8 @@ class _InterestOnboardingScreenState
                                         color: isSelected
                                             ? Colors.white
                                             : (isDark
-                                                ? AppColors.textPrimaryDark
-                                                : AppColors.textPrimaryLight),
+                                                  ? AppColors.textPrimaryDark
+                                                  : AppColors.textPrimaryLight),
                                         fontWeight: isSelected
                                             ? FontWeight.w700
                                             : FontWeight.w500,
@@ -295,7 +346,8 @@ class _InterestOnboardingScreenState
                       key: const Key('onboarding_continue_button'),
                       text: 'Continue to Feed',
                       isLoading: _isSubmitting,
-                      onPressed: _selectedInterests.length >= _minSelectedRequired
+                      onPressed:
+                          _selectedInterests.length >= _minSelectedRequired
                           ? (_isSubmitting ? null : _handleComplete)
                           : null,
                     ),

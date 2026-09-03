@@ -122,6 +122,7 @@ class DiscoverInterestModel extends Equatable {
   final String slug;
   final String? description;
   final String? iconUrl;
+  final bool isAdded;
 
   const DiscoverInterestModel({
     required this.id,
@@ -129,6 +130,7 @@ class DiscoverInterestModel extends Equatable {
     required this.slug,
     this.description,
     this.iconUrl,
+    this.isAdded = false,
   });
 
   factory DiscoverInterestModel.fromJson(Map<String, dynamic> json) {
@@ -138,11 +140,30 @@ class DiscoverInterestModel extends Equatable {
       slug: json['slug'] as String? ?? '',
       description: json['description'] as String?,
       iconUrl: json['icon_url'] as String?,
+      isAdded: json['is_added'] as bool? ?? false,
+    );
+  }
+
+  DiscoverInterestModel copyWith({
+    String? id,
+    String? name,
+    String? slug,
+    String? description,
+    String? iconUrl,
+    bool? isAdded,
+  }) {
+    return DiscoverInterestModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      slug: slug ?? this.slug,
+      description: description ?? this.description,
+      iconUrl: iconUrl ?? this.iconUrl,
+      isAdded: isAdded ?? this.isAdded,
     );
   }
 
   @override
-  List<Object?> get props => [id, name, slug, description, iconUrl];
+  List<Object?> get props => [id, name, slug, description, iconUrl, isAdded];
 }
 
 class DiscoveryPage<T> {
@@ -179,13 +200,75 @@ class UnifiedDiscoverySearch {
   });
 }
 
+/// Wraps a [PostModel] with search-specific enrichment fields returned by
+/// the Meilisearch-backed search endpoint (not available on the regular post API).
+class SearchPostResult extends Equatable {
+  final PostModel post;
+
+  /// Pre-signed thumbnail URL from the Meilisearch index (first media item).
+  /// Only non-null for image/video posts. Prefer this over constructing a URL
+  /// from the post media list, since search results may not include full media.
+  final String? thumbnailUrl;
+
+  /// Highlighted snippet dict from Meilisearch `_formatted` field.
+  /// Keys are field names (e.g. `"title"`, `"content"`), values are HTML
+  /// strings with `<em>` tags wrapping matched tokens.
+  final Map<String, dynamic>? highlight;
+
+  const SearchPostResult({
+    required this.post,
+    this.thumbnailUrl,
+    this.highlight,
+  });
+
+  factory SearchPostResult.fromJson(Map<String, dynamic> json) {
+    return SearchPostResult(
+      post: postFromSearchJson(json),
+      thumbnailUrl: json['thumbnail_url'] as String?,
+      highlight: json['highlight'] as Map<String, dynamic>?,
+    );
+  }
+
+  @override
+  List<Object?> get props => [post, thumbnailUrl, highlight];
+}
+
 PostModel postFromSearchJson(Map<String, dynamic> json) {
+  final commId = json['community_id']?.toString();
+  final commName = json['community_name'] as String?;
+  final thumbnailUrl = json['thumbnail_url'] as String?;
+
+  // When the search result carries a thumbnail_url but no full media array,
+  // inject a synthetic media entry so the card widget shows the thumbnail.
+  final existingMedia = json['media'] as List<dynamic>?;
+  final List<dynamic> media;
+  if ((existingMedia == null || existingMedia.isEmpty) &&
+      thumbnailUrl != null &&
+      thumbnailUrl.trim().isNotEmpty) {
+    final postType = json['post_type'] as String? ?? 'image';
+    media = [
+      {
+        'id': '${json['id']}_thumb',
+        'media_type': postType == 'video' ? 'video' : 'image',
+        'url': thumbnailUrl,
+        'thumbnail_url': thumbnailUrl,
+        'order': 0,
+      }
+    ];
+  } else {
+    media = existingMedia ?? const [];
+  }
+
   return PostModel.fromJson({
     ...json,
     'author': {
       'id': json['author_id']?.toString() ?? '',
       'username': json['author_username'] as String? ?? 'creator',
+      // Thread through author_avatar_url from the enriched search schema
+      'avatar_url': json['author_avatar_url'] as String?,
     },
-    'media': json['media'] ?? const [],
+    'community_id': commId,
+    'community_name': commName,
+    'media': media,
   });
 }

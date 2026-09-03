@@ -90,6 +90,12 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
             ],
           ),
           actions: [
+            if (user?.isSuperuser == true)
+              IconButton(
+                icon: const Icon(Icons.shield_outlined),
+                tooltip: 'Moderation center',
+                onPressed: () => context.pushNamed(RouteNames.reports),
+              ),
             IconButton(
               icon: const Icon(Icons.settings_outlined),
               tooltip: 'Settings',

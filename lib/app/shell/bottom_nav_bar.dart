@@ -17,9 +17,15 @@ class GenZBottomNavBar extends StatelessWidget {
     final isShorts = currentIndex == 1;
     final isDark = Theme.of(context).brightness == Brightness.dark || isShorts;
 
-    final backgroundColor = isDark ? AppColors.midnightNavy : AppColors.lightSurface;
-    final unselectedColor = isDark ? AppColors.textMuted : AppColors.textSecondaryLight;
-    final selectedColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final backgroundColor = isDark
+        ? AppColors.midnightNavy
+        : AppColors.lightSurface;
+    final unselectedColor = isDark
+        ? AppColors.textMuted
+        : AppColors.textSecondaryLight;
+    final selectedColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimaryLight;
 
     return Container(
       decoration: BoxDecoration(
@@ -56,10 +62,7 @@ class GenZBottomNavBar extends StatelessWidget {
                 selectedColor: selectedColor,
                 unselectedColor: unselectedColor,
               ),
-              _buildCreateButton(
-                onTap: () => onTap(2),
-                isDark: isDark,
-              ),
+              _buildCreateButton(onTap: () => onTap(2), isDark: isDark),
               _buildNavItem(
                 index: 3,
                 icon: Icons.search_rounded,

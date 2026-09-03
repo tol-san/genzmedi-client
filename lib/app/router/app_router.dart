@@ -18,6 +18,7 @@ import 'package:client/features/communities/presentation/screens/community_list_
 import 'package:client/features/communities/presentation/screens/create_community_screen.dart';
 import 'package:client/features/feeds/presentation/screens/home_feed_screen.dart';
 import 'package:client/features/feeds/presentation/screens/shorts_feed_screen.dart';
+import 'package:client/features/notifications/presentation/screens/notification_center_screen.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/posts/presentation/screens/create_hub_screen.dart';
 import 'package:client/features/posts/presentation/screens/create_post_screen.dart';
@@ -31,6 +32,8 @@ import 'package:client/features/profiles/presentation/screens/my_profile_screen.
 import 'package:client/features/profiles/presentation/screens/public_profile_screen.dart';
 import 'package:client/features/search/presentation/screens/discover_screen.dart';
 import 'package:client/features/search/presentation/screens/discover_search_screen.dart';
+import 'package:client/features/reports/presentation/screens/report_detail_screen.dart';
+import 'package:client/features/reports/presentation/screens/reports_screen.dart';
 
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
@@ -304,6 +307,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: RouteNames.discoverSearch,
         builder: (context, state) => DiscoverSearchScreen(
           initialQuery: state.uri.queryParameters['q'] ?? '',
+        ),
+      ),
+      GoRoute(
+        path: '/notifications',
+        name: RouteNames.notifications,
+        builder: (context, state) => const NotificationCenterScreen(),
+      ),
+      GoRoute(
+        path: '/moderation/reports',
+        name: RouteNames.reports,
+        builder: (context, state) => ReportsScreen(
+          communityId: state.uri.queryParameters['communityId'],
+          communityName: state.uri.queryParameters['communityName'],
+        ),
+      ),
+      GoRoute(
+        path: '/moderation/reports/:reportId',
+        name: RouteNames.reportDetail,
+        builder: (context, state) => ReportDetailScreen(
+          reportId: state.pathParameters['reportId'] ?? '',
         ),
       ),
 

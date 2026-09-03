@@ -107,4 +107,10 @@ If socket closes due to lost membership:
 - owner can moderate/delete community chat messages;
 - report chat message through reports flow.
 
+The shared Flutter report component now supports `chat_message`, target ID,
+and community scope. The repository submits it to the real reports endpoint.
+There is not yet a Flutter community-chat message list in this repository, so
+the final message-row overflow entry remains part of the Community Chat screen
+implementation rather than the reporting layer.
+
 Exact delete route is not listed in the API endpoint directory; verify OpenAPI.

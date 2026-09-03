@@ -29,15 +29,33 @@ abstract class AppTheme {
         outline: AppColors.lightBorder,
       ),
       textTheme: baseTextTheme.copyWith(
-        displayLarge: AppTypography.display.copyWith(color: AppColors.textPrimaryLight),
-        headlineLarge: AppTypography.headingLarge.copyWith(color: AppColors.textPrimaryLight),
-        headlineMedium: AppTypography.heading.copyWith(color: AppColors.textPrimaryLight),
-        titleLarge: AppTypography.title.copyWith(color: AppColors.textPrimaryLight),
-        bodyLarge: AppTypography.bodyLarge.copyWith(color: AppColors.textPrimaryLight),
-        bodyMedium: AppTypography.body.copyWith(color: AppColors.textPrimaryLight),
-        bodySmall: AppTypography.bodySmall.copyWith(color: AppColors.textSecondaryLight),
-        labelLarge: AppTypography.buttonText.copyWith(color: AppColors.textPrimaryLight),
-        labelMedium: AppTypography.label.copyWith(color: AppColors.textPrimaryLight),
+        displayLarge: AppTypography.display.copyWith(
+          color: AppColors.textPrimaryLight,
+        ),
+        headlineLarge: AppTypography.headingLarge.copyWith(
+          color: AppColors.textPrimaryLight,
+        ),
+        headlineMedium: AppTypography.heading.copyWith(
+          color: AppColors.textPrimaryLight,
+        ),
+        titleLarge: AppTypography.title.copyWith(
+          color: AppColors.textPrimaryLight,
+        ),
+        bodyLarge: AppTypography.bodyLarge.copyWith(
+          color: AppColors.textPrimaryLight,
+        ),
+        bodyMedium: AppTypography.body.copyWith(
+          color: AppColors.textPrimaryLight,
+        ),
+        bodySmall: AppTypography.bodySmall.copyWith(
+          color: AppColors.textSecondaryLight,
+        ),
+        labelLarge: AppTypography.buttonText.copyWith(
+          color: AppColors.textPrimaryLight,
+        ),
+        labelMedium: AppTypography.label.copyWith(
+          color: AppColors.textPrimaryLight,
+        ),
         labelSmall: AppTypography.caption.copyWith(color: AppColors.textMuted),
       ),
       appBarTheme: AppBarTheme(
@@ -79,7 +97,10 @@ abstract class AppTheme {
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(color: AppColors.textPrimaryLight, size: 24);
+            return const IconThemeData(
+              color: AppColors.textPrimaryLight,
+              size: 24,
+            );
           }
           return const IconThemeData(color: AppColors.textMuted, size: 24);
         }),
@@ -119,7 +140,10 @@ abstract class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.lightSurfaceElevated,
-        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.space16, vertical: AppSpacing.space16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.space16,
+          vertical: AppSpacing.space16,
+        ),
         border: OutlineInputBorder(
           borderRadius: AppSpacing.roundedSm,
           borderSide: const BorderSide(color: AppColors.lightBorder),
@@ -130,7 +154,10 @@ abstract class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: AppSpacing.roundedSm,
-          borderSide: const BorderSide(color: AppColors.textPrimaryLight, width: 1.5),
+          borderSide: const BorderSide(
+            color: AppColors.textPrimaryLight,
+            width: 1.5,
+          ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: AppSpacing.roundedSm,
@@ -143,7 +170,9 @@ abstract class AppTheme {
         errorStyle: AppTypography.caption.copyWith(color: AppColors.error),
         errorMaxLines: 2,
         hintStyle: AppTypography.body.copyWith(color: AppColors.textMuted),
-        labelStyle: AppTypography.body.copyWith(color: AppColors.textSecondaryLight),
+        labelStyle: AppTypography.body.copyWith(
+          color: AppColors.textSecondaryLight,
+        ),
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.lightSurface,
@@ -154,7 +183,9 @@ abstract class AppTheme {
         backgroundColor: AppColors.lightSurface,
         modalBackgroundColor: AppColors.lightSurface,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLg)),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppSpacing.radiusLg),
+          ),
         ),
         showDragHandle: true,
         dragHandleColor: AppColors.lightBorder,
@@ -185,15 +216,33 @@ abstract class AppTheme {
         outline: AppColors.navyBorder,
       ),
       textTheme: baseTextTheme.copyWith(
-        displayLarge: AppTypography.display.copyWith(color: AppColors.textPrimaryDark),
-        headlineLarge: AppTypography.headingLarge.copyWith(color: AppColors.textPrimaryDark),
-        headlineMedium: AppTypography.heading.copyWith(color: AppColors.textPrimaryDark),
-        titleLarge: AppTypography.title.copyWith(color: AppColors.textPrimaryDark),
-        bodyLarge: AppTypography.bodyLarge.copyWith(color: AppColors.textPrimaryDark),
-        bodyMedium: AppTypography.body.copyWith(color: AppColors.textPrimaryDark),
-        bodySmall: AppTypography.bodySmall.copyWith(color: AppColors.textSecondaryDark),
-        labelLarge: AppTypography.buttonText.copyWith(color: AppColors.textPrimaryDark),
-        labelMedium: AppTypography.label.copyWith(color: AppColors.textPrimaryDark),
+        displayLarge: AppTypography.display.copyWith(
+          color: AppColors.textPrimaryDark,
+        ),
+        headlineLarge: AppTypography.headingLarge.copyWith(
+          color: AppColors.textPrimaryDark,
+        ),
+        headlineMedium: AppTypography.heading.copyWith(
+          color: AppColors.textPrimaryDark,
+        ),
+        titleLarge: AppTypography.title.copyWith(
+          color: AppColors.textPrimaryDark,
+        ),
+        bodyLarge: AppTypography.bodyLarge.copyWith(
+          color: AppColors.textPrimaryDark,
+        ),
+        bodyMedium: AppTypography.body.copyWith(
+          color: AppColors.textPrimaryDark,
+        ),
+        bodySmall: AppTypography.bodySmall.copyWith(
+          color: AppColors.textSecondaryDark,
+        ),
+        labelLarge: AppTypography.buttonText.copyWith(
+          color: AppColors.textPrimaryDark,
+        ),
+        labelMedium: AppTypography.label.copyWith(
+          color: AppColors.textPrimaryDark,
+        ),
         labelSmall: AppTypography.caption.copyWith(color: AppColors.textMuted),
       ),
       appBarTheme: AppBarTheme(
@@ -202,7 +251,9 @@ abstract class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle: AppTypography.heading.copyWith(color: AppColors.textPrimaryDark),
+        titleTextStyle: AppTypography.heading.copyWith(
+          color: AppColors.textPrimaryDark,
+        ),
         systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(
           statusBarColor: AppColors.transparent,
           systemNavigationBarColor: AppColors.midnightNavy,
@@ -231,7 +282,10 @@ abstract class AppTheme {
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(color: AppColors.primaryCrimson, size: 24);
+            return const IconThemeData(
+              color: AppColors.primaryCrimson,
+              size: 24,
+            );
           }
           return const IconThemeData(color: AppColors.textMuted, size: 24);
         }),
@@ -271,7 +325,10 @@ abstract class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.darkSurface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.space16, vertical: AppSpacing.space16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.space16,
+          vertical: AppSpacing.space16,
+        ),
         border: OutlineInputBorder(
           borderRadius: AppSpacing.roundedSm,
           borderSide: const BorderSide(color: AppColors.navyBorder),
@@ -282,7 +339,10 @@ abstract class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: AppSpacing.roundedSm,
-          borderSide: const BorderSide(color: AppColors.primaryCrimson, width: 1.5),
+          borderSide: const BorderSide(
+            color: AppColors.primaryCrimson,
+            width: 1.5,
+          ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: AppSpacing.roundedSm,
@@ -295,7 +355,9 @@ abstract class AppTheme {
         errorStyle: AppTypography.caption.copyWith(color: AppColors.error),
         errorMaxLines: 2,
         hintStyle: AppTypography.body.copyWith(color: AppColors.textMuted),
-        labelStyle: AppTypography.body.copyWith(color: AppColors.textSecondaryDark),
+        labelStyle: AppTypography.body.copyWith(
+          color: AppColors.textSecondaryDark,
+        ),
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.darkSurface,
@@ -306,7 +368,9 @@ abstract class AppTheme {
         backgroundColor: AppColors.darkSurface,
         modalBackgroundColor: AppColors.darkSurface,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLg)),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppSpacing.radiusLg),
+          ),
         ),
         showDragHandle: true,
         dragHandleColor: AppColors.navyBorder,

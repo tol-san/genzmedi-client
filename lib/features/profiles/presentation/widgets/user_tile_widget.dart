@@ -55,7 +55,9 @@ class UserTileWidget extends StatelessWidget {
                           style: AppTypography.label.copyWith(
                             fontWeight: FontWeight.w600,
                             fontSize: 15,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -63,14 +65,20 @@ class UserTileWidget extends StatelessWidget {
                       ),
                       if (user.isVerified) ...[
                         const SizedBox(width: 4),
-                        const Icon(Icons.verified_rounded, size: 14, color: AppColors.signalMint),
+                        const Icon(
+                          Icons.verified_rounded,
+                          size: 14,
+                          color: AppColors.signalMint,
+                        ),
                       ],
                     ],
                   ),
                   const SizedBox(height: 2),
                   Text(
                     '@${user.username}',
-                    style: AppTypography.caption.copyWith(color: AppColors.textMuted),
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.textMuted,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

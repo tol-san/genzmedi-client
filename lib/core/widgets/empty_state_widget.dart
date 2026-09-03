@@ -38,21 +38,21 @@ class EmptyStateWidget extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.space16),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurface : AppColors.lightBorder.withValues(alpha: 0.5),
+                color: isDark
+                    ? AppColors.darkSurface
+                    : AppColors.lightBorder.withValues(alpha: 0.5),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                size: 36,
-                color: AppColors.textMuted,
-              ),
+              child: Icon(icon, size: 36, color: AppColors.textMuted),
             ),
             const SizedBox(height: AppSpacing.space12),
             Text(
               title,
               textAlign: TextAlign.center,
               style: AppTypography.title.copyWith(
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
               ),
             ),
             if (subtitle != null) ...[

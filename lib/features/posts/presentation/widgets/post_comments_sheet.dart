@@ -18,11 +18,7 @@ class PostCommentsSheet extends ConsumerStatefulWidget {
   final String postId;
   final PostModel? initialPost;
 
-  const PostCommentsSheet({
-    super.key,
-    required this.postId,
-    this.initialPost,
-  });
+  const PostCommentsSheet({super.key, required this.postId, this.initialPost});
 
   static Future<void> show(
     BuildContext context, {
@@ -34,10 +30,8 @@ class PostCommentsSheet extends ConsumerStatefulWidget {
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => PostCommentsSheet(
-        postId: postId,
-        initialPost: post,
-      ),
+      builder: (context) =>
+          PostCommentsSheet(postId: postId, initialPost: post),
     );
   }
 
@@ -80,11 +74,14 @@ class _PostCommentsSheetState extends ConsumerState<PostCommentsSheet> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final state = ref.watch(postDetailNotifierProvider(widget.postId));
-    final notifier = ref.read(postDetailNotifierProvider(widget.postId).notifier);
+    final notifier = ref.read(
+      postDetailNotifierProvider(widget.postId).notifier,
+    );
     final authState = ref.watch(authNotifierProvider);
 
     final currentUser = authState is AuthAuthenticated ? authState.user : null;
-    final currentUserName = currentUser?.displayName ?? currentUser?.username ?? 'User';
+    final currentUserName =
+        currentUser?.displayName ?? currentUser?.username ?? 'User';
     final currentAvatarUrl = currentUser?.avatarUrl;
 
     final post = state.post ?? widget.initialPost;
@@ -129,20 +126,26 @@ class _PostCommentsSheetState extends ConsumerState<PostCommentsSheet> {
                       shape: BoxShape.circle,
                       color: AppColors.primaryCrimson,
                     ),
-                    child: const Icon(Icons.favorite_rounded, size: 12, color: Colors.white),
+                    child: const Icon(
+                      Icons.favorite_rounded,
+                      size: 12,
+                      color: Colors.white,
+                    ),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     isLiked
                         ? (likeCount > 1
-                            ? 'You and ${_formatCount((likeCount - 1).clamp(0, 999999))} others'
-                            : 'Liked by you')
+                              ? 'You and ${_formatCount((likeCount - 1).clamp(0, 999999))} others'
+                              : 'Liked by you')
                         : (likeCount > 0
-                            ? '${_formatCount(likeCount)} ${likeCount == 1 ? "like" : "likes"}'
-                            : 'Be the first to like'),
+                              ? '${_formatCount(likeCount)} ${likeCount == 1 ? "like" : "likes"}'
+                              : 'Be the first to like'),
                     style: AppTypography.bodySmall.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
                       fontSize: 13,
                     ),
                   ),
@@ -174,12 +177,22 @@ class _PostCommentsSheetState extends ConsumerState<PostCommentsSheet> {
                 PopupMenuButton<String>(
                   initialValue: _selectedSort,
                   onSelected: (value) => setState(() => _selectedSort = value),
-                  color: isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  color: isDark
+                      ? AppColors.darkSurfaceElevated
+                      : AppColors.lightSurfaceElevated,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   itemBuilder: (context) => [
-                    const PopupMenuItem(value: 'Most relevant', child: Text('Most relevant')),
+                    const PopupMenuItem(
+                      value: 'Most relevant',
+                      child: Text('Most relevant'),
+                    ),
                     const PopupMenuItem(value: 'Newest', child: Text('Newest')),
-                    const PopupMenuItem(value: 'All comments', child: Text('All comments')),
+                    const PopupMenuItem(
+                      value: 'All comments',
+                      child: Text('All comments'),
+                    ),
                   ],
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -189,14 +202,18 @@ class _PostCommentsSheetState extends ConsumerState<PostCommentsSheet> {
                         style: AppTypography.label.copyWith(
                           fontWeight: FontWeight.w700,
                           fontSize: 14,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
                         ),
                       ),
                       const SizedBox(width: 4),
                       Icon(
                         Icons.keyboard_arrow_down_rounded,
                         size: 18,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight,
                       ),
                     ],
                   ),
@@ -233,50 +250,51 @@ class _PostCommentsSheetState extends ConsumerState<PostCommentsSheet> {
                     ),
                   )
                 : state.comments.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.chat_bubble_outline_rounded,
-                              size: 40,
-                              color: AppColors.textMuted.withValues(alpha: 0.5),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              'No comments yet.',
-                              style: AppTypography.bodySmall.copyWith(
-                                color: isDark
-                                    ? AppColors.textSecondaryDark
-                                    : AppColors.textSecondaryLight,
-                              ),
-                            ),
-                            Text(
-                              'Be the first to share your thoughts!',
-                              style: AppTypography.caption.copyWith(
-                                color: AppColors.textMuted,
-                              ),
-                            ),
-                          ],
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.chat_bubble_outline_rounded,
+                          size: 40,
+                          color: AppColors.textMuted.withValues(alpha: 0.5),
                         ),
-                      )
-                    : ListView.builder(
-                        itemCount: state.comments.length,
-                        itemBuilder: (context, index) {
-                          final comment = state.comments[index];
-                          return CommentTileWidget(
-                            key: ValueKey(comment.id),
-                            comment: comment,
-                            currentUserId: currentUser?.id,
-                            onReply: () {
-                              notifier.setReplyingTo(comment);
-                              _focusNode.requestFocus();
-                            },
-                            onToggleReplies: () => notifier.toggleReplies(comment.id),
-                            onDelete: () => notifier.deleteComment(comment.id),
-                          );
+                        const SizedBox(height: 10),
+                        Text(
+                          'No comments yet.',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondaryLight,
+                          ),
+                        ),
+                        Text(
+                          'Be the first to share your thoughts!',
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: state.comments.length,
+                    itemBuilder: (context, index) {
+                      final comment = state.comments[index];
+                      return CommentTileWidget(
+                        key: ValueKey(comment.id),
+                        comment: comment,
+                        currentUserId: currentUser?.id,
+                        onReply: () {
+                          notifier.setReplyingTo(comment);
+                          _focusNode.requestFocus();
                         },
-                      ),
+                        onToggleReplies: () =>
+                            notifier.toggleReplies(comment.id),
+                        onDelete: () => notifier.deleteComment(comment.id),
+                      );
+                    },
+                  ),
           ),
 
           // 4. Sticky Bottom Comment Composer
@@ -316,7 +334,11 @@ class _PostCommentsSheetState extends ConsumerState<PostCommentsSheet> {
                         const SizedBox(width: 6),
                         GestureDetector(
                           onTap: () => notifier.setReplyingTo(null),
-                          child: const Icon(Icons.close_rounded, size: 14, color: AppColors.textMuted),
+                          child: const Icon(
+                            Icons.close_rounded,
+                            size: 14,
+                            color: AppColors.textMuted,
+                          ),
                         ),
                       ],
                     ),
@@ -332,7 +354,10 @@ class _PostCommentsSheetState extends ConsumerState<PostCommentsSheet> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: isDark
                               ? AppColors.darkSurfaceElevated
@@ -360,13 +385,18 @@ class _PostCommentsSheetState extends ConsumerState<PostCommentsSheet> {
                                   ),
                                   border: InputBorder.none,
                                   isDense: true,
-                                  contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
                                 ),
                               ),
                             ),
                             // Camera / Attachment Icon
                             IconButton(
-                              icon: const Icon(Icons.camera_alt_outlined, size: 20),
+                              icon: const Icon(
+                                Icons.camera_alt_outlined,
+                                size: 20,
+                              ),
                               color: AppColors.textMuted,
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
@@ -375,7 +405,10 @@ class _PostCommentsSheetState extends ConsumerState<PostCommentsSheet> {
                             const SizedBox(width: 8),
                             // Emoji / Sticker Icon
                             IconButton(
-                              icon: const Icon(Icons.emoji_emotions_outlined, size: 20),
+                              icon: const Icon(
+                                Icons.emoji_emotions_outlined,
+                                size: 20,
+                              ),
                               color: AppColors.textMuted,
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
@@ -393,14 +426,18 @@ class _PostCommentsSheetState extends ConsumerState<PostCommentsSheet> {
                                     ),
                                   )
                                 : IconButton(
-                                    icon: const Icon(Icons.send_rounded, size: 20),
+                                    icon: const Icon(
+                                      Icons.send_rounded,
+                                      size: 20,
+                                    ),
                                     color: AppColors.primaryCrimson,
                                     padding: EdgeInsets.zero,
                                     constraints: const BoxConstraints(),
                                     onPressed: () async {
                                       final text = _commentController.text;
                                       if (text.trim().isEmpty) return;
-                                      final success = await notifier.postComment(text);
+                                      final success = await notifier
+                                          .postComment(text);
                                       if (success) {
                                         _commentController.clear();
                                       }

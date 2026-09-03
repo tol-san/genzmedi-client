@@ -5,21 +5,16 @@ import 'package:client/features/profiles/presentation/notifiers/public_profile_s
 
 final publicProfileNotifierProvider = StateNotifierProvider.autoDispose
     .family<PublicProfileNotifier, PublicProfileState, String>((ref, username) {
-  final repository = ref.watch(profileRepositoryProvider);
-  return PublicProfileNotifier(
-    username: username,
-    repository: repository,
-  );
-});
+      final repository = ref.watch(profileRepositoryProvider);
+      return PublicProfileNotifier(username: username, repository: repository);
+    });
 
 class PublicProfileNotifier extends StateNotifier<PublicProfileState> {
   final String username;
   final ProfileRepository repository;
 
-  PublicProfileNotifier({
-    required this.username,
-    required this.repository,
-  }) : super(const PublicProfileState(isLoading: true)) {
+  PublicProfileNotifier({required this.username, required this.repository})
+    : super(const PublicProfileState(isLoading: true)) {
     loadProfile();
   }
 
@@ -41,10 +36,7 @@ class PublicProfileNotifier extends StateNotifier<PublicProfileState> {
         posts: results[1] as dynamic,
       );
     } on AppException catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: e.message,
-      );
+      state = state.copyWith(isLoading: false, errorMessage: e.message);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -85,7 +77,11 @@ class PublicProfileNotifier extends StateNotifier<PublicProfileState> {
     final wasFollowing = state.relationship.isFollowing;
     final targetFollowing = !wasFollowing;
     final previousFollowersCount = currentUser.followersCount;
-    final newFollowersCount = (previousFollowersCount + (targetFollowing ? 1 : -1)).clamp(0, 999999999);
+    final newFollowersCount =
+        (previousFollowersCount + (targetFollowing ? 1 : -1)).clamp(
+          0,
+          999999999,
+        );
 
     // 1. Optimistic UI update
     state = state.copyWith(
@@ -163,10 +159,7 @@ class PublicProfileNotifier extends StateNotifier<PublicProfileState> {
   }
 
   /// Submit a moderation report against the target user
-  Future<bool> reportUser({
-    required String reason,
-    String? description,
-  }) async {
+  Future<bool> reportUser({required String reason, String? description}) async {
     final targetUser = state.user;
     if (targetUser == null) return false;
 
@@ -181,10 +174,7 @@ class PublicProfileNotifier extends StateNotifier<PublicProfileState> {
       state = state.copyWith(isActionLoading: false);
       return true;
     } on AppException catch (e) {
-      state = state.copyWith(
-        isActionLoading: false,
-        errorMessage: e.message,
-      );
+      state = state.copyWith(isActionLoading: false, errorMessage: e.message);
       return false;
     } catch (_) {
       state = state.copyWith(

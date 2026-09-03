@@ -36,12 +36,12 @@ This order follows backend priorities while building shared mobile foundations f
 24. Shorts Feed polish
 25. Search
 26. Notifications
-27. Report submission
+27. Report submission — implemented for profiles, posts/shorts, comments, and communities; chat target support is ready for the future chat row
 
 ## Phase 3 — Moderation
 
-28. Community owner reports
-29. Admin report workflow if consumer app should support it
+28. Community owner reports — implemented with community-scoped list and review actions
+29. Admin report workflow — implemented with platform filters, detail, lifecycle controls, notes, and suspension action
 
 ## Phase 4 — P2 implemented backend integrations
 

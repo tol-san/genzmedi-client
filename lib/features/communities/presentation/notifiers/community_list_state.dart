@@ -8,7 +8,8 @@ class CommunityListState extends Equatable {
   final bool isLoadingJoined;
   final bool isRefreshing;
   final String searchQuery;
-  final bool? privacyFilter; // null = all, false = public only, true = private only
+  final bool?
+  privacyFilter; // null = all, false = public only, true = private only
   final String? errorMessage;
 
   const CommunityListState({
@@ -50,13 +51,13 @@ class CommunityListState extends Equatable {
 
   @override
   List<Object?> get props => [
-        exploreCommunities,
-        joinedCommunities,
-        isLoadingExplore,
-        isLoadingJoined,
-        isRefreshing,
-        searchQuery,
-        privacyFilter,
-        errorMessage,
-      ];
+    exploreCommunities,
+    joinedCommunities,
+    isLoadingExplore,
+    isLoadingJoined,
+    isRefreshing,
+    searchQuery,
+    privacyFilter,
+    errorMessage,
+  ];
 }

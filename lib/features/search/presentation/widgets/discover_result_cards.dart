@@ -16,6 +16,7 @@ class DiscoverCreatorCard extends StatelessWidget {
   final bool isPending;
   final VoidCallback onTap;
   final VoidCallback onFollowToggle;
+  final VoidCallback? onFollowersTap;
   final double? width;
 
   const DiscoverCreatorCard({
@@ -24,6 +25,7 @@ class DiscoverCreatorCard extends StatelessWidget {
     required this.isPending,
     required this.onTap,
     required this.onFollowToggle,
+    this.onFollowersTap,
     this.width,
   });
 
@@ -50,8 +52,7 @@ class DiscoverCreatorCard extends StatelessWidget {
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize:
-                  width != null ? MainAxisSize.max : MainAxisSize.min,
+              mainAxisSize: width != null ? MainAxisSize.max : MainAxisSize.min,
               children: [
                 // Avatar + Name row
                 Row(
@@ -108,10 +109,13 @@ class DiscoverCreatorCard extends StatelessWidget {
 
                 // Follower count
                 const SizedBox(height: AppSpacing.space8),
-                _MetaRow(
-                  icon: Icons.people_outline_rounded,
-                  label: _formatCount(user.followersCount),
-                  suffix: ' followers',
+                GestureDetector(
+                  onTap: onFollowersTap ?? onTap,
+                  child: _MetaRow(
+                    icon: Icons.people_outline_rounded,
+                    label: _formatCount(user.followersCount),
+                    suffix: ' followers',
+                  ),
                 ),
 
                 // Bio
@@ -252,7 +256,9 @@ class DiscoverCommunityCard extends StatelessWidget {
                         )
                       : AppSpacing.roundedLg,
                   border: Border.all(
-                    color: isDark ? AppColors.navyBorder : AppColors.lightBorder,
+                    color: isDark
+                        ? AppColors.navyBorder
+                        : AppColors.lightBorder,
                   ),
                 ),
                 child: Column(
@@ -385,18 +391,44 @@ class DiscoverCommunityCard extends StatelessWidget {
 class DiscoverPostResultCard extends StatelessWidget {
   final PostModel post;
   final VoidCallback onTap;
+  final VoidCallback? onAuthorTap;
+  final VoidCallback? onCommunityTap;
+  final VoidCallback? onLikeToggle;
+  final VoidCallback? onSaveToggle;
+  final VoidCallback? onShareTap;
+  final VoidCallback? onCommentTap;
+  final bool isLikePending;
+  final bool isSavePending;
+
+  /// Thumbnail URL from the Meilisearch search index. When provided, overrides
+  /// the thumbnail derived from [post.media]. Use [SearchPostResult.thumbnailUrl].
+  final String? overrideThumbnailUrl;
 
   const DiscoverPostResultCard({
     super.key,
     required this.post,
     required this.onTap,
+    this.onAuthorTap,
+    this.onCommunityTap,
+    this.onLikeToggle,
+    this.onSaveToggle,
+    this.onShareTap,
+    this.onCommentTap,
+    this.isLikePending = false,
+    this.isSavePending = false,
+    this.overrideThumbnailUrl,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final firstMedia = post.media.isNotEmpty ? post.media.first : null;
-    final thumbUrl = firstMedia?.thumbnailUrl ?? firstMedia?.url;
+    // Prefer the Meilisearch-indexed thumbnail (pre-signed, image/video aware)
+    // over deriving it from the media list (which may be absent in search results).
+    final thumbUrl =
+        overrideThumbnailUrl?.trim().isNotEmpty == true
+            ? overrideThumbnailUrl
+            : (firstMedia?.thumbnailUrl ?? firstMedia?.url);
     final hasThumb = thumbUrl?.trim().isNotEmpty == true;
 
     return Material(
@@ -413,132 +445,287 @@ class DiscoverPostResultCard extends StatelessWidget {
               color: isDark ? AppColors.navyBorder : AppColors.lightBorder,
             ),
           ),
-          child: Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Text content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Author row
-                    Row(
-                      children: [
-                        AppAvatar(
-                          name: post.author.displayName ?? post.author.username,
-                          imageUrl: post.author.avatarUrl,
-                          size: 24,
+              // Author + Metadata header
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: onAuthorTap ?? onTap,
+                    child: AppAvatar(
+                      name: post.author.displayName ?? post.author.username,
+                      imageUrl: post.author.avatarUrl,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.space8),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: onAuthorTap ?? onTap,
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              post.author.displayName ??
+                                  '@${post.author.username}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.caption.copyWith(
+                                color: isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimaryLight,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          if (post.createdAt != null) ...[
+                            const SizedBox(width: 4),
+                            Text(
+                              '· ${_formatTimeAgo(post.createdAt)}',
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.textMuted,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (post.communityName != null &&
+                      post.communityName!.isNotEmpty) ...[
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: onCommunityTap,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
                         ),
-                        const SizedBox(width: AppSpacing.space8),
-                        Expanded(
-                          child: Text(
-                            post.author.displayName ??
-                                '@${post.author.username}',
-                            maxLines: 1,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryCrimson.withValues(
+                            alpha: 0.1,
+                          ),
+                          borderRadius: AppSpacing.roundedFull,
+                        ),
+                        child: Text(
+                          'c/${post.communityName}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.primaryCrimson,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(width: 4),
+                  _VisibilityBadge(visibility: post.visibility),
+                  const SizedBox(width: 4),
+                  _PostTypeBadge(postType: post.postType),
+                ],
+              ),
+
+              const SizedBox(height: AppSpacing.space8),
+
+              // Title and content + media
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (post.title?.trim().isNotEmpty == true) ...[
+                          Text(
+                            post.title!.trim(),
+                            maxLines: hasThumb ? 1 : 2,
                             overflow: TextOverflow.ellipsis,
-                            style: AppTypography.caption.copyWith(
+                            style: AppTypography.label.copyWith(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: isDark
+                                  ? AppColors.textPrimaryDark
+                                  : AppColors.textPrimaryLight,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.space4),
+                        ],
+                        if (post.content?.trim().isNotEmpty == true) ...[
+                          Text(
+                            post.content!.trim(),
+                            maxLines: hasThumb ? 2 : 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.bodySmall.copyWith(
                               color: isDark
                                   ? AppColors.textSecondaryDark
                                   : AppColors.textSecondaryLight,
-                              fontWeight: FontWeight.w700,
                             ),
                           ),
-                        ),
-                        _PostTypeBadge(postType: post.postType),
+                        ],
                       ],
                     ),
-
-                    // Title
-                    if (post.title?.trim().isNotEmpty == true) ...[
-                      const SizedBox(height: AppSpacing.space8),
-                      Text(
-                        post.title!.trim(),
-                        maxLines: hasThumb ? 1 : 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.label.copyWith(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
+                  ),
+                  if (hasThumb) ...[
+                    const SizedBox(width: AppSpacing.space12),
+                    ClipRRect(
+                      borderRadius: AppSpacing.roundedMd,
+                      child: CachedNetworkImage(
+                        imageUrl: resolveMediaUrl(thumbUrl) ?? '',
+                        width: 72,
+                        height: 72,
+                        fit: BoxFit.cover,
+                        errorWidget: (ctx, url, err) => Container(
+                          width: 72,
+                          height: 72,
                           color: isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.textPrimaryLight,
+                              ? AppColors.darkSurfaceElevated
+                              : AppColors.lightBorderSubtle,
+                          child: const Icon(
+                            Icons.image_outlined,
+                            color: AppColors.textMuted,
+                            size: 24,
+                          ),
+                        ),
+                        placeholder: (ctx, url) => Container(
+                          width: 72,
+                          height: 72,
+                          color: isDark
+                              ? AppColors.darkSurfaceElevated
+                              : AppColors.lightBorderSubtle,
                         ),
                       ),
-                    ],
+                    ),
+                  ],
+                ],
+              ),
 
-                    // Body preview
-                    if (post.content?.trim().isNotEmpty == true) ...[
-                      const SizedBox(height: AppSpacing.space4),
-                      Text(
-                        post.content!.trim(),
-                        maxLines: hasThumb ? 2 : 3,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.bodySmall.copyWith(
-                          color: isDark
-                              ? AppColors.textSecondaryDark
-                              : AppColors.textSecondaryLight,
+              const SizedBox(height: AppSpacing.space12),
+
+              // Interactive action bar (Like, Comment, Save, Share)
+              Row(
+                children: [
+                  // Like action
+                  InkWell(
+                    onTap: onLikeToggle,
+                    borderRadius: AppSpacing.roundedSm,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 4,
+                        horizontal: 4,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            post.isLiked
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
+                            size: 16,
+                            color: post.isLiked
+                                ? AppColors.primaryCrimson
+                                : AppColors.textMuted,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _formatCount(post.likeCount),
+                            style: AppTypography.caption.copyWith(
+                              color: post.isLiked
+                                  ? AppColors.primaryCrimson
+                                  : AppColors.textMuted,
+                              fontWeight: post.isLiked
+                                  ? FontWeight.w700
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.space16),
+
+                  // Comment action
+                  InkWell(
+                    onTap: onCommentTap ?? onTap,
+                    borderRadius: AppSpacing.roundedSm,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 4,
+                        horizontal: 4,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.chat_bubble_outline_rounded,
+                            size: 15,
+                            color: AppColors.textMuted,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _formatCount(post.commentCount),
+                            style: AppTypography.caption,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.space16),
+
+                  // Save action
+                  if (onSaveToggle != null) ...[
+                    InkWell(
+                      onTap: onSaveToggle,
+                      borderRadius: AppSpacing.roundedSm,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 4,
+                          horizontal: 4,
+                        ),
+                        child: Icon(
+                          post.isSaved
+                              ? Icons.bookmark_rounded
+                              : Icons.bookmark_border_rounded,
+                          size: 16,
+                          color: post.isSaved
+                              ? AppColors.primaryCrimson
+                              : AppColors.textMuted,
                         ),
                       ),
-                    ],
+                    ),
+                    const SizedBox(width: AppSpacing.space12),
+                  ],
 
-                    // Engagement row
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        _MetaRow(
-                          icon: Icons.favorite_border_rounded,
-                          label: _formatCount(post.likeCount),
-                          suffix: '',
+                  // Share action
+                  if (onShareTap != null) ...[
+                    InkWell(
+                      onTap: onShareTap,
+                      borderRadius: AppSpacing.roundedSm,
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(
+                          vertical: 4,
+                          horizontal: 4,
                         ),
-                        const SizedBox(width: AppSpacing.space12),
-                        _MetaRow(
-                          icon: Icons.chat_bubble_outline_rounded,
-                          label: _formatCount(post.commentCount),
-                          suffix: '',
-                        ),
-                        const Spacer(),
-                        const Icon(
-                          Icons.arrow_forward_rounded,
+                        child: Icon(
+                          Icons.share_outlined,
                           size: 16,
                           color: AppColors.textMuted,
                         ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // Media thumbnail
-              if (hasThumb) ...[
-                const SizedBox(width: AppSpacing.space12),
-                ClipRRect(
-                  borderRadius: AppSpacing.roundedMd,
-                  child: CachedNetworkImage(
-                    imageUrl: resolveMediaUrl(thumbUrl) ?? '',
-                    width: 80,
-                    height: 80,
-                    fit: BoxFit.cover,
-                    errorWidget: (ctx, url, err) => Container(
-                      width: 80,
-                      height: 80,
-                      color: isDark
-                          ? AppColors.darkSurfaceElevated
-                          : AppColors.lightBorderSubtle,
-                      child: const Icon(
-                        Icons.image_outlined,
-                        color: AppColors.textMuted,
-                        size: 28,
                       ),
                     ),
-                    placeholder: (ctx, url) => Container(
-                      width: 80,
-                      height: 80,
-                      color: isDark
-                          ? AppColors.darkSurfaceElevated
-                          : AppColors.lightBorderSubtle,
-                    ),
+                  ],
+
+                  const Spacer(),
+                  const Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 16,
+                    color: AppColors.textMuted,
                   ),
-                ),
-              ],
+                ],
+              ),
             ],
           ),
         ),
@@ -552,11 +739,15 @@ class DiscoverPostResultCard extends StatelessWidget {
 class DiscoverInterestTile extends StatelessWidget {
   final DiscoverInterestModel interest;
   final VoidCallback onTap;
+  final VoidCallback? onToggleAdded;
+  final bool isPending;
 
   const DiscoverInterestTile({
     super.key,
     required this.interest,
     required this.onTap,
+    this.onToggleAdded,
+    this.isPending = false,
   });
 
   @override
@@ -620,13 +811,73 @@ class DiscoverInterestTile extends StatelessWidget {
                         style: AppTypography.caption,
                       )
                     else
-                      Text(
-                        '#${interest.slug}',
-                        style: AppTypography.caption,
-                      ),
+                      Text('#${interest.slug}', style: AppTypography.caption),
                   ],
                 ),
               ),
+              if (onToggleAdded != null) ...[
+                const SizedBox(width: AppSpacing.space8),
+                InkWell(
+                  onTap: isPending ? null : onToggleAdded,
+                  borderRadius: AppSpacing.roundedFull,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: interest.isAdded
+                          ? AppColors.primaryCrimson.withValues(alpha: 0.12)
+                          : (isDark
+                                ? AppColors.darkSurfaceElevated
+                                : AppColors.lightBorderSubtle),
+                      borderRadius: AppSpacing.roundedFull,
+                      border: Border.all(
+                        color: interest.isAdded
+                            ? AppColors.primaryCrimson
+                            : (isDark
+                                  ? AppColors.navyBorder
+                                  : AppColors.lightBorder),
+                      ),
+                    ),
+                    child: isPending
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                interest.isAdded
+                                    ? Icons.check_rounded
+                                    : Icons.add_rounded,
+                                size: 14,
+                                color: interest.isAdded
+                                    ? AppColors.primaryCrimson
+                                    : (isDark
+                                          ? AppColors.textPrimaryDark
+                                          : AppColors.textPrimaryLight),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                interest.isAdded ? 'Added' : 'Add',
+                                style: AppTypography.caption.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: interest.isAdded
+                                      ? AppColors.primaryCrimson
+                                      : (isDark
+                                            ? AppColors.textPrimaryDark
+                                            : AppColors.textPrimaryLight),
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
+              ],
+              const SizedBox(width: AppSpacing.space8),
               const Icon(
                 Icons.north_east_rounded,
                 size: 18,
@@ -660,10 +911,7 @@ class _MetaRow extends StatelessWidget {
       children: [
         Icon(icon, size: 13, color: AppColors.textMuted),
         const SizedBox(width: 4),
-        Text(
-          '$label$suffix',
-          style: AppTypography.caption,
-        ),
+        Text('$label$suffix', style: AppTypography.caption),
       ],
     );
   }
@@ -793,7 +1041,9 @@ Color _accentForSlug(String slug) {
   if (lower.contains('fashion') || lower.contains('streetwear')) {
     return const Color(0xFFEC4899);
   }
-  if (lower.contains('tech') || lower.contains('ai') || lower.contains('code')) {
+  if (lower.contains('tech') ||
+      lower.contains('ai') ||
+      lower.contains('code')) {
     return const Color(0xFF10B981);
   }
   if (lower.contains('design') || lower.contains('art')) {
@@ -825,14 +1075,87 @@ IconData _iconForSlug(String slug) {
   if (lower.contains('fashion') || lower.contains('streetwear')) {
     return Icons.checkroom_rounded;
   }
-  if (lower.contains('tech') || lower.contains('ai')) return Icons.memory_rounded;
-  if (lower.contains('code') || lower.contains('dev')) return Icons.code_rounded;
-  if (lower.contains('design') || lower.contains('art')) return Icons.palette_outlined;
-  if (lower.contains('anime') || lower.contains('manga')) return Icons.auto_awesome_rounded;
-  if (lower.contains('sport') || lower.contains('fitness')) return Icons.fitness_center_rounded;
-  if (lower.contains('food') || lower.contains('cook')) return Icons.restaurant_outlined;
-  if (lower.contains('travel') || lower.contains('nature')) return Icons.flight_takeoff_rounded;
-  if (lower.contains('photo')) return Icons.camera_alt_outlined;
-  if (lower.contains('film') || lower.contains('video')) return Icons.movie_outlined;
+  if (lower.contains('tech') || lower.contains('ai')) {
+    return Icons.memory_rounded;
+  }
+  if (lower.contains('code') || lower.contains('dev')) {
+    return Icons.code_rounded;
+  }
+  if (lower.contains('design') || lower.contains('art')) {
+    return Icons.palette_outlined;
+  }
+  if (lower.contains('anime') || lower.contains('manga')) {
+    return Icons.auto_awesome_rounded;
+  }
+  if (lower.contains('sport') || lower.contains('fitness')) {
+    return Icons.fitness_center_rounded;
+  }
+  if (lower.contains('food') || lower.contains('cook')) {
+    return Icons.restaurant_outlined;
+  }
+  if (lower.contains('travel') || lower.contains('nature')) {
+    return Icons.flight_takeoff_rounded;
+  }
+  if (lower.contains('photo')) {
+    return Icons.camera_alt_outlined;
+  }
+  if (lower.contains('film') || lower.contains('video')) {
+    return Icons.movie_outlined;
+  }
   return Icons.interests_rounded;
+}
+
+String _formatTimeAgo(DateTime? date) {
+  if (date == null) return 'Just now';
+  final now = DateTime.now();
+  final difference = now.difference(date);
+
+  if (difference.inSeconds < 60) return 'Just now';
+  if (difference.inMinutes < 60) return '${difference.inMinutes}m ago';
+  if (difference.inHours < 24) return '${difference.inHours}h ago';
+  if (difference.inDays < 7) return '${difference.inDays}d ago';
+  if (difference.inDays < 30) return '${(difference.inDays / 7).floor()}w ago';
+  return '${date.day}/${date.month}/${date.year}';
+}
+
+class _VisibilityBadge extends StatelessWidget {
+  final String visibility;
+  const _VisibilityBadge({required this.visibility});
+
+  @override
+  Widget build(BuildContext context) {
+    if (visibility == 'public') return const SizedBox.shrink();
+    final isFollowers = visibility == 'followers';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+      decoration: BoxDecoration(
+        color: (isFollowers ? AppColors.primaryElectricBlue : AppColors.warning)
+            .withValues(alpha: 0.12),
+        borderRadius: AppSpacing.roundedFull,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isFollowers ? Icons.people_rounded : Icons.lock_outline_rounded,
+            size: 10,
+            color: isFollowers
+                ? AppColors.primaryElectricBlue
+                : AppColors.warning,
+          ),
+          const SizedBox(width: 3),
+          Text(
+            isFollowers ? 'Followers' : 'Private',
+            style: AppTypography.caption.copyWith(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              color: isFollowers
+                  ? AppColors.primaryElectricBlue
+                  : AppColors.warning,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

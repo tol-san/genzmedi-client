@@ -97,19 +97,19 @@ class CommunityModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        ownerId,
-        interestId,
-        name,
-        slug,
-        description,
-        coverImageUrl,
-        avatarUrl,
-        isPrivate,
-        memberCount,
-        postCount,
-        createdAt,
-      ];
+    id,
+    ownerId,
+    interestId,
+    name,
+    slug,
+    description,
+    coverImageUrl,
+    avatarUrl,
+    isPrivate,
+    memberCount,
+    postCount,
+    createdAt,
+  ];
 }
 
 class CommunityDetailModel extends Equatable {
@@ -158,12 +158,12 @@ class CommunityDetailModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        community,
-        isMember,
-        isOwner,
-        membershipRole,
-        joinRequestStatus,
-      ];
+    community,
+    isMember,
+    isOwner,
+    membershipRole,
+    joinRequestStatus,
+  ];
 }
 
 class CommunityMemberModel extends Equatable {
@@ -201,14 +201,14 @@ class CommunityMemberModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        userId,
-        username,
-        displayName,
-        avatarUrl,
-        role,
-        joinedAt,
-      ];
+    id,
+    userId,
+    username,
+    displayName,
+    avatarUrl,
+    role,
+    joinedAt,
+  ];
 }
 
 class JoinRequestModel extends Equatable {
@@ -246,14 +246,14 @@ class JoinRequestModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        userId,
-        username,
-        displayName,
-        avatarUrl,
-        status,
-        createdAt,
-      ];
+    id,
+    userId,
+    username,
+    displayName,
+    avatarUrl,
+    status,
+    createdAt,
+  ];
 }
 
 class CommunityCreateRequestModel {

@@ -6,16 +6,16 @@ import 'package:client/features/posts/data/models/post_models.dart';
 
 final shortsFeedNotifierProvider =
     StateNotifierProvider<ShortsFeedNotifier, ShortsFeedState>((ref) {
-  final repository = ref.watch(feedRepositoryProvider);
-  return ShortsFeedNotifier(repository: repository);
-});
+      final repository = ref.watch(feedRepositoryProvider);
+      return ShortsFeedNotifier(repository: repository);
+    });
 
 class ShortsFeedNotifier extends StateNotifier<ShortsFeedState> {
   final FeedRepository repository;
   static const int _pageSize = 20;
 
   ShortsFeedNotifier({required this.repository})
-      : super(const ShortsFeedState(isLoading: true)) {
+    : super(const ShortsFeedState(isLoading: true)) {
     loadInitial();
   }
 
@@ -30,10 +30,7 @@ class ShortsFeedNotifier extends StateNotifier<ShortsFeedState> {
         isLoading: false,
       );
     } on AppException catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: e.message,
-      );
+      state = state.copyWith(isLoading: false, errorMessage: e.message);
     } catch (_) {
       state = state.copyWith(
         isLoading: false,
@@ -53,10 +50,7 @@ class ShortsFeedNotifier extends StateNotifier<ShortsFeedState> {
         isRefreshing: false,
       );
     } on AppException catch (e) {
-      state = state.copyWith(
-        isRefreshing: false,
-        errorMessage: e.message,
-      );
+      state = state.copyWith(isRefreshing: false, errorMessage: e.message);
     } catch (_) {
       state = state.copyWith(
         isRefreshing: false,
@@ -68,7 +62,9 @@ class ShortsFeedNotifier extends StateNotifier<ShortsFeedState> {
   void setActiveIndex(int index) {
     if (state.activeIndex != index) {
       state = state.copyWith(activeIndex: index);
-      if (index >= state.shorts.length - 3 && state.hasMore && !state.isLoadingMore) {
+      if (index >= state.shorts.length - 3 &&
+          state.hasMore &&
+          !state.isLoadingMore) {
         loadMore();
       }
     }
@@ -102,7 +98,10 @@ class ShortsFeedNotifier extends StateNotifier<ShortsFeedState> {
     final post = state.shorts[index];
     final wasLiked = post.isLiked;
     final targetLiked = !wasLiked;
-    final newLikeCount = (post.likeCount + (targetLiked ? 1 : -1)).clamp(0, 999999999);
+    final newLikeCount = (post.likeCount + (targetLiked ? 1 : -1)).clamp(
+      0,
+      999999999,
+    );
 
     final updated = List<PostModel>.from(state.shorts);
     updated[index] = post.copyWith(
@@ -134,7 +133,10 @@ class ShortsFeedNotifier extends StateNotifier<ShortsFeedState> {
     final post = state.shorts[index];
     final wasSaved = post.isSaved;
     final targetSaved = !wasSaved;
-    final newSaveCount = (post.saveCount + (targetSaved ? 1 : -1)).clamp(0, 999999999);
+    final newSaveCount = (post.saveCount + (targetSaved ? 1 : -1)).clamp(
+      0,
+      999999999,
+    );
 
     final updated = List<PostModel>.from(state.shorts);
     updated[index] = post.copyWith(

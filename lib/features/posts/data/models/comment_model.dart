@@ -23,11 +23,11 @@ class CommentAuthorModel extends Equatable {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'username': username,
-        'display_name': displayName,
-        'avatar_url': avatarUrl,
-      };
+    'id': id,
+    'username': username,
+    'display_name': displayName,
+    'avatar_url': avatarUrl,
+  };
 
   @override
   List<Object?> get props => [id, username, displayName, avatarUrl];
@@ -78,16 +78,16 @@ class CommentModel extends Equatable {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'post_id': postId,
-        'parent_id': parentId,
-        'author': author.toJson(),
-        'content': content,
-        'like_count': likeCount,
-        'reply_count': replyCount,
-        'is_edited': isEdited,
-        'created_at': createdAt?.toIso8601String(),
-      };
+    'id': id,
+    'post_id': postId,
+    'parent_id': parentId,
+    'author': author.toJson(),
+    'content': content,
+    'like_count': likeCount,
+    'reply_count': replyCount,
+    'is_edited': isEdited,
+    'created_at': createdAt?.toIso8601String(),
+  };
 
   CommentModel copyWith({
     String? id,
@@ -119,16 +119,16 @@ class CommentModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        postId,
-        parentId,
-        author,
-        content,
-        likeCount,
-        replyCount,
-        isEdited,
-        createdAt,
-        replies,
-        isRepliesExpanded,
-      ];
+    id,
+    postId,
+    parentId,
+    author,
+    content,
+    likeCount,
+    replyCount,
+    isEdited,
+    createdAt,
+    replies,
+    isRepliesExpanded,
+  ];
 }

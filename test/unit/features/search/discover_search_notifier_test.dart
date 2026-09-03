@@ -377,6 +377,83 @@ void main() {
       verify(() => mockRepo.joinCommunity('c-1')).called(1);
     });
 
+    // ── toggleLike in search ───────────────────────────────────────────────
+
+    test('toggleLike optimistically likes post and reverts on error', () async {
+      _stubSearchAll(mockRepo, 'neo', _unified(posts: [_post], query: 'neo'));
+      when(() => mockRepo.likePost('p-1', like: true)).thenAnswer((_) async => true);
+
+      final notifier = _make(mockRepo);
+      await notifier.updateQuery('neo');
+      expect(notifier.state.posts, isNotEmpty);
+      expect(notifier.state.posts.first.isLiked, isFalse);
+
+      await notifier.toggleLike('p-1');
+      expect(notifier.state.posts.first.isLiked, isTrue);
+      expect(notifier.state.posts.first.likeCount, 11);
+
+      // Revert case
+      when(() => mockRepo.likePost('p-1', like: false))
+          .thenThrow(const NetworkException(message: 'like fail'));
+      await notifier.toggleLike('p-1');
+      expect(notifier.state.posts.first.isLiked, isTrue); // Reverted back
+      expect(notifier.state.errorMessage, contains('like fail'));
+    });
+
+    // ── toggleSave in search ───────────────────────────────────────────────
+
+    test('toggleSave optimistically saves post and reverts on error', () async {
+      _stubSearchAll(mockRepo, 'neo', _unified(posts: [_post], query: 'neo'));
+      when(() => mockRepo.savePost('p-1', save: true)).thenAnswer((_) async => true);
+
+      final notifier = _make(mockRepo);
+      await notifier.updateQuery('neo');
+      expect(notifier.state.posts, isNotEmpty);
+      expect(notifier.state.posts.first.isSaved, isFalse);
+
+      await notifier.toggleSave('p-1');
+      expect(notifier.state.posts.first.isSaved, isTrue);
+
+      // Revert case
+      when(() => mockRepo.savePost('p-1', save: false))
+          .thenThrow(const NetworkException(message: 'save fail'));
+      await notifier.toggleSave('p-1');
+      expect(notifier.state.posts.first.isSaved, isTrue); // Reverted back
+      expect(notifier.state.errorMessage, contains('save fail'));
+    });
+
+    // ── toggleInterest in search ───────────────────────────────────────────
+
+    test('toggleInterest optimistically updates interest status and reverts on error', () async {
+      _stubSearchAll(mockRepo, 'neo', _unified(interests: [_interest], query: 'neo'));
+      when(() => mockRepo.toggleUserInterest('i-1', add: true)).thenAnswer((_) async {});
+
+      final notifier = _make(mockRepo);
+      await notifier.updateQuery('neo');
+      expect(notifier.state.interests, isNotEmpty);
+      expect(notifier.state.interests.first.isAdded, isFalse);
+
+      await notifier.toggleInterest(_interest);
+      expect(notifier.state.interests.first.isAdded, isTrue);
+
+      // Revert case
+      when(() => mockRepo.toggleUserInterest('i-1', add: false))
+          .thenThrow(const NetworkException(message: 'interest fail'));
+      await notifier.toggleInterest(_interest.copyWith(isAdded: true));
+      expect(notifier.state.interests.first.isAdded, isTrue); // Reverted back
+      expect(notifier.state.errorMessage, contains('interest fail'));
+    });
+
+    // ── sharePost ──────────────────────────────────────────────────────────
+
+    test('sharePost calls repo and returns url', () async {
+      when(() => mockRepo.sharePost('p-1')).thenAnswer((_) async => 'https://genz.app/p-1');
+
+      final notifier = _make(mockRepo);
+      final url = await notifier.sharePost('p-1');
+      expect(url, 'https://genz.app/p-1');
+    });
+
     // ── activeCount ─────────────────────────────────────────────────────────
 
     test('activeCount returns totalResults for all category', () {

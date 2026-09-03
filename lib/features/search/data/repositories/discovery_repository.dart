@@ -211,6 +211,36 @@ class DiscoveryRepository {
     }
   }
 
+  Future<void> toggleUserInterest(
+    String interestId, {
+    required bool add,
+  }) async {
+    try {
+      final profileResp = await dio.get(ApiEndpoints.myProfile);
+      final profileData = profileResp.data as Map<String, dynamic>? ?? {};
+      final currentInterests =
+          (profileData['interests'] as List<dynamic>? ?? [])
+              .map((e) => e.toString())
+              .toList();
+
+      final updatedInterests = List<String>.from(currentInterests);
+      if (add) {
+        if (!updatedInterests.contains(interestId)) {
+          updatedInterests.add(interestId);
+        }
+      } else {
+        updatedInterests.remove(interestId);
+      }
+
+      await dio.put(
+        ApiEndpoints.myInterests,
+        data: {'interest_ids': updatedInterests},
+      );
+    } on DioException catch (error) {
+      throw ErrorMapper.fromDioException(error);
+    }
+  }
+
   DiscoveryPage<T> _page<T>(
     Map<String, dynamic> data,
     T Function(Map<String, dynamic>) parser,

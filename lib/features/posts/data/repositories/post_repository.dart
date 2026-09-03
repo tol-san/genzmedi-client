@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/core/errors/error_mapper.dart';
@@ -49,10 +50,7 @@ class PostRepository {
     try {
       final fileName = file.path.split('/').last.split(r'\').last;
       final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(
-          file.path,
-          filename: fileName,
-        ),
+        'file': await MultipartFile.fromFile(file.path, filename: fileName),
       });
 
       final response = await dio.post(

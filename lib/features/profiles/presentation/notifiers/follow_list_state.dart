@@ -83,17 +83,17 @@ class FollowListState extends Equatable {
 
   @override
   List<Object?> get props => [
-        followers,
-        following,
-        followingStatusMap,
-        isLoadingFollowers,
-        isLoadingFollowing,
-        isRefreshing,
-        hasMoreFollowers,
-        hasMoreFollowing,
-        followersOffset,
-        followingOffset,
-        searchQuery,
-        errorMessage,
-      ];
+    followers,
+    following,
+    followingStatusMap,
+    isLoadingFollowers,
+    isLoadingFollowing,
+    isRefreshing,
+    hasMoreFollowers,
+    hasMoreFollowing,
+    followersOffset,
+    followingOffset,
+    searchQuery,
+    errorMessage,
+  ];
 }

@@ -24,11 +24,11 @@ class PostAuthorModel extends Equatable {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'username': username,
-        'display_name': displayName,
-        'avatar_url': avatarUrl,
-      };
+    'id': id,
+    'username': username,
+    'display_name': displayName,
+    'avatar_url': avatarUrl,
+  };
 
   @override
   List<Object?> get props => [id, username, displayName, avatarUrl];
@@ -73,18 +73,27 @@ class MediaItemModel extends Equatable {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'media_type': mediaType,
-        'url': url,
-        'thumbnail_url': thumbnailUrl,
-        'duration': duration,
-        'width': width,
-        'height': height,
-        'order': order,
-      };
+    'id': id,
+    'media_type': mediaType,
+    'url': url,
+    'thumbnail_url': thumbnailUrl,
+    'duration': duration,
+    'width': width,
+    'height': height,
+    'order': order,
+  };
 
   @override
-  List<Object?> get props => [id, mediaType, url, thumbnailUrl, duration, width, height, order];
+  List<Object?> get props => [
+    id,
+    mediaType,
+    url,
+    thumbnailUrl,
+    duration,
+    width,
+    height,
+    order,
+  ];
 }
 
 /// Core Post model for personal profile, feeds, and community feeds
@@ -95,6 +104,8 @@ class PostModel extends Equatable {
   final String? title;
   final String? content;
   final String visibility;
+  final String? communityId;
+  final String? communityName;
   final List<MediaItemModel> media;
   final int likeCount;
   final int commentCount;
@@ -111,6 +122,8 @@ class PostModel extends Equatable {
     this.title,
     this.content,
     this.visibility = 'public',
+    this.communityId,
+    this.communityName,
     this.media = const [],
     this.likeCount = 0,
     this.commentCount = 0,
@@ -127,10 +140,16 @@ class PostModel extends Equatable {
 
   factory PostModel.fromJson(Map<String, dynamic> json) {
     final authorJson = json['author'] as Map<String, dynamic>? ?? {};
-    final mediaList = (json['media'] as List<dynamic>?)
+    final mediaList =
+        (json['media'] as List<dynamic>?)
             ?.map((e) => MediaItemModel.fromJson(e as Map<String, dynamic>))
             .toList() ??
         const [];
+    final communityJson = json['community'] as Map<String, dynamic>?;
+    final commId =
+        json['community_id']?.toString() ?? communityJson?['id']?.toString();
+    final commName =
+        json['community_name'] as String? ?? communityJson?['name'] as String?;
 
     return PostModel(
       id: json['id']?.toString() ?? '',
@@ -139,6 +158,8 @@ class PostModel extends Equatable {
       title: json['title'] as String?,
       content: json['content'] as String?,
       visibility: json['visibility'] as String? ?? 'public',
+      communityId: commId,
+      communityName: commName,
       media: mediaList,
       likeCount: (json['like_count'] as num?)?.toInt() ?? 0,
       commentCount: (json['comment_count'] as num?)?.toInt() ?? 0,
@@ -153,21 +174,23 @@ class PostModel extends Equatable {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'author': author.toJson(),
-        'post_type': postType,
-        'title': title,
-        'content': content,
-        'visibility': visibility,
-        'media': media.map((e) => e.toJson()).toList(),
-        'like_count': likeCount,
-        'comment_count': commentCount,
-        'share_count': shareCount,
-        'save_count': saveCount,
-        'is_liked': isLiked,
-        'is_saved': isSaved,
-        'created_at': createdAt?.toIso8601String(),
-      };
+    'id': id,
+    'author': author.toJson(),
+    'post_type': postType,
+    'title': title,
+    'content': content,
+    'visibility': visibility,
+    if (communityId != null) 'community_id': communityId,
+    if (communityName != null) 'community_name': communityName,
+    'media': media.map((e) => e.toJson()).toList(),
+    'like_count': likeCount,
+    'comment_count': commentCount,
+    'share_count': shareCount,
+    'save_count': saveCount,
+    'is_liked': isLiked,
+    'is_saved': isSaved,
+    'created_at': createdAt?.toIso8601String(),
+  };
 
   PostModel copyWith({
     String? id,
@@ -176,6 +199,8 @@ class PostModel extends Equatable {
     String? title,
     String? content,
     String? visibility,
+    String? communityId,
+    String? communityName,
     List<MediaItemModel>? media,
     int? likeCount,
     int? commentCount,
@@ -192,6 +217,8 @@ class PostModel extends Equatable {
       title: title ?? this.title,
       content: content ?? this.content,
       visibility: visibility ?? this.visibility,
+      communityId: communityId ?? this.communityId,
+      communityName: communityName ?? this.communityName,
       media: media ?? this.media,
       likeCount: likeCount ?? this.likeCount,
       commentCount: commentCount ?? this.commentCount,
@@ -205,21 +232,23 @@ class PostModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        author,
-        postType,
-        title,
-        content,
-        visibility,
-        media,
-        likeCount,
-        commentCount,
-        shareCount,
-        saveCount,
-        isLiked,
-        isSaved,
-        createdAt,
-      ];
+    id,
+    author,
+    postType,
+    title,
+    content,
+    visibility,
+    communityId,
+    communityName,
+    media,
+    likeCount,
+    commentCount,
+    shareCount,
+    saveCount,
+    isLiked,
+    isSaved,
+    createdAt,
+  ];
 }
 
 /// Response returned from POST /posts/media
@@ -252,16 +281,23 @@ class MediaUploadModel extends Equatable {
   }
 
   Map<String, dynamic> toJson() => {
-        'url': url,
-        'media_type': mediaType,
-        'thumbnail_url': thumbnailUrl,
-        'width': width,
-        'height': height,
-        'duration': duration,
-      };
+    'url': url,
+    'media_type': mediaType,
+    'thumbnail_url': thumbnailUrl,
+    'width': width,
+    'height': height,
+    'duration': duration,
+  };
 
   @override
-  List<Object?> get props => [url, mediaType, thumbnailUrl, width, height, duration];
+  List<Object?> get props => [
+    url,
+    mediaType,
+    thumbnailUrl,
+    width,
+    height,
+    duration,
+  ];
 }
 
 /// Request payload for POST /posts
@@ -283,22 +319,25 @@ class PostCreateRequestModel {
   });
 
   Map<String, dynamic> toJson() => {
-        'post_type': postType,
-        if (title != null && title!.isNotEmpty) 'title': title,
-        if (content != null && content!.isNotEmpty) 'content': content,
-        'visibility': visibility,
-        if (communityId != null && communityId!.isNotEmpty) 'community_id': communityId,
-        if (media.isNotEmpty)
-          'media': media
-              .map((m) => {
-                    'media_type': m.mediaType,
-                    'url': m.url,
-                    if (m.thumbnailUrl != null) 'thumbnail_url': m.thumbnailUrl,
-                    if (m.duration != null) 'duration': m.duration,
-                    if (m.width != null) 'width': m.width,
-                    if (m.height != null) 'height': m.height,
-                    'order': m.order,
-                  })
-              .toList(),
-      };
+    'post_type': postType,
+    if (title != null && title!.isNotEmpty) 'title': title,
+    if (content != null && content!.isNotEmpty) 'content': content,
+    'visibility': visibility,
+    if (communityId != null && communityId!.isNotEmpty)
+      'community_id': communityId,
+    if (media.isNotEmpty)
+      'media': media
+          .map(
+            (m) => {
+              'media_type': m.mediaType,
+              'url': m.url,
+              if (m.thumbnailUrl != null) 'thumbnail_url': m.thumbnailUrl,
+              if (m.duration != null) 'duration': m.duration,
+              if (m.width != null) 'width': m.width,
+              if (m.height != null) 'height': m.height,
+              'order': m.order,
+            },
+          )
+          .toList(),
+  };
 }

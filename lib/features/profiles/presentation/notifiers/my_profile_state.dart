@@ -48,13 +48,13 @@ class MyProfileState extends Equatable {
 
   @override
   List<Object?> get props => [
-        user,
-        isLoadingProfile,
-        isRefreshing,
-        posts,
-        isLoadingPosts,
-        savedPosts,
-        isLoadingSaved,
-        errorMessage,
-      ];
+    user,
+    isLoadingProfile,
+    isRefreshing,
+    posts,
+    isLoadingPosts,
+    savedPosts,
+    isLoadingSaved,
+    errorMessage,
+  ];
 }

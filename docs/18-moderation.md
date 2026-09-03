@@ -43,6 +43,17 @@ Filters documented:
 
 Use backend authorization to determine whether user can access.
 
+## Flutter implementation
+
+- `/moderation/reports` opens the paginated moderation center.
+- System administrators enter from the shield action on My Profile.
+- Community owners enter through **Manage reports** on a community they own;
+  the route supplies that community as the required scope.
+- Status and target chips reload the list using backend filters.
+- Pull-to-refresh and near-end pagination are supported.
+- Empty, loading, permission-error, and retry states are explicit.
+- Selecting a card opens `/moderation/reports/:reportId`.
+
 ## Report detail
 
 Show:
@@ -70,3 +81,9 @@ Refresh
 ```
 
 Do not allow invalid transitions in UI, but backend remains authoritative.
+
+The detail screen offers **Start review** for pending reports and a completion
+sheet for resolving or rejecting. Resolution notes accept up to 1,000
+characters. `user_suspended` is only shown to accounts whose authenticated
+user payload has `is_superuser: true`; community owners can use `none` or
+`dismissed`. Closed reports render read-only and cannot be reopened.

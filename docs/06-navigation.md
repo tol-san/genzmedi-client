@@ -56,6 +56,11 @@ Result
 ### Notification deep link
 A notification may navigate to the target entity only if target data/route is provided by the backend contract.
 
+The Home bell opens `/notifications`. Notification rows route to public
+profiles, post details, comment threads, or communities from `entity_type` and
+`entity_id`. Comment IDs are resolved through the comment-detail endpoint to
+obtain the owning post before navigation.
+
 ## Back behavior
 
 - restore previous tab/screen context;

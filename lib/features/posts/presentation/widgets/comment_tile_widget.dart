@@ -6,6 +6,8 @@ import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/theme/app_typography.dart';
 import 'package:client/core/widgets/app_avatar.dart';
 import 'package:client/features/posts/data/models/comment_model.dart';
+import 'package:client/features/reports/data/models/report_models.dart';
+import 'package:client/features/reports/presentation/widgets/report_sheet.dart';
 
 class CommentTileWidget extends StatelessWidget {
   final CommentModel comment;
@@ -40,7 +42,8 @@ class CommentTileWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isAuthor = currentUserId != null && comment.author.id == currentUserId;
+    final isAuthor =
+        currentUserId != null && comment.author.id == currentUserId;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -76,115 +79,165 @@ class CommentTileWidget extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: GestureDetector(
-                              onTap: () {
-                                context.pushNamed(
-                                  RouteNames.publicProfile,
-                                  pathParameters: {'username': comment.author.username},
-                                );
-                              },
-                              child: Text(
-                                comment.author.displayName ?? comment.author.username,
-                                style: AppTypography.label.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: isReply ? 13 : 14,
-                                  color: isDark
-                                      ? AppColors.textPrimaryDark
-                                      : AppColors.textPrimaryLight,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        Flexible(
+                          child: GestureDetector(
+                            onTap: () {
+                              context.pushNamed(
+                                RouteNames.publicProfile,
+                                pathParameters: {
+                                  'username': comment.author.username,
+                                },
+                              );
+                            },
+                            child: Text(
+                              comment.author.displayName ??
+                                  comment.author.username,
+                              style: AppTypography.label.copyWith(
+                                fontWeight: FontWeight.w700,
+                                fontSize: isReply ? 13 : 14,
+                                color: isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimaryLight,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const SizedBox(width: 6),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '· ${_formatTimeAgo(comment.createdAt)}',
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.textMuted,
+                            fontSize: 12,
+                          ),
+                        ),
+                        if (comment.isEdited) ...[
+                          const SizedBox(width: 4),
                           Text(
-                            '· ${_formatTimeAgo(comment.createdAt)}',
+                            '(edited)',
                             style: AppTypography.caption.copyWith(
                               color: AppColors.textMuted,
-                              fontSize: 12,
+                              fontSize: 10,
+                              fontStyle: FontStyle.italic,
                             ),
                           ),
-                          if (comment.isEdited) ...[
-                            const SizedBox(width: 4),
-                            Text(
-                              '(edited)',
-                              style: AppTypography.caption.copyWith(
-                                color: AppColors.textMuted,
-                                fontSize: 10,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ],
-                          const Spacer(),
-                          if (isAuthor && onDelete != null)
-                            IconButton(
-                              icon: const Icon(Icons.more_horiz_rounded, size: 16),
-                              color: AppColors.textMuted,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              onPressed: onDelete,
-                            ),
                         ],
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        comment.content,
-                        style: AppTypography.body.copyWith(
-                          color: isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.textPrimaryLight,
-                          fontSize: 14,
-                          height: 1.35,
+                        const Spacer(),
+                        PopupMenuButton<String>(
+                          tooltip: 'Comment options',
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(Icons.more_horiz_rounded, size: 16),
+                          onSelected: (value) {
+                            if (value == 'delete') {
+                              onDelete?.call();
+                            } else if (value == 'report') {
+                              ReportSheet.show(
+                                context,
+                                targetType: ReportTargetType.comment,
+                                targetId: comment.id,
+                                targetLabel:
+                                    'comment by @${comment.author.username}',
+                              );
+                            }
+                          },
+                          itemBuilder: (_) => [
+                            if (isAuthor && onDelete != null)
+                              const PopupMenuItem(
+                                value: 'delete',
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.delete_outline,
+                                      color: AppColors.error,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Text('Delete comment'),
+                                  ],
+                                ),
+                              ),
+                            if (!isAuthor)
+                              const PopupMenuItem(
+                                value: 'report',
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.flag_outlined,
+                                      color: AppColors.error,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Text('Report comment'),
+                                  ],
+                                ),
+                              ),
+                          ],
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      comment.content,
+                      style: AppTypography.body.copyWith(
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight,
+                        fontSize: 14,
+                        height: 1.35,
                       ),
-                      const SizedBox(height: 6),
+                    ),
+                    const SizedBox(height: 6),
 
-                      // Action Row: Reply on Left, Like on Right
-                      Row(
-                        children: [
-                          if (onReply != null)
-                            GestureDetector(
-                              onTap: onReply,
-                              child: Padding(
-                                padding: const EdgeInsets.only(right: 16, top: 2, bottom: 2),
-                                child: Text(
-                                  'Reply',
-                                  style: AppTypography.caption.copyWith(
-                                    color: isDark
-                                        ? AppColors.textSecondaryDark
-                                        : AppColors.textSecondaryLight,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 12,
-                                  ),
+                    // Action Row: Reply on Left, Like on Right
+                    Row(
+                      children: [
+                        if (onReply != null)
+                          GestureDetector(
+                            onTap: onReply,
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                right: 16,
+                                top: 2,
+                                bottom: 2,
+                              ),
+                              child: Text(
+                                'Reply',
+                                style: AppTypography.caption.copyWith(
+                                  color: isDark
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondaryLight,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 12,
                                 ),
                               ),
                             ),
-                          const Spacer(),
-                          InkWell(
-                            onTap: () {},
-                            borderRadius: BorderRadius.circular(12),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.favorite_border_rounded,
-                                    size: 14,
-                                    color: isDark
-                                        ? AppColors.textMuted
-                                        : AppColors.textSecondaryLight,
-                                  ),
-                                ],
-                              ),
+                          ),
+                        const Spacer(),
+                        InkWell(
+                          onTap: () {},
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 2,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.favorite_border_rounded,
+                                  size: 14,
+                                  color: isDark
+                                      ? AppColors.textMuted
+                                      : AppColors.textSecondaryLight,
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),

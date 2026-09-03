@@ -12,6 +12,8 @@ import 'package:client/core/utils/media_url_resolver.dart';
 import 'package:client/core/widgets/app_avatar.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/posts/presentation/widgets/post_comments_sheet.dart';
+import 'package:client/features/reports/data/models/report_models.dart';
+import 'package:client/features/reports/presentation/widgets/report_sheet.dart';
 
 /// Global provider for Clear Mode across all shorts/reels in the feed.
 final shortsClearModeProvider = StateProvider<bool>((ref) => false);
@@ -40,7 +42,8 @@ class ShortVideoItemWidget extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ShortVideoItemWidget> createState() => _ShortVideoItemWidgetState();
+  ConsumerState<ShortVideoItemWidget> createState() =>
+      _ShortVideoItemWidgetState();
 }
 
 class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
@@ -202,7 +205,8 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
     if (widget.onShare != null) {
       shareUrl = await widget.onShare!();
     }
-    final urlToCopy = shareUrl ?? 'https://genzmedia.app/posts/${widget.post.id}';
+    final urlToCopy =
+        shareUrl ?? 'https://genzmedia.app/posts/${widget.post.id}';
     await Clipboard.setData(ClipboardData(text: urlToCopy));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -218,14 +222,18 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
-    final subtitleColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final subtitleColor = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
 
     final speedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+      backgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF1F5F9),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -304,8 +312,12 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
                                 labelStyle: TextStyle(
                                   color: isSelected
                                       ? Colors.white
-                                      : (isDark ? Colors.white70 : const Color(0xFF334155)),
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                      : (isDark
+                                            ? Colors.white70
+                                            : const Color(0xFF334155)),
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.w500,
                                   fontSize: 13,
                                 ),
                                 backgroundColor: isDark
@@ -316,7 +328,9 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
                                   side: BorderSide(
                                     color: isSelected
                                         ? AppColors.primaryElectricBlue
-                                        : (isDark ? Colors.white12 : const Color(0xFFCBD5E1)),
+                                        : (isDark
+                                              ? Colors.white12
+                                              : const Color(0xFFCBD5E1)),
                                   ),
                                 ),
                               ),
@@ -337,7 +351,11 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: SwitchListTile(
-                    secondary: Icon(Icons.autorenew_rounded, color: textColor, size: 22),
+                    secondary: Icon(
+                      Icons.autorenew_rounded,
+                      color: textColor,
+                      size: 22,
+                    ),
                     title: Text(
                       'Auto-scroll on finish',
                       style: TextStyle(
@@ -372,7 +390,9 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
                       final isClearMode = ref.watch(shortsClearModeProvider);
                       return SwitchListTile(
                         secondary: Icon(
-                          isClearMode ? Icons.visibility_off_rounded : Icons.visibility_outlined,
+                          isClearMode
+                              ? Icons.visibility_off_rounded
+                              : Icons.visibility_outlined,
                           color: textColor,
                           size: 22,
                         ),
@@ -392,7 +412,8 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
                         activeTrackColor: AppColors.primaryElectricBlue,
                         onChanged: (val) {
                           Navigator.of(sheetContext).pop();
-                          ref.read(shortsClearModeProvider.notifier).state = val;
+                          ref.read(shortsClearModeProvider.notifier).state =
+                              val;
                         },
                       );
                     },
@@ -410,10 +431,17 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
                   child: Column(
                     children: [
                       ListTile(
-                        leading: Icon(Icons.share_rounded, color: textColor, size: 22),
+                        leading: Icon(
+                          Icons.share_rounded,
+                          color: textColor,
+                          size: 22,
+                        ),
                         title: Text(
                           'Share',
-                          style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            color: textColor,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         subtitle: Text(
                           'Copy link or share to other apps',
@@ -424,12 +452,24 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
                           _handleShare();
                         },
                       ),
-                      Divider(height: 1, color: isDark ? Colors.white12 : const Color(0xFFE2E8F0)),
+                      Divider(
+                        height: 1,
+                        color: isDark
+                            ? Colors.white12
+                            : const Color(0xFFE2E8F0),
+                      ),
                       ListTile(
-                        leading: Icon(Icons.flag_outlined, color: AppColors.error, size: 22),
+                        leading: Icon(
+                          Icons.flag_outlined,
+                          color: AppColors.error,
+                          size: 22,
+                        ),
                         title: const Text(
                           'Report',
-                          style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            color: AppColors.error,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         subtitle: Text(
                           'Find support or report inappropriate content',
@@ -437,11 +477,12 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
                         ),
                         onTap: () {
                           Navigator.of(sheetContext).pop();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Thank you for reporting. Our moderation team will review this reel.'),
-                              backgroundColor: AppColors.error,
-                            ),
+                          ReportSheet.show(
+                            context,
+                            targetType: ReportTargetType.post,
+                            targetId: widget.post.id,
+                            targetLabel: 'short video',
+                            communityId: widget.post.communityId,
                           );
                         },
                       ),
@@ -461,7 +502,11 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
     if (widget.onComment != null) {
       widget.onComment!();
     } else {
-      PostCommentsSheet.show(context, postId: widget.post.id, post: widget.post);
+      PostCommentsSheet.show(
+        context,
+        postId: widget.post.id,
+        post: widget.post,
+      );
     }
   }
 
@@ -487,11 +532,17 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
 
     final thumbnailUrl = resolveMediaUrl(videoMedia?.thumbnailUrl);
 
-    final double? naturalAspectRatio = (_isInitialized && _controller != null && _controller!.value.aspectRatio > 0)
+    final double? naturalAspectRatio =
+        (_isInitialized &&
+            _controller != null &&
+            _controller!.value.aspectRatio > 0)
         ? _controller!.value.aspectRatio
-        : (videoMedia != null && videoMedia.width != null && videoMedia.height != null && videoMedia.height! > 0)
-            ? (videoMedia.width! / videoMedia.height!)
-            : null;
+        : (videoMedia != null &&
+              videoMedia.width != null &&
+              videoMedia.height != null &&
+              videoMedia.height! > 0)
+        ? (videoMedia.width! / videoMedia.height!)
+        : null;
 
     final isLandscape = (naturalAspectRatio ?? 1.0) > 1.0;
 
@@ -507,23 +558,23 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
             color: Colors.black,
             child: _isInitialized && _controller != null
                 ? (isLandscape
-                    ? Center(
-                        child: AspectRatio(
-                          aspectRatio: _controller!.value.aspectRatio,
-                          child: VideoPlayer(_controller!),
-                        ),
-                      )
-                    : Positioned.fill(
-                        child: FittedBox(
-                          fit: BoxFit.cover,
-                          clipBehavior: Clip.hardEdge,
-                          child: SizedBox(
-                            width: _controller!.value.size.width,
-                            height: _controller!.value.size.height,
+                      ? Center(
+                          child: AspectRatio(
+                            aspectRatio: _controller!.value.aspectRatio,
                             child: VideoPlayer(_controller!),
                           ),
-                        ),
-                      ))
+                        )
+                      : Positioned.fill(
+                          child: FittedBox(
+                            fit: BoxFit.cover,
+                            clipBehavior: Clip.hardEdge,
+                            child: SizedBox(
+                              width: _controller!.value.size.width,
+                              height: _controller!.value.size.height,
+                              child: VideoPlayer(_controller!),
+                            ),
+                          ),
+                        ))
                 : Stack(
                     fit: StackFit.expand,
                     children: [
@@ -535,8 +586,10 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
                                   child: CachedNetworkImage(
                                     imageUrl: thumbnailUrl,
                                     fit: BoxFit.cover,
-                                    placeholder: (context, url) => Container(color: Colors.black),
-                                    errorWidget: (context, url, error) => Container(color: Colors.black),
+                                    placeholder: (context, url) =>
+                                        Container(color: Colors.black),
+                                    errorWidget: (context, url, error) =>
+                                        Container(color: Colors.black),
                                   ),
                                 ),
                               )
@@ -547,8 +600,10 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
                                   child: CachedNetworkImage(
                                     imageUrl: thumbnailUrl,
                                     fit: BoxFit.cover,
-                                    placeholder: (context, url) => Container(color: Colors.black),
-                                    errorWidget: (context, url, error) => Container(color: Colors.black),
+                                    placeholder: (context, url) =>
+                                        Container(color: Colors.black),
+                                    errorWidget: (context, url, error) =>
+                                        Container(color: Colors.black),
                                   ),
                                 ),
                               ),
@@ -566,7 +621,9 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
                               const SizedBox(height: 8),
                               Text(
                                 'Tap to retry loading video',
-                                style: AppTypography.bodySmall.copyWith(color: Colors.white),
+                                style: AppTypography.bodySmall.copyWith(
+                                  color: Colors.white,
+                                ),
                               ),
                             ],
                           ),
@@ -578,7 +635,9 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
                             height: 36,
                             child: CircularProgressIndicator(
                               strokeWidth: 2.5,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white70,
+                              ),
                             ),
                           ),
                         ),
@@ -656,7 +715,11 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
+                  icon: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    color: Colors.white,
+                    size: 22,
+                  ),
                   onPressed: () {
                     if (Navigator.of(context).canPop()) {
                       Navigator.of(context).pop();
@@ -666,7 +729,11 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.search_rounded, color: Colors.white, size: 26),
+                  icon: const Icon(
+                    Icons.search_rounded,
+                    color: Colors.white,
+                    size: 26,
+                  ),
                   onPressed: () {
                     context.pushNamed(RouteNames.discover);
                   },
@@ -684,7 +751,9 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
               children: [
                 // Like Button (Heart icon)
                 _buildActionButton(
-                  icon: post.isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                  icon: post.isLiked
+                      ? Icons.favorite_rounded
+                      : Icons.favorite_border_rounded,
                   label: _formatCount(post.likeCount),
                   color: post.isLiked ? AppColors.primaryCrimson : Colors.white,
                   onTap: widget.onLike,
@@ -702,7 +771,9 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
 
                 // Bookmark / Save Button
                 _buildActionButton(
-                  icon: post.isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                  icon: post.isSaved
+                      ? Icons.bookmark_rounded
+                      : Icons.bookmark_border_rounded,
                   label: _formatCount(post.saveCount),
                   color: post.isSaved ? AppColors.warning : Colors.white,
                   onTap: widget.onSave,
@@ -790,16 +861,25 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
                         setState(() => _isFollowing = !_isFollowing);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(_isFollowing ? 'Following $authorName' : 'Unfollowed $authorName'),
+                            content: Text(
+                              _isFollowing
+                                  ? 'Following $authorName'
+                                  : 'Unfollowed $authorName',
+                            ),
                             duration: const Duration(seconds: 1),
                           ),
                         );
                       },
                       borderRadius: BorderRadius.circular(16),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
-                          color: _isFollowing ? Colors.white24 : Colors.transparent,
+                          color: _isFollowing
+                              ? Colors.white24
+                              : Colors.transparent,
                           border: Border.all(color: Colors.white, width: 1.2),
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -821,7 +901,11 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
                 // Audio Info Line
                 Row(
                   children: [
-                    const Icon(Icons.music_note_rounded, color: Colors.white, size: 14),
+                    const Icon(
+                      Icons.music_note_rounded,
+                      color: Colors.white,
+                      size: 14,
+                    ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
@@ -848,7 +932,9 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
                     child: Text(
                       post.content!,
                       maxLines: _isCaptionExpanded ? null : 2,
-                      overflow: _isCaptionExpanded ? null : TextOverflow.ellipsis,
+                      overflow: _isCaptionExpanded
+                          ? null
+                          : TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14,
@@ -866,7 +952,8 @@ class _ShortVideoItemWidgetState extends ConsumerState<ShortVideoItemWidget> {
             right: 16,
             bottom: MediaQuery.of(context).padding.bottom + 20,
             child: GestureDetector(
-              onTap: () => ref.read(shortsClearModeProvider.notifier).state = false,
+              onTap: () =>
+                  ref.read(shortsClearModeProvider.notifier).state = false,
               behavior: HitTestBehavior.opaque,
               child: Container(
                 width: 44,

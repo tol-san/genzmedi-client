@@ -10,11 +10,7 @@ class CommunityCardWidget extends StatelessWidget {
   final CommunityModel community;
   final VoidCallback? onTap;
 
-  const CommunityCardWidget({
-    super.key,
-    required this.community,
-    this.onTap,
-  });
+  const CommunityCardWidget({super.key, required this.community, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -45,10 +41,13 @@ class CommunityCardWidget extends StatelessWidget {
                   borderRadius: AppSpacing.roundedSm,
                 ),
                 clipBehavior: Clip.antiAlias,
-                child: community.avatarUrl != null &&
+                child:
+                    community.avatarUrl != null &&
                         community.avatarUrl!.isNotEmpty
                     ? CachedNetworkImage(
-                        imageUrl: resolveMediaUrl(community.avatarUrl) ?? community.avatarUrl!,
+                        imageUrl:
+                            resolveMediaUrl(community.avatarUrl) ??
+                            community.avatarUrl!,
                         fit: BoxFit.cover,
                         errorWidget: (context, url, error) => const Icon(
                           Icons.groups_rounded,
@@ -88,11 +87,12 @@ class CommunityCardWidget extends StatelessWidget {
                         const SizedBox(width: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: community.isPrivate
-                                ? AppColors.warning
-                                    .withValues(alpha: 0.15)
+                                ? AppColors.warning.withValues(alpha: 0.15)
                                 : AppColors.signalMint.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -139,8 +139,9 @@ class CommunityCardWidget extends StatelessWidget {
                         community.description!,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTypography.bodySmall
-                            .copyWith(color: AppColors.textMuted),
+                        style: AppTypography.bodySmall.copyWith(
+                          color: AppColors.textMuted,
+                        ),
                       ),
                     ],
                   ],

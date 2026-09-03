@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:equatable/equatable.dart';
 import 'package:client/features/communities/data/models/community_models.dart';
 
@@ -52,8 +53,9 @@ class CreateCommunityState extends Equatable {
       description: description ?? this.description,
       interestId: clearInterest ? null : (interestId ?? this.interestId),
       isPrivate: isPrivate ?? this.isPrivate,
-      selectedAvatar:
-          clearAvatar ? null : (selectedAvatar ?? this.selectedAvatar),
+      selectedAvatar: clearAvatar
+          ? null
+          : (selectedAvatar ?? this.selectedAvatar),
       selectedCover: clearCover ? null : (selectedCover ?? this.selectedCover),
       isSubmitting: isSubmitting ?? this.isSubmitting,
       isSuccess: isSuccess ?? this.isSuccess,
@@ -64,16 +66,16 @@ class CreateCommunityState extends Equatable {
 
   @override
   List<Object?> get props => [
-        name,
-        slug,
-        description,
-        interestId,
-        isPrivate,
-        selectedAvatar,
-        selectedCover,
-        isSubmitting,
-        isSuccess,
-        errorMessage,
-        createdCommunity,
-      ];
+    name,
+    slug,
+    description,
+    interestId,
+    isPrivate,
+    selectedAvatar,
+    selectedCover,
+    isSubmitting,
+    isSuccess,
+    errorMessage,
+    createdCommunity,
+  ];
 }

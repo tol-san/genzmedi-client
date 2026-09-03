@@ -53,7 +53,9 @@ class _FollowListScreenState extends ConsumerState<FollowListScreen>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final state = ref.watch(followListNotifierProvider(widget.userId));
-    final notifier = ref.read(followListNotifierProvider(widget.userId).notifier);
+    final notifier = ref.read(
+      followListNotifierProvider(widget.userId).notifier,
+    );
     final authState = ref.watch(authNotifierProvider);
 
     final currentUserId = authState is AuthAuthenticated
@@ -103,7 +105,9 @@ class _FollowListScreenState extends ConsumerState<FollowListScreen>
                 controller: _tabController,
                 indicatorColor: AppColors.primaryCrimson,
                 indicatorWeight: 2.5,
-                labelColor: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                labelColor: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
                 unselectedLabelColor: AppColors.textMuted,
                 labelStyle: AppTypography.label,
                 tabs: [
@@ -132,7 +136,10 @@ class _FollowListScreenState extends ConsumerState<FollowListScreen>
             currentUserId: currentUserId,
             followingStatusMap: state.followingStatusMap,
             onFollowToggle: (userId, isFollowing) {
-              notifier.toggleFollowUser(userId, isCurrentlyFollowing: isFollowing);
+              notifier.toggleFollowUser(
+                userId,
+                isCurrentlyFollowing: isFollowing,
+              );
             },
           ),
           // Tab 1: Following
@@ -149,7 +156,10 @@ class _FollowListScreenState extends ConsumerState<FollowListScreen>
             currentUserId: currentUserId,
             followingStatusMap: state.followingStatusMap,
             onFollowToggle: (userId, isFollowing) {
-              notifier.toggleFollowUser(userId, isCurrentlyFollowing: isFollowing);
+              notifier.toggleFollowUser(
+                userId,
+                isCurrentlyFollowing: isFollowing,
+              );
             },
           ),
         ],
@@ -194,7 +204,8 @@ class _FollowListScreenState extends ConsumerState<FollowListScreen>
       onRefresh: onRefresh,
       child: NotificationListener<ScrollNotification>(
         onNotification: (scrollInfo) {
-          if (scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 200 &&
+          if (scrollInfo.metrics.pixels >=
+                  scrollInfo.metrics.maxScrollExtent - 200 &&
               hasMore &&
               !isLoading) {
             onLoadMore();
@@ -204,7 +215,8 @@ class _FollowListScreenState extends ConsumerState<FollowListScreen>
         child: ListView.separated(
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.space8),
           itemCount: users.length + (hasMore ? 1 : 0),
-          separatorBuilder: (context, index) => const Divider(height: 1, indent: 76),
+          separatorBuilder: (context, index) =>
+              const Divider(height: 1, indent: 76),
           itemBuilder: (context, index) {
             if (index == users.length) {
               return const Padding(

@@ -5,25 +5,22 @@ import 'package:client/features/profiles/presentation/notifiers/follow_list_stat
 
 final followListNotifierProvider = StateNotifierProvider.autoDispose
     .family<FollowListNotifier, FollowListState, String>((ref, userId) {
-  final repository = ref.watch(profileRepositoryProvider);
-  return FollowListNotifier(
-    userId: userId,
-    repository: repository,
-  );
-});
+      final repository = ref.watch(profileRepositoryProvider);
+      return FollowListNotifier(userId: userId, repository: repository);
+    });
 
 class FollowListNotifier extends StateNotifier<FollowListState> {
   final String userId;
   final ProfileRepository repository;
   static const int _pageSize = 20;
 
-  FollowListNotifier({
-    required this.userId,
-    required this.repository,
-  }) : super(const FollowListState(
+  FollowListNotifier({required this.userId, required this.repository})
+    : super(
+        const FollowListState(
           isLoadingFollowers: true,
           isLoadingFollowing: true,
-        )) {
+        ),
+      ) {
     loadInitialData();
   }
 
@@ -51,7 +48,9 @@ class FollowListNotifier extends StateNotifier<FollowListState> {
 
   Future<void> loadFollowers({bool refresh = false}) async {
     final offset = refresh ? 0 : state.followersOffset;
-    if (!refresh && (state.isLoadingFollowers || !state.hasMoreFollowers)) return;
+    if (!refresh && (state.isLoadingFollowers || !state.hasMoreFollowers)) {
+      return;
+    }
 
     state = state.copyWith(isLoadingFollowers: true);
     try {
@@ -83,7 +82,9 @@ class FollowListNotifier extends StateNotifier<FollowListState> {
 
   Future<void> loadFollowing({bool refresh = false}) async {
     final offset = refresh ? 0 : state.followingOffset;
-    if (!refresh && (state.isLoadingFollowing || !state.hasMoreFollowing)) return;
+    if (!refresh && (state.isLoadingFollowing || !state.hasMoreFollowing)) {
+      return;
+    }
 
     state = state.copyWith(isLoadingFollowing: true);
     try {
@@ -124,7 +125,10 @@ class FollowListNotifier extends StateNotifier<FollowListState> {
     state = state.copyWith(searchQuery: query);
   }
 
-  Future<void> toggleFollowUser(String targetUserId, {required bool isCurrentlyFollowing}) async {
+  Future<void> toggleFollowUser(
+    String targetUserId, {
+    required bool isCurrentlyFollowing,
+  }) async {
     final targetFollowing = !isCurrentlyFollowing;
     final updatedMap = Map<String, bool>.from(state.followingStatusMap);
     updatedMap[targetUserId] = targetFollowing;

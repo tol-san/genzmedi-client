@@ -1,27 +1,28 @@
 import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/core/errors/app_exception.dart';
 import 'package:client/features/communities/data/repositories/community_repository.dart';
 import 'package:client/features/communities/presentation/notifiers/community_detail_state.dart';
 
 final communityDetailNotifierProvider = StateNotifierProvider.autoDispose
-    .family<CommunityDetailNotifier, CommunityDetailState, String>(
-        (ref, communityId) {
-  final repository = ref.watch(communityRepositoryProvider);
-  return CommunityDetailNotifier(
-    communityId: communityId,
-    repository: repository,
-  );
-});
+    .family<CommunityDetailNotifier, CommunityDetailState, String>((
+      ref,
+      communityId,
+    ) {
+      final repository = ref.watch(communityRepositoryProvider);
+      return CommunityDetailNotifier(
+        communityId: communityId,
+        repository: repository,
+      );
+    });
 
 class CommunityDetailNotifier extends StateNotifier<CommunityDetailState> {
   final String communityId;
   final CommunityRepository repository;
 
-  CommunityDetailNotifier({
-    required this.communityId,
-    required this.repository,
-  }) : super(const CommunityDetailState(isLoading: true)) {
+  CommunityDetailNotifier({required this.communityId, required this.repository})
+    : super(const CommunityDetailState(isLoading: true)) {
     loadAll();
   }
 
@@ -48,7 +49,9 @@ class CommunityDetailNotifier extends StateNotifier<CommunityDetailState> {
       state = state.copyWith(isLoading: false, errorMessage: e.message);
     } catch (_) {
       state = state.copyWith(
-          isLoading: false, errorMessage: 'Failed to load community details.');
+        isLoading: false,
+        errorMessage: 'Failed to load community details.',
+      );
     }
   }
 
@@ -100,10 +103,7 @@ class CommunityDetailNotifier extends StateNotifier<CommunityDetailState> {
         ),
       );
 
-      state = state.copyWith(
-        detail: updatedDetail,
-        isActionLoading: false,
-      );
+      state = state.copyWith(detail: updatedDetail, isActionLoading: false);
       if (isMember) {
         await loadMembers();
       }
@@ -130,14 +130,14 @@ class CommunityDetailNotifier extends StateNotifier<CommunityDetailState> {
         isMember: false,
         clearJoinRequest: true,
         community: state.detail!.community.copyWith(
-          memberCount: (state.detail!.community.memberCount - 1).clamp(0, 999999),
+          memberCount: (state.detail!.community.memberCount - 1).clamp(
+            0,
+            999999,
+          ),
         ),
       );
 
-      state = state.copyWith(
-        detail: updatedDetail,
-        isActionLoading: false,
-      );
+      state = state.copyWith(detail: updatedDetail, isActionLoading: false);
       await loadMembers();
       return true;
     } on AppException catch (e) {
@@ -156,8 +156,9 @@ class CommunityDetailNotifier extends StateNotifier<CommunityDetailState> {
     try {
       await repository.approveJoinRequest(communityId, requestId);
       state = state.copyWith(
-        joinRequests:
-            state.joinRequests.where((r) => r.id != requestId).toList(),
+        joinRequests: state.joinRequests
+            .where((r) => r.id != requestId)
+            .toList(),
         detail: state.detail?.copyWith(
           community: state.detail!.community.copyWith(
             memberCount: state.detail!.community.memberCount + 1,
@@ -175,8 +176,9 @@ class CommunityDetailNotifier extends StateNotifier<CommunityDetailState> {
     try {
       await repository.rejectJoinRequest(communityId, requestId);
       state = state.copyWith(
-        joinRequests:
-            state.joinRequests.where((r) => r.id != requestId).toList(),
+        joinRequests: state.joinRequests
+            .where((r) => r.id != requestId)
+            .toList(),
       );
       return true;
     } catch (_) {
@@ -191,7 +193,10 @@ class CommunityDetailNotifier extends StateNotifier<CommunityDetailState> {
         members: state.members.where((m) => m.userId != userId).toList(),
         detail: state.detail?.copyWith(
           community: state.detail!.community.copyWith(
-            memberCount: (state.detail!.community.memberCount - 1).clamp(0, 999999),
+            memberCount: (state.detail!.community.memberCount - 1).clamp(
+              0,
+              999999,
+            ),
           ),
         ),
       );

@@ -10,11 +10,18 @@ import 'package:client/features/feeds/presentation/screens/home_feed_screen.dart
 import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/posts/presentation/widgets/post_card_widget.dart';
 import 'package:client/features/posts/presentation/widgets/feed_create_prompt.dart';
+import 'package:client/features/notifications/data/repositories/notification_repository.dart';
+import 'package:client/features/notifications/presentation/notifiers/notification_center_notifier.dart';
+import 'package:client/features/notifications/presentation/notifiers/notification_center_state.dart';
 
 class MockFeedRepository extends Mock implements FeedRepository {}
 
+class MockNotificationRepository extends Mock
+    implements NotificationRepository {}
+
 void main() {
   late MockFeedRepository mockRepository;
+  late MockNotificationRepository mockNotificationRepository;
 
   const testPost = PostModel(
     id: 'p-1',
@@ -33,16 +40,52 @@ void main() {
 
   setUp(() {
     mockRepository = MockFeedRepository();
+    mockNotificationRepository = MockNotificationRepository();
   });
 
   Widget buildTestWidget() {
     return ProviderScope(
-      overrides: [feedRepositoryProvider.overrideWithValue(mockRepository)],
+      overrides: [
+        feedRepositoryProvider.overrideWithValue(mockRepository),
+        notificationCenterProvider.overrideWith(
+          (ref) => NotificationCenterNotifier(
+            repository: mockNotificationRepository,
+            loadOnCreate: false,
+          ),
+        ),
+      ],
+      child: const MaterialApp(home: HomeFeedScreen()),
+    );
+  }
+
+  Widget buildTestWidgetWithUnreadCount(int count) {
+    return ProviderScope(
+      overrides: [
+        feedRepositoryProvider.overrideWithValue(mockRepository),
+        notificationCenterProvider.overrideWith(
+          (ref) => NotificationCenterNotifier(
+            repository: mockNotificationRepository,
+            loadOnCreate: false,
+            initialState: NotificationCenterState(unreadCount: count),
+          ),
+        ),
+      ],
       child: const MaterialApp(home: HomeFeedScreen()),
     );
   }
 
   group('HomeFeedScreen Widget Tests', () {
+    testWidgets('shows unread notification count on the bell', (tester) async {
+      when(() => mockRepository.getHomeFeed(limit: 20, offset: 0))
+          .thenAnswer((_) async => [testPost]);
+
+      await tester.pumpWidget(buildTestWidgetWithUnreadCount(7));
+      await tester.pumpAndSettle();
+
+      expect(find.text('7'), findsOneWidget);
+      expect(find.byTooltip('7 unread notifications'), findsOneWidget);
+    });
+
     testWidgets('quick create prompt exposes all three post formats', (
       tester,
     ) async {

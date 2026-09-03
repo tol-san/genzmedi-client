@@ -18,13 +18,11 @@ class AppSkeleton extends StatelessWidget {
     this.shape = BoxShape.rectangle,
   });
 
-  const AppSkeleton.circle({
-    super.key,
-    required double size,
-  })  : width = size,
-        height = size,
-        borderRadius = null,
-        shape = BoxShape.circle;
+  const AppSkeleton.circle({super.key, required double size})
+    : width = size,
+      height = size,
+      borderRadius = null,
+      shape = BoxShape.circle;
 
   const AppSkeleton.rectangular({
     super.key,
@@ -37,15 +35,17 @@ class AppSkeleton extends StatelessWidget {
     super.key,
     this.width = double.infinity,
     this.height = 14.0,
-  })  : borderRadius = AppSpacing.roundedSm,
-        shape = BoxShape.rectangle;
+  }) : borderRadius = AppSpacing.roundedSm,
+       shape = BoxShape.rectangle;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final baseColor = isDark ? AppColors.darkSurface : AppColors.lightBorder;
-    final highlightColor = isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurface;
+    final highlightColor = isDark
+        ? AppColors.darkSurfaceElevated
+        : AppColors.lightSurface;
 
     return Shimmer.fromColors(
       baseColor: baseColor,

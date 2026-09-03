@@ -5,26 +5,22 @@ import 'package:client/features/communities/presentation/notifiers/community_lis
 
 final communityListNotifierProvider =
     StateNotifierProvider<CommunityListNotifier, CommunityListState>((ref) {
-  final repository = ref.watch(communityRepositoryProvider);
-  return CommunityListNotifier(repository: repository);
-});
+      final repository = ref.watch(communityRepositoryProvider);
+      return CommunityListNotifier(repository: repository);
+    });
 
 class CommunityListNotifier extends StateNotifier<CommunityListState> {
   final CommunityRepository repository;
 
   CommunityListNotifier({required this.repository})
-      : super(const CommunityListState(
-          isLoadingExplore: true,
-          isLoadingJoined: true,
-        )) {
+    : super(
+        const CommunityListState(isLoadingExplore: true, isLoadingJoined: true),
+      ) {
     loadAll();
   }
 
   Future<void> loadAll() async {
-    await Future.wait([
-      fetchExploreCommunities(),
-      fetchJoinedCommunities(),
-    ]);
+    await Future.wait([fetchExploreCommunities(), fetchJoinedCommunities()]);
   }
 
   Future<void> fetchExploreCommunities() async {
@@ -41,10 +37,7 @@ class CommunityListNotifier extends StateNotifier<CommunityListState> {
         isLoadingExplore: false,
       );
     } on AppException catch (e) {
-      state = state.copyWith(
-        isLoadingExplore: false,
-        errorMessage: e.message,
-      );
+      state = state.copyWith(isLoadingExplore: false, errorMessage: e.message);
     } catch (_) {
       state = state.copyWith(
         isLoadingExplore: false,
@@ -57,10 +50,7 @@ class CommunityListNotifier extends StateNotifier<CommunityListState> {
     state = state.copyWith(isLoadingJoined: true);
     try {
       final items = await repository.getMyJoinedCommunities();
-      state = state.copyWith(
-        joinedCommunities: items,
-        isLoadingJoined: false,
-      );
+      state = state.copyWith(joinedCommunities: items, isLoadingJoined: false);
     } catch (_) {
       state = state.copyWith(isLoadingJoined: false);
     }

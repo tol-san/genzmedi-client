@@ -13,6 +13,7 @@ import 'package:client/features/feeds/presentation/notifiers/home_feed_state.dar
 import 'package:client/features/posts/presentation/widgets/post_card_widget.dart';
 import 'package:client/features/posts/presentation/widgets/post_comments_sheet.dart';
 import 'package:client/features/posts/presentation/widgets/feed_create_prompt.dart';
+import 'package:client/features/notifications/presentation/notifiers/notification_center_notifier.dart';
 
 class HomeFeedScreen extends ConsumerStatefulWidget {
   const HomeFeedScreen({super.key});
@@ -51,6 +52,9 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
     final state = ref.watch(homeFeedNotifierProvider);
     final notifier = ref.read(homeFeedNotifierProvider.notifier);
     final statusBarHeight = MediaQuery.of(context).padding.top;
+    final unreadCount = ref.watch(
+      notificationCenterProvider.select((state) => state.unreadCount),
+    );
 
     return Scaffold(
       appBar: PreferredSize(
@@ -74,27 +78,44 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                             ? AppColors.textPrimaryDark
                             : AppColors.textPrimaryLight,
                       ),
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: AppColors.primaryCrimson,
-                            shape: BoxShape.circle,
+                      if (unreadCount > 0)
+                        Positioned(
+                          right: -6,
+                          top: -7,
+                          child: Container(
+                            constraints: const BoxConstraints(
+                              minWidth: 18,
+                              minHeight: 18,
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryCrimson,
+                              borderRadius: AppSpacing.roundedFull,
+                              border: Border.all(
+                                color: isDark
+                                    ? AppColors.midnightNavy
+                                    : Colors.white,
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Text(
+                              unreadCount > 99 ? '99+' : '$unreadCount',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
+                                height: 1,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Notifications (Coming soon)'),
-                      ),
-                    );
-                  },
+                  tooltip: unreadCount > 0
+                      ? '$unreadCount unread notifications'
+                      : 'Notifications',
+                  onPressed: () => context.pushNamed(RouteNames.notifications),
                 ),
                 const SizedBox(width: AppSpacing.space8),
               ],

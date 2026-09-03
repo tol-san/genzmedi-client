@@ -67,19 +67,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     try {
-      await ref.read(authNotifierProvider.notifier).login(
-            username: username,
-            password: password,
-          );
+      await ref
+          .read(authNotifierProvider.notifier)
+          .login(username: username, password: password);
       // Upon success, GoRouter redirect automatically navigates to /feed
     } catch (e) {
       if (!mounted) return;
       final String cleanMessage = e is AppException
           ? e.message
           : e
-              .toString()
-              .replaceFirst(RegExp(r'^[A-Za-z_]+Exception:\s*'), '')
-              .replaceFirst(RegExp(r'\s*\(statusCode:\s*\d+\)'), '');
+                .toString()
+                .replaceFirst(RegExp(r'^[A-Za-z_]+Exception:\s*'), '')
+                .replaceFirst(RegExp(r'\s*\(statusCode:\s*\d+\)'), '');
 
       setState(() {
         _isLoading = false;
@@ -114,9 +113,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Minimal Logo Wordmark
-                  const Center(
-                    child: AppLogo.wordmark(width: 220, height: 40),
-                  ),
+                  const Center(child: AppLogo.wordmark(width: 220, height: 40)),
                   const SizedBox(height: AppSpacing.space16),
                   Text(
                     'Sign in to your account',
@@ -204,7 +201,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () => context.pushNamed(RouteNames.forgotPassword),
+                      onPressed: () =>
+                          context.pushNamed(RouteNames.forgotPassword),
                       child: Text(
                         'Forgot password?',
                         style: AppTypography.caption.copyWith(

@@ -47,13 +47,13 @@ class ShortsFeedState extends Equatable {
 
   @override
   List<Object?> get props => [
-        shorts,
-        activeIndex,
-        isLoading,
-        isRefreshing,
-        isLoadingMore,
-        hasMore,
-        offset,
-        errorMessage,
-      ];
+    shorts,
+    activeIndex,
+    isLoading,
+    isRefreshing,
+    isLoadingMore,
+    hasMore,
+    offset,
+    errorMessage,
+  ];
 }

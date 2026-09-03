@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/core/errors/error_mapper.dart';
@@ -78,7 +79,8 @@ class CommunityRepository {
     try {
       final response = await dio.get(ApiEndpoints.communityDetail(communityId));
       return CommunityDetailModel.fromJson(
-          response.data as Map<String, dynamic>);
+        response.data as Map<String, dynamic>,
+      );
     } on DioException catch (e) {
       throw ErrorMapper.fromDioException(e);
     }
@@ -86,7 +88,8 @@ class CommunityRepository {
 
   /// Create new community (creator becomes Owner)
   Future<CommunityModel> createCommunity(
-      CommunityCreateRequestModel request) async {
+    CommunityCreateRequestModel request,
+  ) async {
     try {
       final response = await dio.post(
         ApiEndpoints.communities,
@@ -103,10 +106,7 @@ class CommunityRepository {
     try {
       final fileName = file.path.split('/').last.split(r'\').last;
       final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(
-          file.path,
-          filename: fileName,
-        ),
+        'file': await MultipartFile.fromFile(file.path, filename: fileName),
       });
 
       final response = await dio.post(
@@ -124,10 +124,7 @@ class CommunityRepository {
     try {
       final fileName = file.path.split('/').last.split(r'\').last;
       final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(
-          file.path,
-          filename: fileName,
-        ),
+        'file': await MultipartFile.fromFile(file.path, filename: fileName),
       });
 
       final response = await dio.post(
@@ -143,8 +140,7 @@ class CommunityRepository {
   /// Join community (instant for public, creates join request for private)
   Future<Map<String, dynamic>> joinCommunity(String communityId) async {
     try {
-      final response =
-          await dio.post(ApiEndpoints.joinCommunity(communityId));
+      final response = await dio.post(ApiEndpoints.joinCommunity(communityId));
       return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
       throw ErrorMapper.fromDioException(e);
@@ -175,8 +171,9 @@ class CommunityRepository {
       if (response.statusCode == 200 && response.data != null) {
         final items = response.data['items'] as List<dynamic>? ?? [];
         return items
-            .map((e) =>
-                CommunityMemberModel.fromJson(e as Map<String, dynamic>))
+            .map(
+              (e) => CommunityMemberModel.fromJson(e as Map<String, dynamic>),
+            )
             .toList();
       }
       return const [];

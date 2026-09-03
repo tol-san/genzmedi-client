@@ -15,18 +15,28 @@ abstract class AppSpacing {
 
   // Corner Radius Tokens
   static const double radiusXs = 8.0;
-  static const double radiusSm = 12.0;  // compact controls & buttons
-  static const double radiusMd = 16.0;  // cards, video player & media containers
-  static const double radiusLg = 24.0;  // bottom sheets & dialogs
+  static const double radiusSm = 12.0; // compact controls & buttons
+  static const double radiusMd = 16.0; // cards, video player & media containers
+  static const double radiusLg = 24.0; // bottom sheets & dialogs
   static const double radiusXl = 28.0;
   static const double radiusFull = 999.0;
 
   // BorderRadius helpers
-  static const BorderRadius roundedSm = BorderRadius.all(Radius.circular(radiusSm));
-  static const BorderRadius roundedMd = BorderRadius.all(Radius.circular(radiusMd));
-  static const BorderRadius roundedLg = BorderRadius.all(Radius.circular(radiusLg));
-  static const BorderRadius roundedXl = BorderRadius.all(Radius.circular(radiusXl));
-  static const BorderRadius roundedFull = BorderRadius.all(Radius.circular(radiusFull));
+  static const BorderRadius roundedSm = BorderRadius.all(
+    Radius.circular(radiusSm),
+  );
+  static const BorderRadius roundedMd = BorderRadius.all(
+    Radius.circular(radiusMd),
+  );
+  static const BorderRadius roundedLg = BorderRadius.all(
+    Radius.circular(radiusLg),
+  );
+  static const BorderRadius roundedXl = BorderRadius.all(
+    Radius.circular(radiusXl),
+  );
+  static const BorderRadius roundedFull = BorderRadius.all(
+    Radius.circular(radiusFull),
+  );
 
   // Minimum Touch Target
   static const double minTouchTarget = 48.0;

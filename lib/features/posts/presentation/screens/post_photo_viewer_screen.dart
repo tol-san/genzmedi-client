@@ -107,7 +107,10 @@ class _PostPhotoViewerScreenState extends State<PostPhotoViewerScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.download_rounded, color: Colors.white),
-              title: const Text('Save to phone', style: TextStyle(color: Colors.white)),
+              title: const Text(
+                'Save to phone',
+                style: TextStyle(color: Colors.white),
+              ),
               onTap: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -117,7 +120,10 @@ class _PostPhotoViewerScreenState extends State<PostPhotoViewerScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.share_rounded, color: Colors.white),
-              title: const Text('Share photo', style: TextStyle(color: Colors.white)),
+              title: const Text(
+                'Share photo',
+                style: TextStyle(color: Colors.white),
+              ),
               onTap: () {
                 Navigator.of(context).pop();
                 _handleShare();
@@ -175,7 +181,11 @@ class _PostPhotoViewerScreenState extends State<PostPhotoViewerScreen> {
               )
             else
               const Center(
-                child: Icon(Icons.image_not_supported_rounded, color: Colors.white38, size: 64),
+                child: Icon(
+                  Icons.image_not_supported_rounded,
+                  color: Colors.white38,
+                  size: 64,
+                ),
               ),
 
             // 2. Top Bar Overlay (Close '✕' on Left, More '⋮' on Right)
@@ -202,7 +212,11 @@ class _PostPhotoViewerScreenState extends State<PostPhotoViewerScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          color: Colors.white,
+                          size: 28,
+                        ),
                         onPressed: () => Navigator.of(context).maybePop(),
                       ),
                       if (mediaList.length > 1)
@@ -215,7 +229,11 @@ class _PostPhotoViewerScreenState extends State<PostPhotoViewerScreen> {
                           ),
                         ),
                       IconButton(
-                        icon: const Icon(Icons.more_vert_rounded, color: Colors.white, size: 24),
+                        icon: const Icon(
+                          Icons.more_vert_rounded,
+                          color: Colors.white,
+                          size: 24,
+                        ),
                         onPressed: () => _showOptionsModal(context),
                       ),
                     ],
@@ -314,7 +332,9 @@ class _PostPhotoViewerScreenState extends State<PostPhotoViewerScreen> {
                           child: Text(
                             post.content!,
                             maxLines: _isTextExpanded ? null : 3,
-                            overflow: _isTextExpanded ? null : TextOverflow.ellipsis,
+                            overflow: _isTextExpanded
+                                ? null
+                                : TextOverflow.ellipsis,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 14,
@@ -336,9 +356,13 @@ class _PostPhotoViewerScreenState extends State<PostPhotoViewerScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  _isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                                  _isLiked
+                                      ? Icons.favorite_rounded
+                                      : Icons.favorite_border_rounded,
                                   size: 18,
-                                  color: _isLiked ? AppColors.primaryCrimson : Colors.white70,
+                                  color: _isLiked
+                                      ? AppColors.primaryCrimson
+                                      : Colors.white70,
                                 ),
                                 const SizedBox(width: 6),
                                 GestureDetector(
@@ -351,7 +375,9 @@ class _PostPhotoViewerScreenState extends State<PostPhotoViewerScreen> {
                                   child: Text(
                                     _formatCount(_likeCount),
                                     style: TextStyle(
-                                      color: _isLiked ? AppColors.primaryCrimson : Colors.white,
+                                      color: _isLiked
+                                          ? AppColors.primaryCrimson
+                                          : Colors.white,
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -364,16 +390,27 @@ class _PostPhotoViewerScreenState extends State<PostPhotoViewerScreen> {
                           // Comments Count Button
                           GestureDetector(
                             onTap: () {
-                              PostCommentsSheet.show(context, postId: post.id, post: post);
+                              PostCommentsSheet.show(
+                                context,
+                                postId: post.id,
+                                post: post,
+                              );
                             },
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.mode_comment_outlined, size: 16, color: Colors.white70),
+                                const Icon(
+                                  Icons.mode_comment_outlined,
+                                  size: 16,
+                                  color: Colors.white70,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   '${_formatCount(post.commentCount)} comments',
-                                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ],
                             ),
@@ -385,11 +422,18 @@ class _PostPhotoViewerScreenState extends State<PostPhotoViewerScreen> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.share_outlined, size: 16, color: Colors.white70),
+                                const Icon(
+                                  Icons.share_outlined,
+                                  size: 16,
+                                  color: Colors.white70,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   '${_formatCount(post.shareCount)} shares',
-                                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ],
                             ),

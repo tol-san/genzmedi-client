@@ -108,7 +108,8 @@ class _FeedVideoPlayerWidgetState extends State<FeedVideoPlayerWidget> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final double? naturalRatio = _isInitialized && _controller!.value.aspectRatio > 0
+    final double? naturalRatio =
+        _isInitialized && _controller!.value.aspectRatio > 0
         ? _controller!.value.aspectRatio
         : widget.aspectRatio;
 
@@ -129,14 +130,24 @@ class _FeedVideoPlayerWidgetState extends State<FeedVideoPlayerWidget> {
                   imageUrl: resolvedThumbnail,
                   fit: BoxFit.cover,
                   errorWidget: (context, url, error) => Container(
-                    color: isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated,
-                    child: const Icon(Icons.videocam_off_rounded, color: AppColors.textMuted, size: 40),
+                    color: isDark
+                        ? AppColors.darkSurfaceElevated
+                        : AppColors.lightSurfaceElevated,
+                    child: const Icon(
+                      Icons.videocam_off_rounded,
+                      color: AppColors.textMuted,
+                      size: 40,
+                    ),
                   ),
                 )
               else
                 Container(
                   color: Colors.black,
-                  child: const Icon(Icons.video_library_rounded, color: AppColors.textMuted, size: 40),
+                  child: const Icon(
+                    Icons.video_library_rounded,
+                    color: AppColors.textMuted,
+                    size: 40,
+                  ),
                 ),
               // Centered sleek play button
               Center(
@@ -167,9 +178,15 @@ class _FeedVideoPlayerWidgetState extends State<FeedVideoPlayerWidget> {
         child: GestureDetector(
           onTap: widget.onTap,
           child: Container(
-            color: isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated,
+            color: isDark
+                ? AppColors.darkSurfaceElevated
+                : AppColors.lightSurfaceElevated,
             child: const Center(
-              child: Icon(Icons.play_circle_outline_rounded, color: AppColors.textMuted, size: 40),
+              child: Icon(
+                Icons.play_circle_outline_rounded,
+                color: AppColors.textMuted,
+                size: 40,
+              ),
             ),
           ),
         ),
@@ -198,24 +215,24 @@ class _FeedVideoPlayerWidgetState extends State<FeedVideoPlayerWidget> {
                 ),
               ),
 
-            // Paused State Indicator
-            if (!_isPlaying)
-              Center(
-                child: Container(
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.65),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white30, width: 1.5),
-                  ),
-                  child: const Icon(
-                    Icons.play_arrow_rounded,
-                    color: Colors.white,
-                    size: 32,
+              // Paused State Indicator
+              if (!_isPlaying)
+                Center(
+                  child: Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.65),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white30, width: 1.5),
+                    ),
+                    child: const Icon(
+                      Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: 32,
+                    ),
                   ),
                 ),
-              ),
 
               // Mute / Unmute Button
               Positioned(
@@ -230,7 +247,9 @@ class _FeedVideoPlayerWidgetState extends State<FeedVideoPlayerWidget> {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      _isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                      _isMuted
+                          ? Icons.volume_off_rounded
+                          : Icons.volume_up_rounded,
                       color: Colors.white,
                       size: 18,
                     ),

@@ -3,7 +3,10 @@ import 'package:client/core/errors/app_exception.dart';
 
 /// Maps Dio and backend errors into friendly, typed [AppException] objects.
 abstract class ErrorMapper {
-  static AppException fromStatusCode(int? statusCode, [String defaultMessage = 'An unexpected server error occurred.']) {
+  static AppException fromStatusCode(
+    int? statusCode, [
+    String defaultMessage = 'An unexpected server error occurred.',
+  ]) {
     switch (statusCode) {
       case 401:
         return UnauthorizedException(defaultMessage);
@@ -56,7 +59,10 @@ abstract class ErrorMapper {
           case 404:
             return NotFoundException(serverMessage);
           case 422:
-            return ValidationException(message: serverMessage, fieldErrors: fieldErrors);
+            return ValidationException(
+              message: serverMessage,
+              fieldErrors: fieldErrors,
+            );
           default:
             return ApiException(message: serverMessage, statusCode: statusCode);
         }
@@ -65,7 +71,9 @@ abstract class ErrorMapper {
         return const ApiException(message: 'Request was cancelled.');
 
       case DioExceptionType.badCertificate:
-        return const NetworkException(message: 'Secure connection certificate failed.');
+        return const NetworkException(
+          message: 'Secure connection certificate failed.',
+        );
 
       case DioExceptionType.unknown:
       default:

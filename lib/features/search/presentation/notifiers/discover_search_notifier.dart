@@ -214,6 +214,101 @@ class DiscoverSearchNotifier extends StateNotifier<DiscoverSearchState> {
     }
   }
 
+  Future<void> toggleLike(String postId) async {
+    final index = state.posts.indexWhere((p) => p.id == postId);
+    if (index < 0 || state.pendingPostLikeIds.contains(postId)) return;
+    final original = state.posts[index];
+    final target = !original.isLiked;
+    final newLikeCount = target
+        ? original.likeCount + 1
+        : (original.likeCount > 0 ? original.likeCount - 1 : 0);
+
+    state = state.copyWith(
+      posts: [...state.posts]
+        ..[index] = original.copyWith(isLiked: target, likeCount: newLikeCount),
+      pendingPostLikeIds: {...state.pendingPostLikeIds, postId},
+    );
+
+    try {
+      await repository.likePost(postId, like: target);
+      state = state.copyWith(
+        pendingPostLikeIds: {...state.pendingPostLikeIds}..remove(postId),
+      );
+    } catch (error) {
+      state = state.copyWith(
+        posts: [...state.posts]..[index] = original,
+        pendingPostLikeIds: {...state.pendingPostLikeIds}..remove(postId),
+        errorMessage: _message(error, 'Could not update like status.'),
+      );
+    }
+  }
+
+  Future<void> toggleSave(String postId) async {
+    final index = state.posts.indexWhere((p) => p.id == postId);
+    if (index < 0 || state.pendingPostSaveIds.contains(postId)) return;
+    final original = state.posts[index];
+    final target = !original.isSaved;
+    final newSaveCount = target
+        ? original.saveCount + 1
+        : (original.saveCount > 0 ? original.saveCount - 1 : 0);
+
+    state = state.copyWith(
+      posts: [...state.posts]
+        ..[index] = original.copyWith(isSaved: target, saveCount: newSaveCount),
+      pendingPostSaveIds: {...state.pendingPostSaveIds, postId},
+    );
+
+    try {
+      await repository.savePost(postId, save: target);
+      state = state.copyWith(
+        pendingPostSaveIds: {...state.pendingPostSaveIds}..remove(postId),
+      );
+    } catch (error) {
+      state = state.copyWith(
+        posts: [...state.posts]..[index] = original,
+        pendingPostSaveIds: {...state.pendingPostSaveIds}..remove(postId),
+        errorMessage: _message(error, 'Could not update saved status.'),
+      );
+    }
+  }
+
+  Future<String?> sharePost(String postId) async {
+    try {
+      return await repository.sharePost(postId);
+    } catch (error) {
+      state = state.copyWith(
+        errorMessage: _message(error, 'Could not generate share link.'),
+      );
+      return null;
+    }
+  }
+
+  Future<void> toggleInterest(DiscoverInterestModel interest) async {
+    final index = state.interests.indexWhere((item) => item.id == interest.id);
+    if (index < 0 || state.pendingInterestIds.contains(interest.id)) return;
+    final original = state.interests[index];
+    final target = !original.isAdded;
+
+    state = state.copyWith(
+      interests: [...state.interests]
+        ..[index] = original.copyWith(isAdded: target),
+      pendingInterestIds: {...state.pendingInterestIds, interest.id},
+    );
+
+    try {
+      await repository.toggleUserInterest(interest.id, add: target);
+      state = state.copyWith(
+        pendingInterestIds: {...state.pendingInterestIds}..remove(interest.id),
+      );
+    } catch (error) {
+      state = state.copyWith(
+        interests: [...state.interests]..[index] = original,
+        pendingInterestIds: {...state.pendingInterestIds}..remove(interest.id),
+        errorMessage: _message(error, 'Could not update interest.'),
+      );
+    }
+  }
+
   String _message(Object error, String fallback) {
     return error is AppException ? error.message : fallback;
   }

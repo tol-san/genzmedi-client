@@ -84,8 +84,10 @@ class _CommunityListScreenState extends ConsumerState<CommunityListScreen>
                 AppTextField(
                   controller: _searchController,
                   hintText: 'Search communities by name or topic...',
-                  prefixIcon: const Icon(Icons.search_rounded,
-                      color: AppColors.textMuted),
+                  prefixIcon: const Icon(
+                    Icons.search_rounded,
+                    color: AppColors.textMuted,
+                  ),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.clear_rounded, size: 18),
@@ -100,13 +102,26 @@ class _CommunityListScreenState extends ConsumerState<CommunityListScreen>
                 const SizedBox(height: AppSpacing.space8),
                 Row(
                   children: [
-                    _buildFilterChip('All', null, state.privacyFilter, notifier),
+                    _buildFilterChip(
+                      'All',
+                      null,
+                      state.privacyFilter,
+                      notifier,
+                    ),
                     const SizedBox(width: 8),
                     _buildFilterChip(
-                        'Public', false, state.privacyFilter, notifier),
+                      'Public',
+                      false,
+                      state.privacyFilter,
+                      notifier,
+                    ),
                     const SizedBox(width: 8),
                     _buildFilterChip(
-                        'Private', true, state.privacyFilter, notifier),
+                      'Private',
+                      true,
+                      state.privacyFilter,
+                      notifier,
+                    ),
                   ],
                 ),
               ],
@@ -122,85 +137,82 @@ class _CommunityListScreenState extends ConsumerState<CommunityListScreen>
                 RefreshIndicator(
                   color: AppColors.primaryCrimson,
                   onRefresh: notifier.refresh,
-                  child: state.isLoadingExplore &&
-                          state.exploreCommunities.isEmpty
+                  child:
+                      state.isLoadingExplore && state.exploreCommunities.isEmpty
                       ? const Center(
                           child: CircularProgressIndicator(
                             color: AppColors.primaryCrimson,
                           ),
                         )
                       : state.exploreCommunities.isEmpty
-                          ? Center(
-                              child: Text(
-                                state.searchQuery.isNotEmpty
-                                    ? 'No communities found matching "${state.searchQuery}".'
-                                    : 'No communities discovered yet.',
-                                style: AppTypography.bodySmall
-                                    .copyWith(color: AppColors.textMuted),
-                              ),
-                            )
-                          : ListView.separated(
-                              padding: const EdgeInsets.all(AppSpacing.space16),
-                              itemCount: state.exploreCommunities.length,
-                              separatorBuilder: (context, index) =>
-                                  const SizedBox(height: AppSpacing.space12),
-                              itemBuilder: (context, index) {
-                                final community =
-                                    state.exploreCommunities[index];
-                                return CommunityCardWidget(
-                                  community: community,
-                                  onTap: () {
-                                    context.pushNamed(
-                                      RouteNames.communityDetail,
-                                      pathParameters: {
-                                        'communityId': community.id
-                                      },
-                                    );
-                                  },
+                      ? Center(
+                          child: Text(
+                            state.searchQuery.isNotEmpty
+                                ? 'No communities found matching "${state.searchQuery}".'
+                                : 'No communities discovered yet.',
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.textMuted,
+                            ),
+                          ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.all(AppSpacing.space16),
+                          itemCount: state.exploreCommunities.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: AppSpacing.space12),
+                          itemBuilder: (context, index) {
+                            final community = state.exploreCommunities[index];
+                            return CommunityCardWidget(
+                              community: community,
+                              onTap: () {
+                                context.pushNamed(
+                                  RouteNames.communityDetail,
+                                  pathParameters: {'communityId': community.id},
                                 );
                               },
-                            ),
+                            );
+                          },
+                        ),
                 ),
 
                 // 2. Joined Communities
                 RefreshIndicator(
                   color: AppColors.primaryCrimson,
                   onRefresh: notifier.refresh,
-                  child: state.isLoadingJoined && state.joinedCommunities.isEmpty
+                  child:
+                      state.isLoadingJoined && state.joinedCommunities.isEmpty
                       ? const Center(
                           child: CircularProgressIndicator(
                             color: AppColors.primaryCrimson,
                           ),
                         )
                       : state.joinedCommunities.isEmpty
-                          ? Center(
-                              child: Text(
-                                'You have not joined any communities yet.',
-                                style: AppTypography.bodySmall
-                                    .copyWith(color: AppColors.textMuted),
-                              ),
-                            )
-                          : ListView.separated(
-                              padding: const EdgeInsets.all(AppSpacing.space16),
-                              itemCount: state.joinedCommunities.length,
-                              separatorBuilder: (context, index) =>
-                                  const SizedBox(height: AppSpacing.space12),
-                              itemBuilder: (context, index) {
-                                final community =
-                                    state.joinedCommunities[index];
-                                return CommunityCardWidget(
-                                  community: community,
-                                  onTap: () {
-                                    context.pushNamed(
-                                      RouteNames.communityDetail,
-                                      pathParameters: {
-                                        'communityId': community.id
-                                      },
-                                    );
-                                  },
+                      ? Center(
+                          child: Text(
+                            'You have not joined any communities yet.',
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.textMuted,
+                            ),
+                          ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.all(AppSpacing.space16),
+                          itemCount: state.joinedCommunities.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: AppSpacing.space12),
+                          itemBuilder: (context, index) {
+                            final community = state.joinedCommunities[index];
+                            return CommunityCardWidget(
+                              community: community,
+                              onTap: () {
+                                context.pushNamed(
+                                  RouteNames.communityDetail,
+                                  pathParameters: {'communityId': community.id},
                                 );
                               },
-                            ),
+                            );
+                          },
+                        ),
                 ),
               ],
             ),
@@ -227,12 +239,11 @@ class _CommunityListScreenState extends ConsumerState<CommunityListScreen>
           color: isSelected
               ? AppColors.primaryCrimson.withValues(alpha: 0.15)
               : (isDark
-                  ? AppColors.darkSurfaceElevated
-                  : AppColors.lightSurfaceElevated),
+                    ? AppColors.darkSurfaceElevated
+                    : AppColors.lightSurfaceElevated),
           borderRadius: AppSpacing.roundedFull,
           border: Border.all(
-            color:
-                isSelected ? AppColors.primaryCrimson : Colors.transparent,
+            color: isSelected ? AppColors.primaryCrimson : Colors.transparent,
           ),
         ),
         child: Text(
@@ -242,8 +253,8 @@ class _CommunityListScreenState extends ConsumerState<CommunityListScreen>
             color: isSelected
                 ? AppColors.primaryCrimson
                 : (isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondaryLight),
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight),
           ),
         ),
       ),
