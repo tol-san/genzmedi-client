@@ -161,19 +161,45 @@ class AccountSettingsScreen extends ConsumerWidget {
                 onTap: () => context.pushNamed(RouteNames.editProfile),
               ),
               SettingsTileWidget(
-                icon: Icons.lock_outline_rounded,
-                title: 'Change Password',
-                subtitle: 'Update your security credentials',
-                onTap: () => context.pushNamed(RouteNames.changePassword),
+                icon: Icons.manage_accounts_outlined,
+                title: 'Account Management',
+                subtitle: 'Deactivation, deletion, and data download',
+                onTap: () => context.pushNamed(RouteNames.accountManagement),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.space20),
 
-          // ── Section 2: Privacy & Safety ─────────────────────────────────
+          // ── Section 2: Security ─────────────────────────────────────────
+          SettingsSectionCard(
+            heading: 'Security',
+            children: [
+              SettingsTileWidget(
+                icon: Icons.lock_outline_rounded,
+                title: 'Change Password',
+                subtitle: 'Update your security credentials',
+                onTap: () => context.pushNamed(RouteNames.changePassword),
+              ),
+              SettingsTileWidget(
+                icon: Icons.devices_rounded,
+                title: 'Active Sessions & Devices',
+                subtitle: 'Manage signed-in devices and open sessions',
+                onTap: () => context.pushNamed(RouteNames.sessions),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.space20),
+
+          // ── Section 3: Privacy & Safety ─────────────────────────────────
           SettingsSectionCard(
             heading: 'Privacy & Safety',
             children: [
+              SettingsTileWidget(
+                icon: Icons.shield_outlined,
+                title: 'Privacy Settings',
+                subtitle: 'Profile visibility, interactions, and discovery',
+                onTap: () => context.pushNamed(RouteNames.privacySettings),
+              ),
               SettingsTileWidget(
                 icon: Icons.block_rounded,
                 title: 'Blocked Accounts',
@@ -184,7 +210,21 @@ class AccountSettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.space20),
 
-          // ── Section 3: Appearance ───────────────────────────────────────
+          // ── Section 4: Notifications ────────────────────────────────────
+          SettingsSectionCard(
+            heading: 'Notifications',
+            children: [
+              SettingsTileWidget(
+                icon: Icons.notifications_none_rounded,
+                title: 'Notification Preferences',
+                subtitle: 'Likes, comments, mentions, and quiet hours',
+                onTap: () => context.pushNamed(RouteNames.notificationSettings),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.space20),
+
+          // ── Section 5: Preferences ───────────────────────────────────────
           SettingsSectionCard(
             heading: 'Preferences',
             children: [

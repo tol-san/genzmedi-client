@@ -31,6 +31,9 @@ abstract class ApiEndpoints {
   static const String verifyOtp = '/auth/verify-otp';
   static const String resetPassword = '/auth/reset-password';
   static const String changePassword = '/auth/change-password';
+  static const String sessions = '/auth/sessions';
+  static const String otherSessions = '/auth/sessions/other';
+  static String session(String sessionId) => '/auth/sessions/$sessionId';
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 2. Users & Social Graph (`/users`)
@@ -44,6 +47,9 @@ abstract class ApiEndpoints {
   static String userRelationship(String userId) =>
       '/users/$userId/relationship';
   static const String myBlockedUsers = '/users/me/blocked';
+  static const String myPrivacy = '/users/me/privacy';
+  static const String deactivateAccount = '/users/me/deactivate';
+  static const String deleteAccount = '/users/me';
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 3. Profiles & Interests (`/profiles`)
@@ -139,6 +145,7 @@ abstract class ApiEndpoints {
   static const String notificationTyping = '/notifications/typing';
   static const String notificationWs = '/notifications/ws';
   static const String notificationWsTicket = '/notifications/ws-ticket';
+  static const String notificationPreferences = '/notifications/preferences';
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 12. Reports & Moderation (`/reports`)

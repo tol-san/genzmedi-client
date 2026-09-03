@@ -33,8 +33,12 @@ void main() {
       // Check section titles
       expect(find.text('Settings'), findsOneWidget);
       expect(find.text('Edit Profile'), findsOneWidget);
+      expect(find.text('Account Management'), findsOneWidget);
       expect(find.text('Change Password'), findsOneWidget);
+      expect(find.text('Active Sessions & Devices'), findsOneWidget);
+      expect(find.text('Privacy Settings'), findsOneWidget);
       expect(find.text('Blocked Accounts'), findsOneWidget);
+      expect(find.text('Notification Preferences'), findsOneWidget);
       expect(find.text('Appearance'), findsOneWidget);
       expect(find.text('Community Guidelines'), findsOneWidget);
       expect(find.text('Terms of Service'), findsOneWidget);

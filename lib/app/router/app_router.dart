@@ -34,9 +34,13 @@ import 'package:client/features/search/presentation/screens/discover_screen.dart
 import 'package:client/features/search/presentation/screens/discover_search_screen.dart';
 import 'package:client/features/reports/presentation/screens/report_detail_screen.dart';
 import 'package:client/features/reports/presentation/screens/reports_screen.dart';
+import 'package:client/features/settings/presentation/screens/account_management_screen.dart';
 import 'package:client/features/settings/presentation/screens/account_settings_screen.dart';
 import 'package:client/features/settings/presentation/screens/blocked_users_screen.dart';
 import 'package:client/features/settings/presentation/screens/change_password_screen.dart';
+import 'package:client/features/settings/presentation/screens/notification_preferences_screen.dart';
+import 'package:client/features/settings/presentation/screens/privacy_settings_screen.dart';
+import 'package:client/features/settings/presentation/screens/sessions_screen.dart';
 
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
@@ -346,6 +350,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/settings/blocked-users',
         name: RouteNames.blockedUsers,
         builder: (context, state) => const BlockedUsersScreen(),
+      ),
+      GoRoute(
+        path: '/settings/privacy',
+        name: RouteNames.privacySettings,
+        builder: (context, state) => const PrivacySettingsScreen(),
+      ),
+      GoRoute(
+        path: '/settings/notifications',
+        name: RouteNames.notificationSettings,
+        builder: (context, state) => const NotificationPreferencesScreen(),
+      ),
+      GoRoute(
+        path: '/settings/sessions',
+        name: RouteNames.sessions,
+        builder: (context, state) => const SessionsScreen(),
+      ),
+      GoRoute(
+        path: '/settings/account-management',
+        name: RouteNames.accountManagement,
+        builder: (context, state) => const AccountManagementScreen(),
       ),
 
       // 5-Tab Shell Route

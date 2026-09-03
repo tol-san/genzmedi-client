@@ -132,32 +132,30 @@ class SettingsSectionCard extends StatelessWidget {
             ),
           ),
         ],
-        Container(
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        Material(
+          color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+          shape: RoundedRectangleBorder(
             borderRadius: AppSpacing.roundedLg,
-            border: Border.all(
+            side: BorderSide(
               color: isDark ? AppColors.navyBorder : AppColors.lightBorder,
             ),
           ),
-          child: ClipRRect(
-            borderRadius: AppSpacing.roundedLg,
-            child: Column(
-              children: [
-                for (int i = 0; i < children.length; i++) ...[
-                  children[i],
-                  if (i < children.length - 1)
-                    Divider(
-                      height: 1,
-                      thickness: 1,
-                      indent: 64,
-                      color: isDark
-                          ? AppColors.navyBorder.withValues(alpha: 0.6)
-                          : AppColors.lightBorderSubtle,
-                    ),
-                ],
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            children: [
+              for (int i = 0; i < children.length; i++) ...[
+                children[i],
+                if (i < children.length - 1)
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    indent: 64,
+                    color: isDark
+                        ? AppColors.navyBorder.withValues(alpha: 0.6)
+                        : AppColors.lightBorderSubtle,
+                  ),
               ],
-            ),
+            ],
           ),
         ),
       ],

@@ -16,6 +16,10 @@ abstract class RouteNames {
   static const String settings = 'settings';
   static const String changePassword = 'changePassword';
   static const String blockedUsers = 'blockedUsers';
+  static const String privacySettings = 'privacySettings';
+  static const String notificationSettings = 'notificationSettings';
+  static const String sessions = 'sessions';
+  static const String accountManagement = 'accountManagement';
 
   // Notification Routes
   static const String notifications = 'notifications';

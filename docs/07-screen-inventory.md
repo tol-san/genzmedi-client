@@ -33,10 +33,15 @@ Not every item must be a separate Flutter route. Some are sheets, tabs, dialogs,
 22. Following
 23. Manage Interests
 24. Saved Posts
-25. Account Settings Hub — implemented
-26. Blocked Accounts Management — implemented
-27. Appearance Theme Selector — implemented
-28. Legal & Policy Sheets — implemented
+25. Account Settings Hub — implemented (`/settings`)
+26. Change Password — implemented (`/settings/change-password`)
+27. Blocked Accounts Management — implemented (`/settings/blocked-users`)
+28. Privacy Settings — implemented (`/settings/privacy`)
+29. Notification Preferences — implemented (`/settings/notifications`)
+30. Active Sessions & Devices — implemented (`/settings/sessions`)
+31. Account Management (Deactivation/Deletion) — implemented (`/settings/account-management`)
+32. Appearance Theme Selector — implemented (Modal Sheet)
+33. Legal & Policy Sheets — implemented (Modal Sheet)
 
 
 ## Communities

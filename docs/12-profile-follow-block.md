@@ -97,3 +97,33 @@ The profile and social relationship architecture powers user identity, discovery
 - **Unblock**: `DELETE /api/v1/users/{user_id}/block`
 - **Behavior**: Paginated scrolling list with optimistic removal on unblock, safety confirmation dialog, and error rollback.
 
+### Privacy Settings (`PrivacySettingsScreen`)
+- **Endpoints**: `GET /api/v1/users/me/privacy`, `PATCH /api/v1/users/me/privacy`
+- **Controls**:
+  - `is_private`: Toggle account private mode (only approved followers see content).
+  - `search_discoverable`: Toggle whether profile appears in discovery / search results.
+  - `show_activity_status`: Control online presence indicator.
+  - `allow_comments`: Audience selector (`everyone`, `following`, `no_one`).
+  - `allow_mentions`: Audience selector (`everyone`, `following`, `no_one`).
+
+### Notification Preferences (`NotificationPreferencesScreen`)
+- **Endpoints**: `GET /api/v1/notifications/preferences`, `PATCH /api/v1/notifications/preferences`
+- **Controls**:
+  - **Interactions**: Post likes, comments, replies & mentions.
+  - **Social & Communities**: New follower alerts, community announcements and requests.
+  - **Delivery Channels**: Push notifications, email digests & security alerts.
+  - **Quiet Hours**: Master toggle and schedule interval (`quiet_hours_start` to `quiet_hours_end`).
+
+### Sessions & Device Management (`SessionsScreen`)
+- **Endpoints**:
+  - `GET /api/v1/auth/sessions`: List all active sessions.
+  - `DELETE /api/v1/auth/sessions/{session_id}`: Revoke a specific device session.
+  - `POST /api/v1/auth/sessions/other`: Sign out from all other devices.
+- **Behavior**: Highlights current device with "Active Now" badge and metadata (IP address, last active relative time); offers individual revocation and bulk sign-out of other devices.
+
+### Account Management (`AccountManagementScreen`)
+- **Endpoints**:
+  - `POST /api/v1/users/me/deactivate`: Deactivate account with password confirmation & optional reason.
+  - `DELETE /api/v1/users/me`: Permanently delete account, requiring password verification and typing "DELETE" confirmation string.
+  - **Data Export**: Request an archive of personal account data.
+
