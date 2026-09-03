@@ -114,5 +114,86 @@ void main() {
       expect(notifier.state.comments.first.id, 'c-2');
       expect(notifier.state.post?.commentCount, 3);
     });
+
+    test('updateComment updates top-level comment and preserves replies and replyCount', () async {
+      when(() => mockPostRepository.getPost('post-1'))
+          .thenAnswer((_) async => testPost);
+      when(() => mockCommentRepository.getComments('post-1', limit: 20, offset: 0))
+          .thenAnswer((_) async => [testComment1]);
+      when(() => mockCommentRepository.getReplies('c-1'))
+          .thenAnswer((_) async => [testReply1]);
+      when(() => mockCommentRepository.updateComment('c-1', content: 'Edited top comment'))
+          .thenAnswer((_) async => testComment1.copyWith(
+                content: 'Edited top comment',
+                isEdited: true,
+              ));
+
+      final notifier = PostDetailNotifier(
+        postId: 'post-1',
+        postRepository: mockPostRepository,
+        commentRepository: mockCommentRepository,
+      );
+      await pumpEventQueue();
+
+      // First expand replies so it has replies
+      await notifier.toggleReplies('c-1');
+      expect(notifier.state.comments.first.replies.length, 1);
+
+      // Now update comment
+      final success = await notifier.updateComment('c-1', '  Edited top comment  ');
+      expect(success, isTrue);
+      expect(notifier.state.comments.first.content, 'Edited top comment');
+      expect(notifier.state.comments.first.isEdited, isTrue);
+      expect(notifier.state.comments.first.replyCount, 1);
+      expect(notifier.state.comments.first.replies.length, 1);
+      expect(notifier.state.comments.first.isRepliesExpanded, isTrue);
+
+      verify(() => mockCommentRepository.updateComment('c-1', content: 'Edited top comment')).called(1);
+    });
+
+    test('updateComment updates nested reply', () async {
+      when(() => mockPostRepository.getPost('post-1'))
+          .thenAnswer((_) async => testPost);
+      when(() => mockCommentRepository.getComments('post-1', limit: 20, offset: 0))
+          .thenAnswer((_) async => [testComment1]);
+      when(() => mockCommentRepository.getReplies('c-1'))
+          .thenAnswer((_) async => [testReply1]);
+      when(() => mockCommentRepository.updateComment('r-1', content: 'Updated reply content'))
+          .thenAnswer((_) async => testReply1.copyWith(
+                content: 'Updated reply content',
+                isEdited: true,
+              ));
+
+      final notifier = PostDetailNotifier(
+        postId: 'post-1',
+        postRepository: mockPostRepository,
+        commentRepository: mockCommentRepository,
+      );
+      await pumpEventQueue();
+      await notifier.toggleReplies('c-1');
+
+      final success = await notifier.updateComment('r-1', 'Updated reply content', parentId: 'c-1');
+      expect(success, isTrue);
+      expect(notifier.state.comments.first.replies.first.content, 'Updated reply content');
+      expect(notifier.state.comments.first.replies.first.isEdited, isTrue);
+    });
+
+    test('updateComment rejects empty or whitespace-only content', () async {
+      when(() => mockPostRepository.getPost('post-1'))
+          .thenAnswer((_) async => testPost);
+      when(() => mockCommentRepository.getComments('post-1', limit: 20, offset: 0))
+          .thenAnswer((_) async => [testComment1]);
+
+      final notifier = PostDetailNotifier(
+        postId: 'post-1',
+        postRepository: mockPostRepository,
+        commentRepository: mockCommentRepository,
+      );
+      await pumpEventQueue();
+
+      final success = await notifier.updateComment('c-1', '   ');
+      expect(success, isFalse);
+      verifyNever(() => mockCommentRepository.updateComment(any(), content: any(named: 'content')));
+    });
   });
 }

@@ -169,4 +169,21 @@ class HomeFeedNotifier extends StateNotifier<HomeFeedState> {
       return 'https://genzmedia.app/posts/$postId';
     }
   }
+
+  /// Remove a post from the home feed when deleted
+  void removePost(String postId) {
+    state = state.copyWith(
+      posts: state.posts.where((p) => p.id != postId).toList(),
+    );
+  }
+
+  /// Update an existing post in the home feed when edited
+  void updatePost(PostModel updatedPost) {
+    final index = state.posts.indexWhere((p) => p.id == updatedPost.id);
+    if (index != -1) {
+      final updated = List<PostModel>.from(state.posts);
+      updated[index] = updatedPost;
+      state = state.copyWith(posts: updated);
+    }
+  }
 }

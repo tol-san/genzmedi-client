@@ -97,5 +97,38 @@ void main() {
       expect(notifier.state.posts.first.isLiked, isFalse);
       expect(notifier.state.posts.first.likeCount, 10);
     });
+
+    test('removePost removes target post from feed list', () async {
+      when(() => mockRepository.getHomeFeed(limit: 20, offset: 0))
+          .thenAnswer((_) async => [mockPost1, mockPost2]);
+
+      final notifier = HomeFeedNotifier(repository: mockRepository);
+      await pumpEventQueue();
+
+      expect(notifier.state.posts.length, 2);
+      notifier.removePost('post-101');
+      expect(notifier.state.posts.length, 1);
+      expect(notifier.state.posts.first.id, 'post-102');
+    });
+
+    test('updatePost updates matching post in feed list', () async {
+      when(() => mockRepository.getHomeFeed(limit: 20, offset: 0))
+          .thenAnswer((_) async => [mockPost1, mockPost2]);
+
+      final notifier = HomeFeedNotifier(repository: mockRepository);
+      await pumpEventQueue();
+
+      final updatedPost1 = mockPost1.copyWith(
+        title: 'Edited First Post',
+        content: 'Brand new updated content.',
+        visibility: 'followers_only',
+      );
+
+      notifier.updatePost(updatedPost1);
+
+      expect(notifier.state.posts.first.title, 'Edited First Post');
+      expect(notifier.state.posts.first.content, 'Brand new updated content.');
+      expect(notifier.state.posts.first.visibility, 'followers_only');
+    });
   });
 }

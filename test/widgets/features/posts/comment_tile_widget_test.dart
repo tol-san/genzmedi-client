@@ -66,5 +66,161 @@ void main() {
       await tester.tap(find.text('View 2 replies'));
       expect(toggleTapped, isTrue);
     });
+
+    testWidgets('shows (edited) tag when comment.isEdited is true', (tester) async {
+      final editedComment = testComment.copyWith(isEdited: true);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: CommentTileWidget(comment: editedComment),
+          ),
+        ),
+      );
+
+      expect(find.text('(edited)'), findsOneWidget);
+    });
+
+    testWidgets('author can enter edit mode, see char count, and save changes', (tester) async {
+      String? updatedContent;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: CommentTileWidget(
+                comment: testComment,
+                currentUserId: 'author-10',
+                onEdit: (text) async {
+                  updatedContent = text;
+                  return true;
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Open menu
+      await tester.tap(find.byIcon(Icons.more_horiz_rounded));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Edit comment'), findsOneWidget);
+
+      // Tap Edit comment
+      await tester.tap(find.text('Edit comment'));
+      await tester.pumpAndSettle();
+
+      // Verify inline editor appears
+      expect(find.byType(TextField), findsOneWidget);
+      expect(find.textContaining('/1000'), findsOneWidget);
+      expect(find.text('Cancel'), findsOneWidget);
+      expect(find.text('Save'), findsOneWidget);
+
+      // Modify text
+      await tester.enterText(find.byType(TextField), 'Modified insightful comment.');
+      await tester.pumpAndSettle();
+
+      // Save
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(updatedContent, 'Modified insightful comment.');
+      // After save, editor is closed
+      expect(find.byType(TextField), findsNothing);
+    });
+
+    testWidgets('validates empty comment and shows error message', (tester) async {
+      bool onEditCalled = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: CommentTileWidget(
+                comment: testComment,
+                currentUserId: 'author-10',
+                onEdit: (text) async {
+                  onEditCalled = true;
+                  return true;
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byIcon(Icons.more_horiz_rounded));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit comment'));
+      await tester.pumpAndSettle();
+
+      // Clear text
+      await tester.enterText(find.byType(TextField), '   ');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(onEditCalled, isFalse);
+      expect(find.text('Comment cannot be empty.'), findsOneWidget);
+      expect(find.byType(TextField), findsOneWidget);
+    });
+
+    testWidgets('canceling edit mode restores original comment without calling onEdit', (tester) async {
+      bool onEditCalled = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: CommentTileWidget(
+                comment: testComment,
+                currentUserId: 'author-10',
+                onEdit: (text) async {
+                  onEditCalled = true;
+                  return true;
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byIcon(Icons.more_horiz_rounded));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit comment'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'Temporary draft text');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(onEditCalled, isFalse);
+      expect(find.byType(TextField), findsNothing);
+      expect(find.text('This is a test comment discussing modern architecture.'), findsOneWidget);
+    });
+
+    testWidgets('platform administrator can edit comments even if not author', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: CommentTileWidget(
+              comment: testComment,
+              currentUserId: 'admin-user-99',
+              isSuperuser: true,
+              onEdit: (text) async => true,
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byIcon(Icons.more_horiz_rounded));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Edit comment'), findsOneWidget);
+      expect(find.text('Report comment'), findsNothing);
+    });
   });
 }

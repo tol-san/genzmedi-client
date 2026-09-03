@@ -717,7 +717,13 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
               ),
               child: GestureDetector(
                 onTap: () {
-                  context.pushNamed(RouteNames.createPost);
+                  context.pushNamed(
+                    RouteNames.createPost,
+                    queryParameters: {
+                      'communityId': detail.community.id,
+                      'communityName': detail.community.name,
+                    },
+                  );
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(

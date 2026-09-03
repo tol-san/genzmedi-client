@@ -93,5 +93,49 @@ void main() {
       expect(find.text('Comment as MrTol MrTol'), findsOneWidget);
       expect(find.byIcon(Icons.favorite_rounded), findsWidgets);
     });
+
+    testWidgets('allows author to edit comment inside comments sheet', (tester) async {
+      // Author matches currentUser ('user-tol-1')
+      const ownComment = CommentModel(
+        id: 'c-own-1',
+        postId: 'p-sheet-1',
+        author: CommentAuthorModel(id: 'user-tol-1', username: 'mrtol', displayName: 'MrTol MrTol'),
+        content: 'Original comment text',
+      );
+
+      when(() => mockPostRepository.getPost('p-sheet-1')).thenAnswer((_) async => testPost);
+      when(() => mockCommentRepository.getComments('p-sheet-1', limit: any(named: 'limit'), offset: any(named: 'offset')))
+          .thenAnswer((_) async => [ownComment]);
+      when(() => mockCommentRepository.updateComment('c-own-1', content: 'Updated comment text'))
+          .thenAnswer((_) async => ownComment.copyWith(
+                content: 'Updated comment text',
+                isEdited: true,
+              ));
+
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Original comment text'), findsOneWidget);
+
+      // Open comment options menu
+      await tester.tap(find.byIcon(Icons.more_horiz_rounded));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Edit comment'), findsOneWidget);
+      await tester.tap(find.text('Edit comment'));
+      await tester.pumpAndSettle();
+
+      // Modify comment in inline editor
+      await tester.enterText(find.byType(TextField).first, 'Updated comment text');
+      await tester.pumpAndSettle();
+
+      // Tap Save
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      verify(() => mockCommentRepository.updateComment('c-own-1', content: 'Updated comment text')).called(1);
+      expect(find.text('Updated comment text'), findsOneWidget);
+      expect(find.text('(edited)'), findsOneWidget);
+    });
   });
 }

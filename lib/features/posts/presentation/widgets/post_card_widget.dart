@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:client/app/router/route_names.dart';
 import 'package:client/core/theme/app_colors.dart';
@@ -8,7 +9,11 @@ import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/theme/app_typography.dart';
 import 'package:client/core/utils/media_url_resolver.dart';
 import 'package:client/core/widgets/app_avatar.dart';
+import 'package:client/core/auth/auth_notifier.dart';
+import 'package:client/core/auth/auth_state.dart';
+import 'package:client/features/feeds/presentation/notifiers/home_feed_notifier.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
+import 'package:client/features/posts/data/repositories/post_repository.dart';
 import 'package:client/features/posts/presentation/widgets/feed_video_player_widget.dart';
 import 'package:client/features/posts/presentation/widgets/post_comments_sheet.dart';
 import 'package:client/features/reports/data/models/report_models.dart';
@@ -16,13 +21,14 @@ import 'package:client/features/reports/presentation/widgets/report_sheet.dart';
 
 /// Full-width seamless post item (No isolated card containers) for home and community feeds.
 /// Features auto-playing inline video, edge-to-edge media collages, author header, and 3-button action bar (Like, Comment, Share).
-class PostCardWidget extends StatefulWidget {
+class PostCardWidget extends ConsumerStatefulWidget {
   final PostModel post;
   final VoidCallback? onLike;
   final VoidCallback? onSave;
   final Future<String?> Function()? onShare;
   final VoidCallback? onComment;
   final VoidCallback? onTap;
+  final ValueChanged<String>? onDelete;
 
   const PostCardWidget({
     super.key,
@@ -32,13 +38,14 @@ class PostCardWidget extends StatefulWidget {
     this.onShare,
     this.onComment,
     this.onTap,
+    this.onDelete,
   });
 
   @override
-  State<PostCardWidget> createState() => _PostCardWidgetState();
+  ConsumerState<PostCardWidget> createState() => _PostCardWidgetState();
 }
 
-class _PostCardWidgetState extends State<PostCardWidget> {
+class _PostCardWidgetState extends ConsumerState<PostCardWidget> {
   String _formatCount(int count) {
     if (count >= 1000000) {
       return '${(count / 1000000).toStringAsFixed(1)}M';
@@ -82,6 +89,15 @@ class _PostCardWidgetState extends State<PostCardWidget> {
 
   void _showOptionsModal(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final authState = ref.read(authNotifierProvider);
+    final currentUserId =
+        authState is AuthAuthenticated ? authState.user.id : null;
+    final isAuthor =
+        currentUserId != null && currentUserId == widget.post.author.id;
+    final isSuperuser =
+        authState is AuthAuthenticated && authState.user.isSuperuser;
+    final canManage = isAuthor || isSuperuser;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: isDark
@@ -107,6 +123,40 @@ class _PostCardWidgetState extends State<PostCardWidget> {
                 ),
               ),
               const SizedBox(height: AppSpacing.space16),
+              if (canManage) ...[
+                ListTile(
+                  leading: const Icon(Icons.edit_outlined),
+                  title: const Text('Edit post'),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    context.pushNamed(
+                      RouteNames.editPost,
+                      pathParameters: {'postId': widget.post.id},
+                      extra: widget.post,
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: AppColors.error,
+                  ),
+                  title: const Text(
+                    'Delete post',
+                    style: TextStyle(color: AppColors.error),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _confirmDelete();
+                  },
+                ),
+                Divider(
+                  height: 1,
+                  color: isDark
+                      ? AppColors.navyBorder
+                      : AppColors.lightBorderSubtle,
+                ),
+              ],
               ListTile(
                 leading: const Icon(Icons.share_outlined),
                 title: const Text('Share post'),
@@ -137,31 +187,90 @@ class _PostCardWidgetState extends State<PostCardWidget> {
                   widget.onSave?.call();
                 },
               ),
-              ListTile(
-                leading: const Icon(
-                  Icons.flag_outlined,
-                  color: AppColors.error,
+              if (!isAuthor)
+                ListTile(
+                  leading: const Icon(
+                    Icons.flag_outlined,
+                    color: AppColors.error,
+                  ),
+                  title: const Text(
+                    'Report post',
+                    style: TextStyle(color: AppColors.error),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    ReportSheet.show(
+                      context,
+                      targetType: ReportTargetType.post,
+                      targetId: widget.post.id,
+                      targetLabel: 'post',
+                      communityId: widget.post.communityId,
+                    );
+                  },
                 ),
-                title: const Text(
-                  'Report post',
-                  style: TextStyle(color: AppColors.error),
-                ),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  ReportSheet.show(
-                    context,
-                    targetType: ReportTargetType.post,
-                    targetId: widget.post.id,
-                    targetLabel: 'post',
-                    communityId: widget.post.communityId,
-                  );
-                },
-              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _confirmDelete() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: isDark
+            ? AppColors.darkSurfaceElevated
+            : AppColors.lightSurface,
+        shape: RoundedRectangleBorder(borderRadius: AppSpacing.roundedLg),
+        title: const Text('Delete Post?'),
+        content: const Text(
+          'Are you sure you want to delete this post? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text(
+              'Delete',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        await ref.read(postRepositoryProvider).deletePost(widget.post.id);
+        if (ref.exists(homeFeedNotifierProvider)) {
+          ref.read(homeFeedNotifierProvider.notifier).removePost(widget.post.id);
+        }
+        widget.onDelete?.call(widget.post.id);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Post deleted successfully.'),
+              backgroundColor: AppColors.signalMint,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to delete post. Please try again.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      }
+    }
   }
 
   @override

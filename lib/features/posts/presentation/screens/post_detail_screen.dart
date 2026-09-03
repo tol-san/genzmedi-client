@@ -10,9 +10,13 @@ import 'package:client/core/theme/app_colors.dart';
 import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/theme/app_typography.dart';
 import 'package:client/core/widgets/app_avatar.dart';
+import 'package:client/features/feeds/presentation/notifiers/home_feed_notifier.dart';
+import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/posts/presentation/notifiers/post_detail_notifier.dart';
 import 'package:client/features/posts/presentation/widgets/comment_input_bar.dart';
 import 'package:client/features/posts/presentation/widgets/comment_tile_widget.dart';
+import 'package:client/features/reports/data/models/report_models.dart';
+import 'package:client/features/reports/presentation/widgets/report_sheet.dart';
 
 class PostDetailScreen extends ConsumerStatefulWidget {
   final String postId;
@@ -79,6 +83,196 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     }
   }
 
+  void _showOptionsModal(
+    BuildContext context,
+    PostModel post,
+    PostDetailNotifier notifier,
+    String? currentUserId,
+    bool isSuperuser,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isAuthor = currentUserId != null && currentUserId == post.author.id;
+    final canManage = isAuthor || isSuperuser;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor:
+          isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppSpacing.radiusLg),
+        ),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.space16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.navyBorder : AppColors.lightBorder,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.space16),
+              if (canManage) ...[
+                ListTile(
+                  leading: const Icon(Icons.edit_outlined),
+                  title: const Text('Edit post'),
+                  onTap: () async {
+                    Navigator.pop(ctx);
+                    final updated = await context.pushNamed<PostModel>(
+                      RouteNames.editPost,
+                      pathParameters: {'postId': post.id},
+                      extra: post,
+                    );
+                    if (updated != null) {
+                      notifier.updatePost(updated);
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: AppColors.error,
+                  ),
+                  title: const Text(
+                    'Delete post',
+                    style: TextStyle(color: AppColors.error),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _confirmDeletePost(post, notifier);
+                  },
+                ),
+                Divider(
+                  height: 1,
+                  color: isDark
+                      ? AppColors.navyBorder
+                      : AppColors.lightBorderSubtle,
+                ),
+              ],
+              ListTile(
+                leading: const Icon(Icons.share_outlined),
+                title: const Text('Share post'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _handleShare();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.link_rounded),
+                title: const Text('Copy link'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _handleShare();
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  post.isSaved
+                      ? Icons.bookmark_remove_outlined
+                      : Icons.bookmark_add_outlined,
+                ),
+                title: Text(post.isSaved ? 'Remove from saved' : 'Save post'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  notifier.toggleSave();
+                },
+              ),
+              if (!isAuthor)
+                ListTile(
+                  leading: const Icon(
+                    Icons.flag_outlined,
+                    color: AppColors.error,
+                  ),
+                  title: const Text(
+                    'Report post',
+                    style: TextStyle(color: AppColors.error),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    ReportSheet.show(
+                      context,
+                      targetType: ReportTargetType.post,
+                      targetId: post.id,
+                      targetLabel: 'post',
+                      communityId: post.communityId,
+                    );
+                  },
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmDeletePost(
+    PostModel post,
+    PostDetailNotifier notifier,
+  ) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor:
+            isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurface,
+        shape: RoundedRectangleBorder(borderRadius: AppSpacing.roundedLg),
+        title: const Text('Delete Post?'),
+        content: const Text(
+          'Are you sure you want to delete this post? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text(
+              'Delete',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final success = await notifier.deletePost();
+      if (success) {
+        if (ref.exists(homeFeedNotifierProvider)) {
+          ref.read(homeFeedNotifierProvider.notifier).removePost(post.id);
+        }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Post deleted successfully.'),
+              backgroundColor: AppColors.signalMint,
+            ),
+          );
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          }
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to delete post. Please try again.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -101,6 +295,17 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
             icon: const Icon(Icons.share_outlined),
             onPressed: _handleShare,
           ),
+          if (post != null)
+            IconButton(
+              icon: const Icon(Icons.more_horiz_rounded),
+              onPressed: () => _showOptionsModal(
+                context,
+                post,
+                notifier,
+                currentUserId,
+                authState is AuthAuthenticated && authState.user.isSuperuser,
+              ),
+            ),
           const SizedBox(width: AppSpacing.space8),
         ],
       ),
@@ -385,11 +590,25 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                               key: ValueKey(comment.id),
                               comment: comment,
                               currentUserId: currentUserId,
+                              isSuperuser: authState is AuthAuthenticated &&
+                                  authState.user.isSuperuser,
                               onReply: () => notifier.setReplyingTo(comment),
                               onToggleReplies: () =>
                                   notifier.toggleReplies(comment.id),
                               onDelete: () =>
                                   notifier.deleteComment(comment.id),
+                              onEdit: (newContent) =>
+                                  notifier.updateComment(comment.id, newContent),
+                              onEditReply: (replyId, newContent) =>
+                                  notifier.updateComment(
+                                    replyId,
+                                    newContent,
+                                    parentId: comment.id,
+                                  ),
+                              onDeleteReply: (replyId) => notifier.deleteComment(
+                                replyId,
+                                parentId: comment.id,
+                              ),
                             ),
                           ),
                         const SizedBox(height: AppSpacing.space24),

@@ -107,6 +107,35 @@ void main() {
         findsOneWidget,
       );
     });
+
+    testWidgets(
+      'renders community badge when community is provided and allows clearing',
+      (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              postRepositoryProvider.overrideWithValue(mockPostRepository),
+            ],
+            child: const MaterialApp(
+              home: CreatePostScreen(
+                initialPostType: 'text',
+                communityId: 'comm-123',
+                communityName: 'FlutterDevs',
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Posting to: FlutterDevs'), findsOneWidget);
+
+        // Tap clear icon on the badge
+        await tester.tap(find.byIcon(Icons.close_rounded));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Posting to: FlutterDevs'), findsNothing);
+      },
+    );
   });
 }
 

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:client/core/auth/auth_notifier.dart';
+import 'package:client/core/auth/auth_state.dart';
+import 'package:client/core/auth/user_model.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/posts/presentation/widgets/post_card_widget.dart';
 
@@ -134,5 +138,84 @@ void main() {
       expect(find.text('Video Creator'), findsOneWidget);
       expect(find.text('Watch this snippet!'), findsOneWidget);
     });
+
+    testWidgets('shows report option and hides edit/delete for non-owner', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authNotifierProvider.overrideWith(
+              (ref) => FakeAuthorAuthNotifier('other-user-999'),
+            ),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: PostCardWidget(post: testPost),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byIcon(Icons.more_horiz_rounded));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Report post'), findsOneWidget);
+      expect(find.text('Share post'), findsOneWidget);
+      expect(find.text('Copy link'), findsOneWidget);
+      expect(find.text('Edit post'), findsNothing);
+      expect(find.text('Delete post'), findsNothing);
+    });
+
+    testWidgets('shows edit and delete options for post author', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authNotifierProvider.overrideWith(
+              (ref) => FakeAuthorAuthNotifier('author-1'),
+            ),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: PostCardWidget(post: testPost),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byIcon(Icons.more_horiz_rounded));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Edit post'), findsOneWidget);
+      expect(find.text('Delete post'), findsOneWidget);
+      expect(find.text('Report post'), findsNothing);
+
+      // Tap Delete post to open confirmation dialog
+      await tester.tap(find.text('Delete post'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Delete Post?'), findsOneWidget);
+      expect(find.text('Cancel'), findsOneWidget);
+      expect(find.text('Delete'), findsOneWidget);
+    });
   });
+}
+
+class FakeAuthorAuthNotifier extends StateNotifier<AuthState>
+    implements AuthNotifier {
+  FakeAuthorAuthNotifier(String userId)
+      : super(
+          AuthAuthenticated(
+            UserModel(
+              id: userId,
+              email: 'test@example.com',
+              username: 'author_test',
+            ),
+          ),
+        );
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

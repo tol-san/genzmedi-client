@@ -13,8 +13,15 @@ import 'package:client/features/posts/presentation/notifiers/create_post_notifie
 
 class CreatePostScreen extends ConsumerStatefulWidget {
   final String initialPostType;
+  final String? communityId;
+  final String? communityName;
 
-  const CreatePostScreen({super.key, this.initialPostType = 'text'});
+  const CreatePostScreen({
+    super.key,
+    this.initialPostType = 'text',
+    this.communityId,
+    this.communityName,
+  });
 
   @override
   ConsumerState<CreatePostScreen> createState() => _CreatePostScreenState();
@@ -31,6 +38,11 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       ref
           .read(createPostNotifierProvider.notifier)
           .setPostType(widget.initialPostType);
+      if (widget.communityId != null) {
+        ref
+            .read(createPostNotifierProvider.notifier)
+            .setCommunityId(widget.communityId);
+      }
     });
   }
 
@@ -253,6 +265,56 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                 ),
               ),
               const SizedBox(height: AppSpacing.space16),
+            ],
+
+            // Community Context Badge
+            if (state.communityId != null) ...[
+              Container(
+                margin: const EdgeInsets.only(bottom: AppSpacing.space16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.space12,
+                  vertical: AppSpacing.space8,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryCrimson.withValues(alpha: 0.1),
+                  borderRadius: AppSpacing.roundedSm,
+                  border: Border.all(
+                    color: AppColors.primaryCrimson.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.groups_rounded,
+                      color: AppColors.primaryCrimson,
+                      size: 18,
+                    ),
+                    const SizedBox(width: AppSpacing.space8),
+                    Text(
+                      'Posting to: ${widget.communityName ?? "Community"}',
+                      style: const TextStyle(
+                        color: AppColors.primaryCrimson,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.space8),
+                    GestureDetector(
+                      onTap: () {
+                        ref
+                            .read(createPostNotifierProvider.notifier)
+                            .setCommunityId(null);
+                      },
+                      child: const Icon(
+                        Icons.close_rounded,
+                        size: 16,
+                        color: AppColors.primaryCrimson,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
 
             // 1. Post Type Segmented Switcher

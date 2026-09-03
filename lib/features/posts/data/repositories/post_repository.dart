@@ -65,6 +65,29 @@ class PostRepository {
     }
   }
 
+  /// Update an existing post (title, content, visibility)
+  Future<PostModel> updatePost(
+    String postId, {
+    String? title,
+    String? content,
+    String? visibility,
+  }) async {
+    try {
+      final data = <String, dynamic>{
+        'title': ?title,
+        'content': ?content,
+        'visibility': ?visibility,
+      };
+      final response = await dio.patch(
+        ApiEndpoints.postDetail(postId),
+        data: data,
+      );
+      return PostModel.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
+
   /// Delete post
   Future<void> deletePost(String postId) async {
     try {

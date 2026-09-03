@@ -108,5 +108,111 @@ void main() {
 
       expect(find.text('No comments yet. Be the first to share your thoughts!'), findsOneWidget);
     });
+
+    testWidgets('shows report option in overflow menu for non-author', (tester) async {
+      when(() => mockPostRepository.getPost('p-detail-1'))
+          .thenAnswer((_) async => testPost);
+      when(() => mockCommentRepository.getComments('p-detail-1', limit: 20, offset: 0))
+          .thenAnswer((_) async => []);
+
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_horiz_rounded));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Report post'), findsOneWidget);
+      expect(find.text('Share post'), findsOneWidget);
+      expect(find.text('Copy link'), findsOneWidget);
+      expect(find.text('Edit post'), findsNothing);
+      expect(find.text('Delete post'), findsNothing);
+    });
+
+    testWidgets('shows edit and delete options in overflow menu for author and deletes post', (tester) async {
+      when(() => mockPostRepository.getPost('p-detail-1'))
+          .thenAnswer((_) async => testPost);
+      when(() => mockCommentRepository.getComments('p-detail-1', limit: 20, offset: 0))
+          .thenAnswer((_) async => []);
+      when(() => mockPostRepository.deletePost('p-detail-1'))
+          .thenAnswer((_) async {});
+
+      // Author user matching testPost.author.id ('author-1')
+      const authorUser = UserModel(
+        id: 'author-1',
+        username: 'sarah_dev',
+        email: 'sarah@example.com',
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            postRepositoryProvider.overrideWithValue(mockPostRepository),
+            commentRepositoryProvider.overrideWithValue(mockCommentRepository),
+            authNotifierProvider.overrideWith(
+              (ref) => AuthNotifierMock(const AuthAuthenticated(authorUser)),
+            ),
+          ],
+          child: const MaterialApp(
+            home: PostDetailScreen(postId: 'p-detail-1'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_horiz_rounded));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Edit post'), findsOneWidget);
+      expect(find.text('Delete post'), findsOneWidget);
+      expect(find.text('Report post'), findsNothing);
+
+      // Tap Delete post
+      await tester.tap(find.text('Delete post'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Delete Post?'), findsOneWidget);
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+
+      verify(() => mockPostRepository.deletePost('p-detail-1')).called(1);
+    });
+
+    testWidgets('allows author to edit comment on post detail screen', (tester) async {
+      when(() => mockPostRepository.getPost('p-detail-1'))
+          .thenAnswer((_) async => testPost);
+      when(() => mockCommentRepository.getComments('p-detail-1', limit: 20, offset: 0))
+          .thenAnswer((_) async => [testComment]);
+      when(() => mockCommentRepository.updateComment('c-1', content: 'Updated insightful comment!'))
+          .thenAnswer((_) async => testComment.copyWith(
+                content: 'Updated insightful comment!',
+                isEdited: true,
+              ));
+
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Insightful post!'), findsOneWidget);
+
+      // Tap more options on comment tile
+      final commentMenuFinder = find.byTooltip('Comment options');
+      await tester.ensureVisible(commentMenuFinder);
+      await tester.tap(commentMenuFinder);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Edit comment'), findsOneWidget);
+      await tester.tap(find.text('Edit comment'));
+      await tester.pumpAndSettle();
+
+      // Enter updated text in inline editor
+      await tester.enterText(find.byType(TextField).first, 'Updated insightful comment!');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      verify(() => mockCommentRepository.updateComment('c-1', content: 'Updated insightful comment!')).called(1);
+      expect(find.text('Updated insightful comment!'), findsOneWidget);
+      expect(find.text('(edited)'), findsOneWidget);
+    });
   });
 }

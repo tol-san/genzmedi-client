@@ -285,6 +285,7 @@ class _PostCommentsSheetState extends ConsumerState<PostCommentsSheet> {
                         key: ValueKey(comment.id),
                         comment: comment,
                         currentUserId: currentUser?.id,
+                        isSuperuser: currentUser?.isSuperuser ?? false,
                         onReply: () {
                           notifier.setReplyingTo(comment);
                           _focusNode.requestFocus();
@@ -292,6 +293,18 @@ class _PostCommentsSheetState extends ConsumerState<PostCommentsSheet> {
                         onToggleReplies: () =>
                             notifier.toggleReplies(comment.id),
                         onDelete: () => notifier.deleteComment(comment.id),
+                        onEdit: (newContent) =>
+                            notifier.updateComment(comment.id, newContent),
+                        onEditReply: (replyId, newContent) =>
+                            notifier.updateComment(
+                              replyId,
+                              newContent,
+                              parentId: comment.id,
+                            ),
+                        onDeleteReply: (replyId) => notifier.deleteComment(
+                          replyId,
+                          parentId: comment.id,
+                        ),
                       );
                     },
                   ),

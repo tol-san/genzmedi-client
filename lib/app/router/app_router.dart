@@ -22,6 +22,7 @@ import 'package:client/features/notifications/presentation/screens/notification_
 import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/posts/presentation/screens/create_hub_screen.dart';
 import 'package:client/features/posts/presentation/screens/create_post_screen.dart';
+import 'package:client/features/posts/presentation/screens/edit_post_screen.dart';
 import 'package:client/features/posts/presentation/screens/post_detail_screen.dart';
 import 'package:client/features/posts/presentation/screens/post_media_viewer_screen.dart';
 import 'package:client/features/posts/presentation/screens/post_photo_viewer_screen.dart';
@@ -209,7 +210,24 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: RouteNames.createPost,
         builder: (context, state) {
           final type = state.uri.queryParameters['type'] ?? 'text';
-          return CreatePostScreen(initialPostType: type);
+          final communityId = state.uri.queryParameters['communityId'];
+          final communityName = state.uri.queryParameters['communityName'];
+          return CreatePostScreen(
+            initialPostType: type,
+            communityId: communityId,
+            communityName: communityName,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/posts/:postId/edit',
+        name: RouteNames.editPost,
+        builder: (context, state) {
+          final postId = state.pathParameters['postId'] ?? '';
+          final initialPost = state.extra is PostModel
+              ? state.extra as PostModel
+              : null;
+          return EditPostScreen(postId: postId, initialPost: initialPost);
         },
       ),
       GoRoute(

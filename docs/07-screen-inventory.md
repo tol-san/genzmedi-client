@@ -56,15 +56,16 @@ Not every item must be a separate Flutter route. Some are sheets, tabs, dialogs,
 33. Active Live Room
 
 ## Content
-34. Post Detail
-35. Text Composer
-36. Image Composer
-37. Short Video Composer
-38. Upload / Publishing State
-39. Comments
-40. Reply Thread / Reply Expansion
-41. Delete Confirmation
-42. Report Sheet
+34. Post Detail — implemented (`/posts/:postId`)
+35. Text Composer — implemented (`/create/composer?type=text`)
+36. Image Composer — implemented (`/create/composer?type=image`)
+37. Short Video Composer — implemented (`/create/composer?type=video`)
+38. Edit Post Screen — implemented (`/posts/:postId/edit`)
+39. Upload / Publishing State — implemented
+40. Comments & Inline Editor — implemented (Modal Sheet & Detail list with inline editing, 1000 char counter, and (edited) tag)
+41. Reply Thread / Reply Expansion — implemented
+42. Delete Confirmation Dialog — implemented (Dialog)
+43. Report Sheet — implemented (Modal Sheet)
 
 ## Notifications
 43. Notification Center — implemented
