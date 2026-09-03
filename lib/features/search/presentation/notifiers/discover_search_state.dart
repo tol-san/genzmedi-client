@@ -45,6 +45,14 @@ class DiscoverSearchState extends Equatable {
       posts.isEmpty &&
       interests.isEmpty;
 
+  /// True when the user triggered a search from an empty/unpopulated state
+  /// and we are waiting for the very first batch of results.
+  bool get isInitialLoading => isLoading && isEmpty;
+
+  /// True when previous results are already rendered on screen and the user
+  /// is actively typing to refine or update them in real time.
+  bool get isBackgroundSearching => isLoading && !isEmpty;
+
   int get activeCount {
     switch (category) {
       case DiscoverSearchCategory.all:

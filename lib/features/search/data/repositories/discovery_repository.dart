@@ -74,6 +74,7 @@ class DiscoveryRepository {
   Future<UnifiedDiscoverySearch> searchAll(
     String query, {
     int limit = 6,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await dio.get(
@@ -84,6 +85,7 @@ class DiscoveryRepository {
           'limit': limit,
           'offset': 0,
         },
+        cancelToken: cancelToken,
       );
       final data = response.data as Map<String, dynamic>;
       return UnifiedDiscoverySearch(
@@ -101,6 +103,7 @@ class DiscoveryRepository {
         totalResults: (data['total_results'] as num?)?.toInt() ?? 0,
       );
     } on DioException catch (error) {
+      if (CancelToken.isCancel(error)) rethrow;
       throw ErrorMapper.fromDioException(error);
     }
   }
@@ -110,6 +113,7 @@ class DiscoveryRepository {
     DiscoverSearchCategory category, {
     int limit = 20,
     int offset = 0,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await dio.get(
@@ -120,6 +124,7 @@ class DiscoveryRepository {
           'limit': limit,
           'offset': offset,
         },
+        cancelToken: cancelToken,
       );
       final data = response.data as Map<String, dynamic>;
       switch (category) {
@@ -135,6 +140,7 @@ class DiscoveryRepository {
           throw ArgumentError('Use searchAll for the All category.');
       }
     } on DioException catch (error) {
+      if (CancelToken.isCancel(error)) rethrow;
       throw ErrorMapper.fromDioException(error);
     }
   }

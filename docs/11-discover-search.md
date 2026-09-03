@@ -90,8 +90,13 @@ Body:
 
 ### Behavior
 
-- **Debounced search**: 350 ms after user stops typing.
-- **Query submit**: saves to recent-searches history (`SharedPreferences`, max 8).
+- **Real-Time Search-As-You-Type**:
+  - Low-latency debounce: **180 ms** after user pauses typing (fast and fluid).
+  - Non-destructive updates: existing search results remain on screen while typing, with a slim crimson `LinearProgressIndicator` in the AppBar indicating background query execution (no jarring skeleton flashing).
+  - Initial load skeleton: `_SearchSkeleton` is only shown on the very first search when no results have been loaded yet (`isInitialLoading`).
+  - Stale query rejection: monotonic request ID tracking (`_searchRequestId`) ensures that out-of-order network responses from earlier keystrokes are automatically discarded.
+  - In-memory query caching: recent query responses are cached in memory for **0ms instant retrieval** when the user backspaces or re-enters a recent term.
+- **Query submit**: saves to recent-searches history (`SharedPreferences`, max 8) and dismisses keyboard.
 - **Recent searches**: shown when query is empty; each entry can be tapped to re-search or removed; "Clear all" removes all.
 - **Category switching**: resets scroll to top and reloads results with active count badges.
 - **Pagination**: scroll-to-bottom on non-All categories appends next page.

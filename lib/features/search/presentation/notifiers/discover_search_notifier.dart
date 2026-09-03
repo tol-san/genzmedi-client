@@ -20,6 +20,10 @@ class DiscoverSearchNotifier extends StateNotifier<DiscoverSearchState> {
   final DiscoveryRepository repository;
   static const int _pageSize = 20;
 
+  int _searchRequestId = 0;
+  final Map<String, UnifiedDiscoverySearch> _unifiedCache = {};
+  final Map<String, DiscoveryPage<dynamic>> _categoryCache = {};
+
   DiscoverSearchNotifier({
     required this.repository,
     required String initialQuery,
@@ -30,6 +34,7 @@ class DiscoverSearchNotifier extends StateNotifier<DiscoverSearchState> {
   Future<void> updateQuery(String query) async {
     final clean = query.trim();
     if (clean == state.query) return;
+    _searchRequestId++;
     state = state.copyWith(query: clean);
     if (clean.isEmpty) {
       state = DiscoverSearchState(category: state.category);
@@ -40,12 +45,43 @@ class DiscoverSearchNotifier extends StateNotifier<DiscoverSearchState> {
 
   Future<void> setCategory(DiscoverSearchCategory category) async {
     if (category == state.category) return;
+    _searchRequestId++;
     state = state.copyWith(category: category);
     if (state.query.isNotEmpty) await search();
   }
 
   Future<void> search() async {
     if (state.query.isEmpty) return;
+
+    // 1. Check instant in-memory cache for 0ms backspacing / repeat queries
+    if (state.category == DiscoverSearchCategory.all) {
+      final cached = _unifiedCache[state.query];
+      if (cached != null) {
+        state = state.copyWith(
+          users: cached.users,
+          communities: cached.communities,
+          posts: cached.posts,
+          interests: cached.interests,
+          totalResults: cached.totalResults,
+          hasMore: false,
+          isLoading: false,
+          clearError: true,
+        );
+        return;
+      }
+    } else {
+      final cacheKey = '${state.category.apiValue}:${state.query}';
+      final cached = _categoryCache[cacheKey];
+      if (cached != null) {
+        state = state.copyWith(isLoading: false, clearError: true);
+        _applyCategoryPage(cached, replace: true);
+        return;
+      }
+    }
+
+    // 2. Track request ID to discard superseded stale responses
+    final currentRequestId = ++_searchRequestId;
+
     state = state.copyWith(
       isLoading: true,
       isLoadingMore: false,
@@ -54,6 +90,8 @@ class DiscoverSearchNotifier extends StateNotifier<DiscoverSearchState> {
     try {
       if (state.category == DiscoverSearchCategory.all) {
         final result = await repository.searchAll(state.query);
+        if (currentRequestId != _searchRequestId) return;
+        _unifiedCache[state.query] = result;
         state = state.copyWith(
           users: result.users,
           communities: result.communities,
@@ -69,9 +107,13 @@ class DiscoverSearchNotifier extends StateNotifier<DiscoverSearchState> {
           state.category,
           limit: _pageSize,
         );
+        if (currentRequestId != _searchRequestId) return;
+        final cacheKey = '${state.category.apiValue}:${state.query}';
+        _categoryCache[cacheKey] = page;
         _applyCategoryPage(page, replace: true);
       }
     } catch (error) {
+      if (currentRequestId != _searchRequestId) return;
       state = state.copyWith(
         isLoading: false,
         errorMessage: _message(error, 'Search is unavailable right now.'),
@@ -86,6 +128,7 @@ class DiscoverSearchNotifier extends StateNotifier<DiscoverSearchState> {
         !state.hasMore) {
       return;
     }
+    final currentRequestId = _searchRequestId;
     state = state.copyWith(isLoadingMore: true);
     try {
       final page = await repository.searchCategory(
@@ -94,8 +137,10 @@ class DiscoverSearchNotifier extends StateNotifier<DiscoverSearchState> {
         limit: _pageSize,
         offset: state.activeCount,
       );
+      if (currentRequestId != _searchRequestId) return;
       _applyCategoryPage(page, replace: false);
     } catch (error) {
+      if (currentRequestId != _searchRequestId) return;
       state = state.copyWith(
         isLoadingMore: false,
         errorMessage: _message(error, 'Could not load more results.'),

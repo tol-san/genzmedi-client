@@ -120,12 +120,11 @@ class _DiscoverSearchScreenState extends ConsumerState<DiscoverSearchScreen>
   void _onQueryChanged(String query) {
     setState(() {}); // rebuild to toggle clear button
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 350), () {
+    _debounce = Timer(const Duration(milliseconds: 180), () {
       if (mounted) {
         ref
             .read(discoverSearchNotifierProvider(widget.initialQuery).notifier)
             .updateQuery(query);
-        _resetScroll();
       }
     });
   }
@@ -208,14 +207,29 @@ class _DiscoverSearchScreenState extends ConsumerState<DiscoverSearchScreen>
           ),
         ),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(52),
-          child: _CategoryTabBar(
-            state: state,
-            isDark: isDark,
-            onSelected: (cat) {
-              notifier.setCategory(cat);
-              _resetScroll();
-            },
+          preferredSize: const Size.fromHeight(54),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _CategoryTabBar(
+                state: state,
+                isDark: isDark,
+                onSelected: (cat) {
+                  notifier.setCategory(cat);
+                  _resetScroll();
+                },
+              ),
+              if (state.isBackgroundSearching)
+                const LinearProgressIndicator(
+                  minHeight: 2,
+                  backgroundColor: Colors.transparent,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppColors.primaryCrimson,
+                  ),
+                )
+              else
+                const SizedBox(height: 2),
+            ],
           ),
         ),
       ),
@@ -239,7 +253,7 @@ class _DiscoverSearchScreenState extends ConsumerState<DiscoverSearchScreen>
       );
     }
 
-    if (state.isLoading) {
+    if (state.isInitialLoading) {
       return const _SearchSkeleton();
     }
 

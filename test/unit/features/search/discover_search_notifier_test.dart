@@ -473,5 +473,44 @@ void main() {
       );
       expect(state.activeCount, 2);
     });
+
+    // ── Real-Time Search & In-Memory Cache ──────────────────────────────────
+
+    test('in-memory cache returns cached results without re-querying repository', () async {
+      _stubSearchAll(mockRepo, 'matrix', _unified(users: [_discoverUser], query: 'matrix'));
+
+      final notifier = _make(mockRepo);
+      await notifier.updateQuery('matrix');
+      expect(notifier.state.users.length, 1);
+      verify(() => mockRepo.searchAll('matrix')).called(1);
+
+      // Now query something else
+      _stubSearchAll(mockRepo, 'neo', _unified(users: [_discoverUser2], query: 'neo'));
+      await notifier.updateQuery('neo');
+      expect(notifier.state.users.length, 1);
+      verify(() => mockRepo.searchAll('neo')).called(1);
+
+      // Backspace back to 'matrix' -> should serve from cache immediately without calling repo again
+      await notifier.updateQuery('matrix');
+      expect(notifier.state.users.length, 1);
+      expect(notifier.state.users.first.user.username, 'neo');
+      // Total calls to searchAll('matrix') should STILL be exactly 1!
+      verifyNever(() => mockRepo.searchAll('matrix'));
+    });
+
+    test('isInitialLoading and isBackgroundSearching correctly reflect state', () {
+      const emptyLoading = DiscoverSearchState(query: 'm', isLoading: true);
+      expect(emptyLoading.isInitialLoading, isTrue);
+      expect(emptyLoading.isBackgroundSearching, isFalse);
+
+      final populatedSearching = DiscoverSearchState(
+        query: 'ma',
+        isLoading: true,
+        users: [_discoverUser],
+      );
+      expect(populatedSearching.isInitialLoading, isFalse);
+      expect(populatedSearching.isBackgroundSearching, isTrue);
+    });
   });
 }
+
