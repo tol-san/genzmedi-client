@@ -30,15 +30,13 @@ import 'package:client/features/profiles/presentation/screens/follow_list_screen
 import 'package:client/features/profiles/presentation/screens/my_profile_screen.dart';
 import 'package:client/features/profiles/presentation/screens/public_profile_screen.dart';
 import 'package:client/features/search/presentation/screens/discover_screen.dart';
+import 'package:client/features/search/presentation/screens/discover_search_screen.dart';
 
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
 
   RouterNotifier(this._ref) {
-    _ref.listen<AuthState>(
-      authNotifierProvider,
-      (_, _) => notifyListeners(),
-    );
+    _ref.listen<AuthState>(authNotifierProvider, (_, _) => notifyListeners());
   }
 
   String? redirect(BuildContext context, GoRouterState state) {
@@ -57,7 +55,8 @@ class RouterNotifier extends ChangeNotifier {
       return null;
     }
 
-    final isPublicAuthRoute = matched == '/login' ||
+    final isPublicAuthRoute =
+        matched == '/login' ||
         matched == '/register' ||
         matched == '/forgot-password';
 
@@ -83,7 +82,10 @@ class RouterNotifier extends ChangeNotifier {
 
     // 6. Authenticated user attempting to access auth, onboarding, or splash
     if (authState is AuthAuthenticated) {
-      if (isPublicAuthRoute || matched == '/onboarding' || matched == '/splash' || matched == '/profile-setup') {
+      if (isPublicAuthRoute ||
+          matched == '/onboarding' ||
+          matched == '/splash' ||
+          matched == '/profile-setup') {
         return '/feed';
       }
     }
@@ -140,11 +142,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           final email = state.uri.queryParameters['email'] ?? '';
           final otp = state.uri.queryParameters['otp'];
           final flow = state.uri.queryParameters['flow'];
-          return VerifyOtpScreen(
-            email: email,
-            initialOtp: otp,
-            flow: flow,
-          );
+          return VerifyOtpScreen(email: email, initialOtp: otp, flow: flow);
         },
       ),
       GoRoute(
@@ -153,10 +151,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final token = state.uri.queryParameters['token'];
           final email = state.uri.queryParameters['email'];
-          return ResetPasswordScreen(
-            initialToken: token,
-            initialEmail: email,
-          );
+          return ResetPasswordScreen(initialToken: token, initialEmail: email);
         },
       ),
       GoRoute(
@@ -190,7 +185,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final userId = state.pathParameters['userId'] ?? '';
           final username = state.uri.queryParameters['username'] ?? '';
-          final initialTabIndex = int.tryParse(state.uri.queryParameters['tab'] ?? '0') ?? 0;
+          final initialTabIndex =
+              int.tryParse(state.uri.queryParameters['tab'] ?? '0') ?? 0;
           return FollowListScreen(
             userId: userId,
             username: username,
@@ -218,11 +214,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/posts/:postId/media',
         name: RouteNames.mediaViewer,
         builder: (context, state) {
-          final post = state.extra is PostModel ? state.extra as PostModel : null;
+          final post = state.extra is PostModel
+              ? state.extra as PostModel
+              : null;
           final initialIndexStr = state.uri.queryParameters['index'];
           final initialIndex = int.tryParse(initialIndexStr ?? '0') ?? 0;
           if (post != null) {
-            return PostMediaViewerScreen(post: post, initialIndex: initialIndex);
+            return PostMediaViewerScreen(
+              post: post,
+              initialIndex: initialIndex,
+            );
           }
           final postId = state.pathParameters['postId'] ?? '';
           return PostPhotoViewerScreen(
@@ -237,11 +238,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/posts/:postId/photos',
         name: RouteNames.photoViewer,
         builder: (context, state) {
-          final post = state.extra is PostModel ? state.extra as PostModel : null;
+          final post = state.extra is PostModel
+              ? state.extra as PostModel
+              : null;
           final initialIndexStr = state.uri.queryParameters['index'];
           final initialIndex = int.tryParse(initialIndexStr ?? '0') ?? 0;
           if (post != null) {
-            return PostPhotoViewerScreen(post: post, initialIndex: initialIndex);
+            return PostPhotoViewerScreen(
+              post: post,
+              initialIndex: initialIndex,
+            );
           }
           final postId = state.pathParameters['postId'] ?? '';
           return PostPhotoViewerScreen(
@@ -264,7 +270,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/shorts-viewer',
         name: RouteNames.shortsViewer,
         builder: (context, state) {
-          final post = state.extra is PostModel ? state.extra as PostModel : null;
+          final post = state.extra is PostModel
+              ? state.extra as PostModel
+              : null;
           final postId = state.uri.queryParameters['postId'];
           return ShortsFeedScreen(
             initialPost: post,
@@ -290,6 +298,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           final communityId = state.pathParameters['communityId'] ?? '';
           return CommunityDetailScreen(communityId: communityId);
         },
+      ),
+      GoRoute(
+        path: '/discover/search',
+        name: RouteNames.discoverSearch,
+        builder: (context, state) => DiscoverSearchScreen(
+          initialQuery: state.uri.queryParameters['q'] ?? '',
+        ),
       ),
 
       // 5-Tab Shell Route

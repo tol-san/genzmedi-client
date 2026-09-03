@@ -8,21 +8,17 @@ import 'package:client/core/auth/auth_state.dart';
 import 'package:client/core/theme/app_colors.dart';
 import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/theme/app_typography.dart';
-import 'package:client/core/widgets/app_avatar.dart';
 import 'package:client/core/widgets/app_button.dart';
 import 'package:client/core/widgets/empty_state_widget.dart';
 import 'package:client/features/profiles/presentation/notifiers/public_profile_notifier.dart';
+import 'package:client/features/profiles/presentation/widgets/profile_overview_card.dart';
 import 'package:client/features/profiles/presentation/widgets/profile_post_card.dart';
-import 'package:client/features/profiles/presentation/widgets/profile_stat_widget.dart';
 import 'package:client/features/profiles/presentation/widgets/report_user_sheet.dart';
 
 class PublicProfileScreen extends ConsumerWidget {
   final String username;
 
-  const PublicProfileScreen({
-    super.key,
-    required this.username,
-  });
+  const PublicProfileScreen({super.key, required this.username});
 
   String _formatCount(int count) {
     if (count >= 1000000) {
@@ -34,7 +30,11 @@ class PublicProfileScreen extends ConsumerWidget {
     return count.toString();
   }
 
-  void _showBlockConfirmationDialog(BuildContext context, WidgetRef ref, bool isBlocking) {
+  void _showBlockConfirmationDialog(
+    BuildContext context,
+    WidgetRef ref,
+    bool isBlocking,
+  ) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -58,15 +58,23 @@ class PublicProfileScreen extends ConsumerWidget {
               if (context.mounted && success) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(isBlocking ? 'Unblocked @$username' : 'Blocked @$username'),
-                    backgroundColor: isBlocking ? AppColors.success : AppColors.error,
+                    content: Text(
+                      isBlocking
+                          ? 'Unblocked @$username'
+                          : 'Blocked @$username',
+                    ),
+                    backgroundColor: isBlocking
+                        ? AppColors.success
+                        : AppColors.error,
                   ),
                 );
               }
             },
             child: Text(
               isBlocking ? 'Unblock' : 'Block',
-              style: TextStyle(color: isBlocking ? AppColors.signalMint : AppColors.error),
+              style: TextStyle(
+                color: isBlocking ? AppColors.signalMint : AppColors.error,
+              ),
             ),
           ),
         ],
@@ -76,7 +84,6 @@ class PublicProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final state = ref.watch(publicProfileNotifierProvider(username));
     final authState = ref.watch(authNotifierProvider);
 
@@ -85,13 +92,12 @@ class PublicProfileScreen extends ConsumerWidget {
         : (authState is AuthNeedsOnboarding ? authState.user : null);
 
     final user = state.user;
-    final isOwnProfile = currentUser != null &&
+    final isOwnProfile =
+        currentUser != null &&
         currentUser.username.toLowerCase() == username.toLowerCase();
 
     if (state.isLoading && user == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (user == null && !state.isLoading) {
@@ -116,11 +122,18 @@ class PublicProfileScreen extends ConsumerWidget {
           children: [
             Text(
               '@${user!.username}',
-              style: AppTypography.title.copyWith(fontWeight: FontWeight.w700, fontSize: 18),
+              style: AppTypography.title.copyWith(
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+              ),
             ),
             if (user.isVerified) ...[
               const SizedBox(width: 4),
-              const Icon(Icons.verified_rounded, size: 16, color: AppColors.signalMint),
+              const Icon(
+                Icons.verified_rounded,
+                size: 16,
+                color: AppColors.signalMint,
+              ),
             ],
           ],
         ),
@@ -130,7 +143,11 @@ class PublicProfileScreen extends ConsumerWidget {
               icon: const Icon(Icons.more_vert_rounded),
               onSelected: (value) {
                 if (value == 'block') {
-                  _showBlockConfirmationDialog(context, ref, relationship.isBlocking);
+                  _showBlockConfirmationDialog(
+                    context,
+                    ref,
+                    relationship.isBlocking,
+                  );
                 } else if (value == 'report') {
                   ReportUserSheet.show(
                     context,
@@ -146,7 +163,11 @@ class PublicProfileScreen extends ConsumerWidget {
                   value: 'report',
                   child: Row(
                     children: [
-                      Icon(Icons.flag_outlined, size: 18, color: AppColors.warning),
+                      Icon(
+                        Icons.flag_outlined,
+                        size: 18,
+                        color: AppColors.warning,
+                      ),
                       SizedBox(width: 8),
                       Text('Report User'),
                     ],
@@ -156,9 +177,15 @@ class PublicProfileScreen extends ConsumerWidget {
                   value: 'block',
                   child: Row(
                     children: [
-                      Icon(Icons.block_rounded, size: 18, color: AppColors.error),
+                      Icon(
+                        Icons.block_rounded,
+                        size: 18,
+                        color: AppColors.error,
+                      ),
                       const SizedBox(width: 8),
-                      Text(relationship.isBlocking ? 'Unblock User' : 'Block User'),
+                      Text(
+                        relationship.isBlocking ? 'Unblock User' : 'Block User',
+                      ),
                     ],
                   ),
                 ),
@@ -169,7 +196,9 @@ class PublicProfileScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         color: AppColors.primaryCrimson,
-        onRefresh: () => ref.read(publicProfileNotifierProvider(username).notifier).refresh(),
+        onRefresh: () => ref
+            .read(publicProfileNotifierProvider(username).notifier)
+            .refresh(),
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space20),
@@ -178,179 +207,67 @@ class PublicProfileScreen extends ConsumerWidget {
             children: [
               const SizedBox(height: AppSpacing.space16),
 
-              // Avatar & Stats Row
-              Row(
-                children: [
-                  AppAvatar(
-                    name: user.displayName ?? user.username,
-                    size: 76,
-                    imageUrl: user.avatarUrl,
-                  ),
-                  const SizedBox(width: AppSpacing.space16),
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        ProfileStatWidget(
-                          count: _formatCount(user.postCount),
-                          label: 'Posts',
-                        ),
-                        ProfileStatWidget(
-                          count: _formatCount(user.followersCount),
-                          label: 'Followers',
-                          onTap: () {
-                            context.pushNamed(
-                              RouteNames.followList,
-                              pathParameters: {'userId': user.id},
-                              queryParameters: {'username': user.username, 'tab': '0'},
-                            );
-                          },
-                        ),
-                        ProfileStatWidget(
-                          count: _formatCount(user.followingCount),
-                          label: 'Following',
-                          onTap: () {
-                            context.pushNamed(
-                              RouteNames.followList,
-                              pathParameters: {'userId': user.id},
-                              queryParameters: {'username': user.username, 'tab': '1'},
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.space16),
-
-              // Display Name & Bio
-              Text(
-                user.displayName ?? user.username,
-                style: AppTypography.title.copyWith(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                  fontWeight: FontWeight.w700,
+              ProfileOverviewCard(
+                displayName: user.displayName ?? user.username,
+                avatarUrl: user.avatarUrl,
+                bio: user.bio,
+                isVerified: user.isVerified,
+                postCount: _formatCount(user.postCount),
+                followersCount: _formatCount(user.followersCount),
+                followingCount: _formatCount(user.followingCount),
+                onFollowersTap: () => context.pushNamed(
+                  RouteNames.followList,
+                  pathParameters: {'userId': user.id},
+                  queryParameters: {'username': user.username, 'tab': '0'},
                 ),
-              ),
-              if (user.bio != null && user.bio!.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  user.bio!,
-                  style: AppTypography.body.copyWith(
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                  ),
+                onFollowingTap: () => context.pushNamed(
+                  RouteNames.followList,
+                  pathParameters: {'userId': user.id},
+                  queryParameters: {'username': user.username, 'tab': '1'},
                 ),
-              ],
-              const SizedBox(height: AppSpacing.space16),
-
-              // Action Buttons Row
-              Row(
-                children: [
-                  Expanded(
-                    child: isOwnProfile
-                        ? AppButton.secondary(
-                            text: 'Edit Profile',
-                            size: AppButtonSize.small,
-                            borderRadius: AppSpacing.roundedMd,
-                            onPressed: () => context.pushNamed(RouteNames.editProfile),
-                          )
-                        : (relationship.isFollowing
-                            ? AppButton.secondary(
-                                text: 'Following',
-                                icon: Icons.check_rounded,
-                                size: AppButtonSize.small,
-                                borderRadius: AppSpacing.roundedMd,
-                                onPressed: () {
-                                  ref
-                                      .read(publicProfileNotifierProvider(username).notifier)
-                                      .toggleFollow();
-                                },
-                              )
-                            : AppButton(
-                                text: 'Follow',
-                                icon: Icons.person_add_alt_1_rounded,
-                                size: AppButtonSize.small,
-                                borderRadius: AppSpacing.roundedMd,
-                                onPressed: () {
-                                  ref
-                                      .read(publicProfileNotifierProvider(username).notifier)
-                                      .toggleFollow();
-                                },
-                              )),
-                  ),
-                  const SizedBox(width: AppSpacing.space8),
-                  Container(
-                    height: 40,
-                    width: 40,
-                    decoration: BoxDecoration(
-                      borderRadius: AppSpacing.roundedMd,
-                      border: Border.all(
-                        color: isDark ? AppColors.navyBorder : AppColors.lightBorder,
-                      ),
-                      color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-                    ),
-                    child: IconButton(
-                      padding: EdgeInsets.zero,
-                      icon: const Icon(Icons.share_outlined, size: 18),
-                      onPressed: () {
-                        final link = 'https://genzmedia.app/profile/@${user.username}';
-                        Clipboard.setData(ClipboardData(text: link));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Profile link copied: $link'),
-                            backgroundColor: AppColors.success,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.space16),
-
-              // Interests Cloud (if present)
-              if (user.interests.isNotEmpty) ...[
-                Text(
-                  'Interests',
-                  style: AppTypography.label.copyWith(
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.space8),
-                Wrap(
-                  spacing: AppSpacing.space8,
-                  runSpacing: AppSpacing.space8,
-                  children: user.interests
-                      .map(
-                        (interest) => Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.space12,
-                            vertical: AppSpacing.space4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark ? AppColors.darkSurface : AppColors.primarySoft,
-                            borderRadius: AppSpacing.roundedFull,
-                            border: Border.all(
-                              color: isDark ? AppColors.navyBorder : AppColors.primarySoft,
-                            ),
-                          ),
-                          child: Text(
-                            '#$interest',
-                            style: AppTypography.caption.copyWith(
-                              color: isDark ? AppColors.textPrimaryDark : AppColors.primaryCrimson,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
+                interests: user.interests,
+                primaryAction: isOwnProfile
+                    ? AppButton.secondary(
+                        text: 'Edit Profile',
+                        icon: Icons.edit_outlined,
+                        borderRadius: AppSpacing.roundedMd,
+                        onPressed: () =>
+                            context.pushNamed(RouteNames.editProfile),
                       )
-                      .toList(),
-                ),
-                const SizedBox(height: AppSpacing.space16),
-              ],
-
-              const Divider(),
-              const SizedBox(height: AppSpacing.space12),
+                    : relationship.isFollowing
+                    ? AppButton.secondary(
+                        text: 'Following',
+                        icon: Icons.check_rounded,
+                        borderRadius: AppSpacing.roundedMd,
+                        onPressed: () => ref
+                            .read(
+                              publicProfileNotifierProvider(username).notifier,
+                            )
+                            .toggleFollow(),
+                      )
+                    : AppButton(
+                        text: 'Follow',
+                        icon: Icons.person_add_alt_1_rounded,
+                        borderRadius: AppSpacing.roundedMd,
+                        onPressed: () => ref
+                            .read(
+                              publicProfileNotifierProvider(username).notifier,
+                            )
+                            .toggleFollow(),
+                      ),
+                onShare: () {
+                  final link =
+                      'https://genzmedia.app/profile/@${user.username}';
+                  Clipboard.setData(ClipboardData(text: link));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Profile link copied: $link'),
+                      backgroundColor: AppColors.success,
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: AppSpacing.space24),
 
               // Posts Section Header
               Row(
@@ -365,7 +282,9 @@ class PublicProfileScreen extends ConsumerWidget {
               // Posts Grid / Empty State
               if (state.posts.isEmpty)
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.space24),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppSpacing.space24,
+                  ),
                   child: EmptyStateWidget(
                     icon: Icons.grid_view_rounded,
                     title: 'No posts yet',
@@ -389,7 +308,9 @@ class PublicProfileScreen extends ConsumerWidget {
                       post: post,
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Post: ${post.title ?? post.id}')),
+                          SnackBar(
+                            content: Text('Post: ${post.title ?? post.id}'),
+                          ),
                         );
                       },
                     );

@@ -11,11 +11,15 @@ import 'package:client/features/auth/data/repositories/auth_repository.dart';
 import 'package:client/features/feeds/presentation/screens/shorts_feed_screen.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/profiles/data/repositories/profile_repository.dart';
+import 'package:client/features/search/data/models/discovery_models.dart';
+import 'package:client/features/search/data/repositories/discovery_repository.dart';
+import 'package:client/features/search/presentation/screens/discover_screen.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
 class MockProfileRepository extends Mock implements ProfileRepository {}
 class MockSecureStorageService extends Mock implements SecureStorageService {}
 class MockPreferencesService extends Mock implements PreferencesService {}
+class MockDiscoveryRepository extends Mock implements DiscoveryRepository {}
 
 void main() {
   setUpAll(() {
@@ -26,12 +30,14 @@ void main() {
   late MockProfileRepository mockProfileRepository;
   late MockSecureStorageService mockStorage;
   late MockPreferencesService mockPrefs;
+  late MockDiscoveryRepository mockDiscoveryRepository;
 
   setUp(() {
     mockRepository = MockAuthRepository();
     mockProfileRepository = MockProfileRepository();
     mockStorage = MockSecureStorageService();
     mockPrefs = MockPreferencesService();
+    mockDiscoveryRepository = MockDiscoveryRepository();
 
     when(() => mockStorage.getAccessToken()).thenAnswer((_) async => 'valid_access_token');
     when(() => mockPrefs.hasSession()).thenReturn(true);
@@ -48,6 +54,13 @@ void main() {
     when(() => mockProfileRepository.getMyProfile()).thenAnswer((_) async => user);
     when(() => mockProfileRepository.getUserPosts(authorId: '123')).thenAnswer((_) async => <PostModel>[]);
     when(() => mockProfileRepository.getSavedPosts()).thenAnswer((_) async => <PostModel>[]);
+
+    when(() => mockDiscoveryRepository.getDiscoverPosts(limit: any(named: 'limit'), offset: any(named: 'offset')))
+        .thenAnswer((_) async => const DiscoveryPage<PostModel>(items: [], total: 0, limit: 10, offset: 0));
+    when(() => mockDiscoveryRepository.getRecommendedUsers(limit: any(named: 'limit'), offset: any(named: 'offset')))
+        .thenAnswer((_) async => const DiscoveryPage<DiscoverUserModel>(items: [], total: 0, limit: 10, offset: 0));
+    when(() => mockDiscoveryRepository.getRecommendedCommunities(limit: any(named: 'limit'), offset: any(named: 'offset')))
+        .thenAnswer((_) async => const DiscoveryPage<DiscoverCommunityModel>(items: [], total: 0, limit: 10, offset: 0));
   });
 
   group('Full E2E Shell Navigation Flow Integration Test', () {
@@ -57,6 +70,7 @@ void main() {
           overrides: [
             authRepositoryProvider.overrideWithValue(mockRepository),
             profileRepositoryProvider.overrideWithValue(mockProfileRepository),
+            discoveryRepositoryProvider.overrideWithValue(mockDiscoveryRepository),
             secureStorageServiceProvider.overrideWithValue(mockStorage),
             preferencesServiceProvider.overrideWithValue(mockPrefs),
             authNotifierProvider.overrideWith(
@@ -83,7 +97,7 @@ void main() {
       // 3. Switch to Discover
       await tester.tap(find.text('Discover'));
       await tester.pumpAndSettle();
-      expect(find.text('Trending Topics'), findsOneWidget);
+      expect(find.byType(DiscoverScreen), findsOneWidget);
 
       // 4. Switch to Profile
       await tester.tap(find.text('Profile'));

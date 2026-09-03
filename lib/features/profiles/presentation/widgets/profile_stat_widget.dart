@@ -7,12 +7,14 @@ class ProfileStatWidget extends StatelessWidget {
   final String count;
   final String label;
   final VoidCallback? onTap;
+  final bool compact;
 
   const ProfileStatWidget({
     super.key,
     required this.count,
     required this.label,
     this.onTap,
+    this.compact = false,
   });
 
   @override
@@ -26,7 +28,7 @@ class ProfileStatWidget extends StatelessWidget {
         borderRadius: AppSpacing.roundedSm,
         child: Padding(
           padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.space12,
+            horizontal: AppSpacing.space4,
             vertical: AppSpacing.space4,
           ),
           child: Column(
@@ -36,15 +38,22 @@ class ProfileStatWidget extends StatelessWidget {
                 count,
                 style: AppTypography.title.copyWith(
                   fontWeight: FontWeight.w700,
-                  fontSize: 18,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  fontSize: compact ? 16 : 18,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: AppTypography.caption.copyWith(
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textMuted,
+                  fontSize: compact ? 11 : 12,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textMuted,
                   fontWeight: FontWeight.w500,
                 ),
               ),

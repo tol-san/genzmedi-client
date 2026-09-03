@@ -16,95 +16,177 @@ class CreateHubScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'Create',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
         ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.space20,
-          vertical: AppSpacing.space16,
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.space20,
+          AppSpacing.space12,
+          AppSpacing.space20,
+          AppSpacing.space32,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              'What are you posting?',
-              style: AppTypography.title.copyWith(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.space20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isDark
+                      ? [AppColors.darkSurfaceElevated, AppColors.darkSurface]
+                      : [AppColors.primarySoft, const Color(0xFFFFFAFA)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: AppSpacing.roundedLg,
+                border: Border.all(
+                  color: AppColors.primaryCrimson.withValues(alpha: 0.14),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryCrimson,
+                      borderRadius: AppSpacing.roundedMd,
+                    ),
+                    child: const Icon(
+                      Icons.auto_awesome_rounded,
+                      color: Colors.white,
+                      size: 26,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.space16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'What are you posting?',
+                          style: AppTypography.title.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.space4),
+                        Text(
+                          'Pick a format and make it yours.',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondaryLight,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.space24),
             Text(
-              'Post directly to your profile or contribute to a community.',
-              style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
+              'Choose a format',
+              style: AppTypography.label.copyWith(
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.space12),
+            _CreateFormatCard(
+              icon: Icons.notes_rounded,
+              title: 'Text post',
+              subtitle: 'Start a thought, story, or discussion',
+              accent: AppColors.primaryElectricBlue,
+              onTap: () => _openComposer(context, 'text'),
+            ),
+            const SizedBox(height: AppSpacing.space12),
+            _CreateFormatCard(
+              icon: Icons.photo_library_rounded,
+              title: 'Multi-image post',
+              subtitle: 'Share a carousel of up to 10 photos',
+              accent: AppColors.signalMint,
+              badge: 'UP TO 10',
+              onTap: () => _openComposer(context, 'image'),
+            ),
+            const SizedBox(height: AppSpacing.space12),
+            _CreateFormatCard(
+              icon: Icons.play_arrow_rounded,
+              title: 'Short video',
+              subtitle: 'Upload a vertical clip with a cover image',
+              accent: AppColors.primaryCrimson,
+              badge: 'SHORT',
+              onTap: () => _openComposer(context, 'video'),
             ),
             const SizedBox(height: AppSpacing.space20),
-
-            // 1. 🎬 Video
-            _buildCreateOption(
-              context,
-              icon: Icons.videocam_rounded,
-              title: '🎬 Video',
-              subtitle: 'Post a short video',
-              onTap: () {
-                context.pushNamed(
-                  RouteNames.createPost,
-                  queryParameters: {'type': 'video'},
-                );
-              },
-            ),
-            const SizedBox(height: AppSpacing.space12),
-
-            // 2. 🖼️ Photo
-            _buildCreateOption(
-              context,
-              icon: Icons.photo_library_rounded,
-              title: '🖼️ Photo',
-              subtitle: 'Share one or multiple photos',
-              onTap: () {
-                context.pushNamed(
-                  RouteNames.createPost,
-                  queryParameters: {'type': 'image'},
-                );
-              },
-            ),
-            const SizedBox(height: AppSpacing.space12),
-
-            // 3. 💬 Post
-            _buildCreateOption(
-              context,
-              icon: Icons.chat_bubble_outline_rounded,
-              title: '💬 Post',
-              subtitle: 'Share a thought, story, or discussion',
-              onTap: () {
-                context.pushNamed(
-                  RouteNames.createPost,
-                  queryParameters: {'type': 'text'},
-                );
-              },
-            ),
-            const SizedBox(height: AppSpacing.space12),
-
-            // 4. 📊 Poll
-            _buildCreateOption(
-              context,
-              icon: Icons.poll_rounded,
-              title: '📊 Poll',
-              subtitle: 'Ask the community',
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Polls are coming soon to GenZ Media!'),
-                    backgroundColor: AppColors.primaryElectricBlue,
+            Material(
+              color: isDark
+                  ? AppColors.darkSurface
+                  : AppColors.lightSurfaceElevated,
+              borderRadius: AppSpacing.roundedMd,
+              child: InkWell(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Polls are coming soon to GenZ Media!'),
+                      backgroundColor: AppColors.primaryElectricBlue,
+                    ),
+                  );
+                },
+                borderRadius: AppSpacing.roundedMd,
+                child: Container(
+                  constraints: const BoxConstraints(
+                    minHeight: AppSpacing.minTouchTarget,
                   ),
-                );
-              },
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.space16,
+                    vertical: AppSpacing.space12,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: AppSpacing.roundedMd,
+                    border: Border.all(
+                      color: isDark
+                          ? AppColors.navyBorder
+                          : AppColors.lightBorder,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.poll_outlined,
+                        color: AppColors.textMuted,
+                        size: 20,
+                      ),
+                      const SizedBox(width: AppSpacing.space12),
+                      Expanded(
+                        child: Text(
+                          'Poll',
+                          style: AppTypography.label.copyWith(
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        'COMING SOON',
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.textMuted,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -112,47 +194,64 @@ class CreateHubScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCreateOption(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    String? badge,
-    Color? badgeColor,
-    required VoidCallback onTap,
-  }) {
+  void _openComposer(BuildContext context, String type) {
+    context.pushNamed(RouteNames.createPost, queryParameters: {'type': type});
+  }
+}
+
+class _CreateFormatCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color accent;
+  final String? badge;
+  final VoidCallback onTap;
+
+  const _CreateFormatCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.accent,
+    this.badge,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Material(
       color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: AppSpacing.roundedLg,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppSpacing.roundedLg,
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.space16,
-            vertical: AppSpacing.space16,
-          ),
+          constraints: const BoxConstraints(minHeight: 104),
+          padding: const EdgeInsets.all(AppSpacing.space16),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: AppSpacing.roundedLg,
             border: Border.all(
               color: isDark ? AppColors.navyBorder : AppColors.lightBorder,
-              width: 1,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.14 : 0.035),
+                blurRadius: 18,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
           child: Row(
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryCrimson.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: accent.withValues(alpha: 0.12),
+                  borderRadius: AppSpacing.roundedMd,
                 ),
-                child: Center(
-                  child: Icon(icon, color: AppColors.primaryCrimson, size: 24),
-                ),
+                child: Icon(icon, color: accent, size: 28),
               ),
               const SizedBox(width: AppSpacing.space16),
               Expanded(
@@ -161,46 +260,56 @@ class CreateHubScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          title,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                        Flexible(
+                          child: Text(
+                            title,
+                            style: AppTypography.bodyLarge.copyWith(
+                              color: isDark
+                                  ? AppColors.textPrimaryDark
+                                  : AppColors.textPrimaryLight,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ),
                         if (badge != null) ...[
                           const SizedBox(width: AppSpacing.space8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.space8,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
-                              color: badgeColor ?? AppColors.primaryCrimson,
-                              borderRadius: BorderRadius.circular(10),
+                              color: accent.withValues(alpha: 0.12),
+                              borderRadius: AppSpacing.roundedFull,
                             ),
                             child: Text(
-                              badge,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
+                              badge!,
+                              style: AppTypography.caption.copyWith(
+                                color: accent,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 9,
                               ),
                             ),
                           ),
                         ],
                       ],
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: AppSpacing.space4),
                     Text(
                       subtitle,
                       style: AppTypography.bodySmall.copyWith(
                         color: AppColors.textMuted,
-                        fontSize: 13,
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted, size: 20),
+              const SizedBox(width: AppSpacing.space8),
+              const Icon(
+                Icons.arrow_forward_rounded,
+                color: AppColors.textMuted,
+                size: 20,
+              ),
             ],
           ),
         ),

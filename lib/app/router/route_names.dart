@@ -32,5 +32,6 @@ abstract class RouteNames {
   static const String shortsFeed = 'shortsFeed';
   static const String create = 'create';
   static const String discover = 'discover';
+  static const String discoverSearch = 'discoverSearch';
   static const String myProfile = 'myProfile';
 }

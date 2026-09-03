@@ -12,6 +12,7 @@ import 'package:client/features/feeds/presentation/notifiers/home_feed_notifier.
 import 'package:client/features/feeds/presentation/notifiers/home_feed_state.dart';
 import 'package:client/features/posts/presentation/widgets/post_card_widget.dart';
 import 'package:client/features/posts/presentation/widgets/post_comments_sheet.dart';
+import 'package:client/features/posts/presentation/widgets/feed_create_prompt.dart';
 
 class HomeFeedScreen extends ConsumerStatefulWidget {
   const HomeFeedScreen({super.key});
@@ -69,7 +70,9 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                     children: [
                       Icon(
                         Icons.notifications_none_rounded,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight,
                       ),
                       Positioned(
                         right: 0,
@@ -87,7 +90,9 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                   ),
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Notifications (Coming soon)')),
+                      const SnackBar(
+                        content: Text('Notifications (Coming soon)'),
+                      ),
                     );
                   },
                 ),
@@ -115,7 +120,11 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
     );
   }
 
-  Widget _buildBody(HomeFeedState state, HomeFeedNotifier notifier, bool isDark) {
+  Widget _buildBody(
+    HomeFeedState state,
+    HomeFeedNotifier notifier,
+    bool isDark,
+  ) {
     if (state.isLoading && state.posts.isEmpty) {
       return _buildFeedSkeleton(isDark);
     }
@@ -130,8 +139,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
           child: EmptyStateWidget(
             icon: Icons.dynamic_feed_rounded,
             title: 'Your feed is just getting started',
-            subtitle:
-                'Follow creators and join interest communities to populate your personal timeline.',
+            subtitle: 'Follow creators and join interest communities to populate your personal timeline.',
             actionText: 'Explore Discover',
             onAction: () {
               context.goNamed(RouteNames.discover);
@@ -147,14 +155,41 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
       child: ListView.separated(
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.zero,
-        itemCount: state.posts.length + (state.hasMore ? 1 : 0),
-        separatorBuilder: (context, index) => Container(
-          height: 8,
-          color: isDark ? const Color(0xFF030D1A) : const Color(0xFFF0F2F5),
-        ),
+        itemCount: state.posts.length + 1 + (state.hasMore ? 1 : 0),
+        padding: const EdgeInsets.only(bottom: AppSpacing.space16),
+        separatorBuilder: (context, index) =>
+            const SizedBox(height: AppSpacing.space12),
         itemBuilder: (context, index) {
-          if (index == state.posts.length) {
+          if (index == 0) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.space12,
+                AppSpacing.space8,
+                AppSpacing.space12,
+                0,
+              ),
+              child: ClipRRect(
+                borderRadius: AppSpacing.roundedLg,
+                child: FeedCreatePrompt(
+                  onTextTap: () => context.pushNamed(
+                    RouteNames.createPost,
+                    queryParameters: {'type': 'text'},
+                  ),
+                  onPhotosTap: () => context.pushNamed(
+                    RouteNames.createPost,
+                    queryParameters: {'type': 'image'},
+                  ),
+                  onVideoTap: () => context.pushNamed(
+                    RouteNames.createPost,
+                    queryParameters: {'type': 'video'},
+                  ),
+                ),
+              ),
+            );
+          }
+
+          final postIndex = index - 1;
+          if (postIndex == state.posts.length) {
             return const Padding(
               padding: EdgeInsets.symmetric(vertical: AppSpacing.space24),
               child: Center(
@@ -166,16 +201,32 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
             );
           }
 
-          final post = state.posts[index];
-          return PostCardWidget(
-            key: ValueKey(post.id),
-            post: post,
-            onLike: () => notifier.toggleLike(post.id),
-            onSave: () => notifier.toggleSave(post.id),
-            onShare: () => notifier.sharePost(post.id),
-            onComment: () {
-              PostCommentsSheet.show(context, postId: post.id, post: post);
-            },
+          final post = state.posts[postIndex];
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: AppSpacing.space12),
+            decoration: BoxDecoration(
+              borderRadius: AppSpacing.roundedLg,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.16 : 0.045),
+                  blurRadius: 18,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: AppSpacing.roundedLg,
+              child: PostCardWidget(
+                key: ValueKey(post.id),
+                post: post,
+                onLike: () => notifier.toggleLike(post.id),
+                onSave: () => notifier.toggleSave(post.id),
+                onShare: () => notifier.sharePost(post.id),
+                onComment: () {
+                  PostCommentsSheet.show(context, postId: post.id, post: post);
+                },
+              ),
+            ),
           );
         },
       ),

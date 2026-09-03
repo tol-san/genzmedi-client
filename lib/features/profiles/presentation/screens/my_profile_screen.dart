@@ -7,12 +7,11 @@ import 'package:client/core/auth/auth_notifier.dart';
 import 'package:client/core/theme/app_colors.dart';
 import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/theme/app_typography.dart';
-import 'package:client/core/widgets/app_avatar.dart';
 import 'package:client/core/widgets/app_button.dart';
 import 'package:client/core/widgets/empty_state_widget.dart';
 import 'package:client/features/profiles/presentation/notifiers/my_profile_notifier.dart';
+import 'package:client/features/profiles/presentation/widgets/profile_overview_card.dart';
 import 'package:client/features/profiles/presentation/widgets/profile_post_card.dart';
-import 'package:client/features/profiles/presentation/widgets/profile_stat_widget.dart';
 
 class MyProfileScreen extends ConsumerStatefulWidget {
   const MyProfileScreen({super.key});
@@ -37,7 +36,9 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Sign Out'),
-        content: const Text('Are you sure you want to sign out of your account?'),
+        content: const Text(
+          'Are you sure you want to sign out of your account?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -80,7 +81,11 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
               ),
               if (user?.isVerified == true) ...[
                 const SizedBox(width: 4),
-                const Icon(Icons.verified_rounded, size: 16, color: AppColors.signalMint),
+                const Icon(
+                  Icons.verified_rounded,
+                  size: 16,
+                  color: AppColors.signalMint,
+                ),
               ],
             ],
           ),
@@ -90,7 +95,9 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
               tooltip: 'Settings',
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Account Settings (Coming soon)')),
+                  const SnackBar(
+                    content: Text('Account Settings (Coming soon)'),
+                  ),
                 );
               },
             ),
@@ -106,170 +113,80 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
             ? const Center(child: CircularProgressIndicator())
             : RefreshIndicator(
                 color: AppColors.primaryCrimson,
-                onRefresh: () => ref.read(myProfileNotifierProvider.notifier).refreshProfile(),
+                onRefresh: () => ref
+                    .read(myProfileNotifierProvider.notifier)
+                    .refreshProfile(),
                 child: NestedScrollView(
                   headerSliverBuilder: (context, innerBoxIsScrolled) => [
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space20),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.space20,
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: AppSpacing.space16),
 
-                            // Avatar & Stats Row
-                            Row(
-                              children: [
-                                AppAvatar(
-                                  name: user?.displayName ?? user?.username ?? 'User',
-                                  size: 76,
-                                  imageUrl: user?.avatarUrl,
-                                ),
-                                const SizedBox(width: AppSpacing.space16),
-                                Expanded(
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                    children: [
-                                      ProfileStatWidget(
-                                        count: _formatCount(user?.postCount ?? profileState.posts.length),
-                                        label: 'Posts',
-                                      ),
-                                      ProfileStatWidget(
-                                        count: _formatCount(user?.followersCount ?? 0),
-                                        label: 'Followers',
-                                        onTap: () {
-                                          if (user != null) {
-                                            context.pushNamed(
-                                              RouteNames.followList,
-                                              pathParameters: {'userId': user.id},
-                                              queryParameters: {'username': user.username, 'tab': '0'},
-                                            );
-                                          }
-                                        },
-                                      ),
-                                      ProfileStatWidget(
-                                        count: _formatCount(user?.followingCount ?? 0),
-                                        label: 'Following',
-                                        onTap: () {
-                                          if (user != null) {
-                                            context.pushNamed(
-                                              RouteNames.followList,
-                                              pathParameters: {'userId': user.id},
-                                              queryParameters: {'username': user.username, 'tab': '1'},
-                                            );
-                                          }
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: AppSpacing.space16),
-
-                            // Display Name & Bio
-                            Text(
-                              user?.displayName ?? user?.username ?? 'Gen Z Creator',
-                              style: AppTypography.title.copyWith(
-                                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                                fontWeight: FontWeight.w700,
+                            ProfileOverviewCard(
+                              displayName:
+                                  user?.displayName ??
+                                  user?.username ??
+                                  'Gen Z Creator',
+                              avatarUrl: user?.avatarUrl,
+                              bio: user?.bio,
+                              isVerified: user?.isVerified ?? false,
+                              postCount: _formatCount(
+                                user?.postCount ?? profileState.posts.length,
                               ),
-                            ),
-                            if (user?.bio != null && user!.bio!.isNotEmpty) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                user.bio!,
-                                style: AppTypography.body.copyWith(
-                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                                ),
+                              followersCount: _formatCount(
+                                user?.followersCount ?? 0,
                               ),
-                            ],
-                            const SizedBox(height: AppSpacing.space16),
-
-                            // Edit Profile & Share Row
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: AppButton.secondary(
-                                    text: 'Edit Profile',
-                                    size: AppButtonSize.small,
-                                    borderRadius: AppSpacing.roundedMd,
-                                    onPressed: () {
-                                      context.pushNamed(RouteNames.editProfile);
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(width: AppSpacing.space8),
-                                Container(
-                                  height: 40,
-                                  width: 40,
-                                  decoration: BoxDecoration(
-                                    borderRadius: AppSpacing.roundedMd,
-                                    border: Border.all(
-                                      color: isDark ? AppColors.navyBorder : AppColors.lightBorder,
+                              followingCount: _formatCount(
+                                user?.followingCount ?? 0,
+                              ),
+                              onFollowersTap: user == null
+                                  ? null
+                                  : () => context.pushNamed(
+                                      RouteNames.followList,
+                                      pathParameters: {'userId': user.id},
+                                      queryParameters: {
+                                        'username': user.username,
+                                        'tab': '0',
+                                      },
                                     ),
-                                    color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                              onFollowingTap: user == null
+                                  ? null
+                                  : () => context.pushNamed(
+                                      RouteNames.followList,
+                                      pathParameters: {'userId': user.id},
+                                      queryParameters: {
+                                        'username': user.username,
+                                        'tab': '1',
+                                      },
+                                    ),
+                              interests: user?.interests ?? const [],
+                              primaryAction: AppButton.secondary(
+                                text: 'Edit Profile',
+                                icon: Icons.edit_outlined,
+                                borderRadius: AppSpacing.roundedMd,
+                                onPressed: () =>
+                                    context.pushNamed(RouteNames.editProfile),
+                              ),
+                              onShare: () {
+                                final uname = user?.username ?? '';
+                                final link =
+                                    'https://genzmedia.app/profile/@$uname';
+                                Clipboard.setData(ClipboardData(text: link));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Profile link copied: $link'),
+                                    backgroundColor: AppColors.success,
                                   ),
-                                  child: IconButton(
-                                    padding: EdgeInsets.zero,
-                                    icon: const Icon(Icons.share_outlined, size: 18),
-                                    onPressed: () {
-                                      final uname = user?.username ?? '';
-                                      final link = 'https://genzmedia.app/profile/@$uname';
-                                      Clipboard.setData(ClipboardData(text: link));
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text('Profile link copied: $link'),
-                                          backgroundColor: AppColors.success,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
+                                );
+                              },
                             ),
-                            const SizedBox(height: AppSpacing.space16),
-
-                            // Interests Cloud
-                            if (user?.interests != null && user!.interests.isNotEmpty) ...[
-                              Text(
-                                'Interests',
-                                style: AppTypography.label.copyWith(
-                                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const SizedBox(height: AppSpacing.space8),
-                              Wrap(
-                                spacing: AppSpacing.space8,
-                                runSpacing: AppSpacing.space8,
-                                children: user.interests
-                                    .map(
-                                      (interest) => Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: AppSpacing.space12,
-                                          vertical: AppSpacing.space4,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: isDark ? AppColors.darkSurface : AppColors.primarySoft,
-                                          borderRadius: AppSpacing.roundedFull,
-                                          border: Border.all(
-                                            color: isDark ? AppColors.navyBorder : AppColors.primarySoft,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          '#$interest',
-                                          style: AppTypography.caption.copyWith(
-                                            color: isDark ? AppColors.textPrimaryDark : AppColors.primaryCrimson,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                              ),
-                              const SizedBox(height: AppSpacing.space16),
-                            ],
+                            const SizedBox(height: AppSpacing.space20),
                           ],
                         ),
                       ),
@@ -282,7 +199,9 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                         TabBar(
                           indicatorColor: AppColors.primaryCrimson,
                           indicatorWeight: 2.5,
-                          labelColor: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                          labelColor: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
                           unselectedLabelColor: AppColors.textMuted,
                           labelStyle: AppTypography.label,
                           tabs: const [
@@ -291,7 +210,10 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                               text: 'Posts',
                             ),
                             Tab(
-                              icon: Icon(Icons.bookmark_border_rounded, size: 20),
+                              icon: Icon(
+                                Icons.bookmark_border_rounded,
+                                size: 20,
+                              ),
                               text: 'Saved',
                             ),
                           ],
@@ -399,7 +321,11 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => _tabBar.preferredSize.height;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return Container(
       color: isDark ? AppColors.midnightNavy : AppColors.lightCanvas,
       child: _tabBar,

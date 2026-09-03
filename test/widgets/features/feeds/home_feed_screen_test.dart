@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +9,7 @@ import 'package:client/features/feeds/data/repositories/feed_repository.dart';
 import 'package:client/features/feeds/presentation/screens/home_feed_screen.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/posts/presentation/widgets/post_card_widget.dart';
+import 'package:client/features/posts/presentation/widgets/feed_create_prompt.dart';
 
 class MockFeedRepository extends Mock implements FeedRepository {}
 
@@ -35,16 +37,36 @@ void main() {
 
   Widget buildTestWidget() {
     return ProviderScope(
-      overrides: [
-        feedRepositoryProvider.overrideWithValue(mockRepository),
-      ],
-      child: const MaterialApp(
-        home: HomeFeedScreen(),
-      ),
+      overrides: [feedRepositoryProvider.overrideWithValue(mockRepository)],
+      child: const MaterialApp(home: HomeFeedScreen()),
     );
   }
 
   group('HomeFeedScreen Widget Tests', () {
+    testWidgets('quick create prompt exposes all three post formats', (
+      tester,
+    ) async {
+      var selectedFormat = '';
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FeedCreatePrompt(
+              onTextTap: () => selectedFormat = 'text',
+              onPhotosTap: () => selectedFormat = 'image',
+              onVideoTap: () => selectedFormat = 'video',
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Text'), findsOneWidget);
+      expect(find.text('Photos'), findsOneWidget);
+      expect(find.text('Short'), findsOneWidget);
+
+      await tester.tap(find.text('Photos'));
+      expect(selectedFormat, 'image');
+    });
+
     testWidgets('renders app bar and list of post cards', (tester) async {
       when(() => mockRepository.getHomeFeed(limit: 20, offset: 0))
           .thenAnswer((_) async => [testPost]);
@@ -53,11 +75,15 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(PostCardWidget), findsOneWidget);
+      expect(find.byType(FeedCreatePrompt), findsOneWidget);
+      expect(find.text('Share something with your community'), findsOneWidget);
       expect(find.text('Check out my new piece!'), findsOneWidget);
       expect(find.text('Art Creator'), findsOneWidget);
     });
 
-    testWidgets('renders loading skeleton when initially fetching feed', (tester) async {
+    testWidgets('renders loading skeleton when initially fetching feed', (
+      tester,
+    ) async {
       final completer = Completer<List<PostModel>>();
       when(() => mockRepository.getHomeFeed(limit: 20, offset: 0))
           .thenAnswer((_) => completer.future);

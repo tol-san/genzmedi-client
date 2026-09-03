@@ -27,7 +27,11 @@
   - `sharePost(postId)`: Increments share counter and copies link to clipboard.
 
 ### 3. Full-Width Feed & Post Item Component (`PostCardWidget`)
-- **Seamless Full-Width Feed**: Edge-to-edge flat items without outer card borders or floating margins. Separated by 8px neutral feed gutters (`#F0F2F5` in light mode, `#030D1A` in dark mode).
+- **Quick Create Entry**: The post list begins with a compact creation panel
+  that routes directly to Text, Multi-image, or Short-video composer modes.
+- **Focused Post List**: Posts use softly elevated, rounded surfaces with clear
+  breathing room between items. Media remains immersive inside the clipped card
+  while author, content, counters, and actions retain their existing hierarchy.
 - **Inline Video Auto-Play (`FeedVideoPlayerWidget`)**:
   - Automatically initializes and plays inline video feeds with looping.
   - Starts muted with a discrete Mute/Unmute audio toggle badge in the corner.

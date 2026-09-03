@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,10 +14,7 @@ import 'package:client/features/posts/presentation/notifiers/create_post_notifie
 class CreatePostScreen extends ConsumerStatefulWidget {
   final String initialPostType;
 
-  const CreatePostScreen({
-    super.key,
-    this.initialPostType = 'text',
-  });
+  const CreatePostScreen({super.key, this.initialPostType = 'text'});
 
   @override
   ConsumerState<CreatePostScreen> createState() => _CreatePostScreenState();
@@ -54,18 +52,22 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
 
   Future<void> _pickVideo() async {
     try {
-      final XFile? picked =
-          await _picker.pickVideo(source: ImageSource.gallery);
+      final XFile? picked = await _picker.pickVideo(
+        source: ImageSource.gallery,
+      );
       if (picked != null) {
-        ref.read(createPostNotifierProvider.notifier).setVideo(File(picked.path));
+        ref
+            .read(createPostNotifierProvider.notifier)
+            .setVideo(File(picked.path));
       }
     } catch (_) {}
   }
 
   Future<void> _pickThumbnail() async {
     try {
-      final XFile? picked =
-          await _picker.pickImage(source: ImageSource.gallery);
+      final XFile? picked = await _picker.pickImage(
+        source: ImageSource.gallery,
+      );
       if (picked != null) {
         ref
             .read(createPostNotifierProvider.notifier)
@@ -99,39 +101,78 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Post'),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.space16),
-            child: AppButton(
-              text: state.isUploadingMedia
-                  ? (state.uploadProgress > 0
-                      ? '${(state.uploadProgress * 100).toInt()}%'
-                      : 'Uploading...')
-                  : (state.isSubmitting ? 'Posting...' : 'Publish'),
-              size: AppButtonSize.small,
-              isFullWidth: false,
-              isLoading: state.isSubmitting && !state.isUploadingMedia,
-              onPressed: (state.isSubmitting || state.isUploadingMedia) ? null : _handlePublish,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _composerTitle(state.postType),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+            ),
+            Text(
+              'Your draft stays while you create',
+              style: AppTypography.caption.copyWith(
+                color: AppColors.textMuted,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.space16,
+            AppSpacing.space12,
+            AppSpacing.space16,
+            AppSpacing.space12,
+          ),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+            border: Border(
+              top: BorderSide(
+                color: isDark ? AppColors.navyBorder : AppColors.lightBorder,
+              ),
             ),
           ),
-        ],
+          child: AppButton(
+            text: state.isUploadingMedia
+                ? (state.uploadProgress > 0
+                      ? 'Uploading ${(state.uploadProgress * 100).toInt()}%'
+                      : 'Preparing upload...')
+                : (state.isSubmitting ? 'Publishing post...' : 'Publish post'),
+            icon: state.isUploadingMedia
+                ? Icons.cloud_upload_rounded
+                : Icons.arrow_upward_rounded,
+            isLoading: state.isSubmitting && !state.isUploadingMedia,
+            onPressed: (state.isSubmitting || state.isUploadingMedia)
+                ? null
+                : _handlePublish,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.space16),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.space16,
+          AppSpacing.space12,
+          AppSpacing.space16,
+          AppSpacing.space32,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Upload Progress Banner
-            if (state.isUploadingMedia || (state.isSubmitting && state.uploadProgress > 0)) ...[
+            if (state.isUploadingMedia ||
+                (state.isSubmitting && state.uploadProgress > 0)) ...[
               Container(
                 padding: const EdgeInsets.all(AppSpacing.space16),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated,
-                  borderRadius: BorderRadius.circular(16),
+                  color: isDark
+                      ? AppColors.darkSurfaceElevated
+                      : AppColors.primarySoft,
+                  borderRadius: AppSpacing.roundedLg,
                   border: Border.all(
                     color: AppColors.primaryCrimson.withValues(alpha: 0.35),
-                    width: 1.2,
                   ),
                 ),
                 child: Column(
@@ -140,25 +181,40 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(8),
+                          width: 44,
+                          height: 44,
                           decoration: BoxDecoration(
-                            color: AppColors.primaryCrimson.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(10),
+                            color: AppColors.primaryCrimson,
+                            borderRadius: AppSpacing.roundedSm,
                           ),
                           child: const Icon(
                             Icons.cloud_upload_rounded,
-                            color: AppColors.primaryCrimson,
+                            color: Colors.white,
                             size: 20,
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Text(
-                            state.uploadStatusText ?? 'Uploading media...',
-                            style: AppTypography.bodySmall.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Publishing your post',
+                                style: AppTypography.caption.copyWith(
+                                  color: AppColors.textMuted,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              Text(
+                                state.uploadStatusText ?? 'Uploading media...',
+                                style: AppTypography.bodySmall.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark
+                                      ? AppColors.textPrimaryDark
+                                      : AppColors.textPrimaryLight,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         Text(
@@ -174,10 +230,23 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: LinearProgressIndicator(
-                        value: state.uploadProgress > 0 ? state.uploadProgress : null,
-                        backgroundColor: isDark ? AppColors.navyBorder : const Color(0xFFE2E8F0),
-                        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryCrimson),
-                        minHeight: 6,
+                        value: state.uploadProgress > 0
+                            ? state.uploadProgress
+                            : null,
+                        backgroundColor: isDark
+                            ? AppColors.navyBorder
+                            : const Color(0xFFE2E8F0),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          AppColors.primaryCrimson,
+                        ),
+                        minHeight: 8,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.space8),
+                    Text(
+                      'Keep this screen open until publishing is complete.',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.textMuted,
                       ),
                     ),
                   ],
@@ -189,15 +258,35 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
             // 1. Post Type Segmented Switcher
             Container(
               decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurface : AppColors.lightSurfaceElevated,
-                borderRadius: AppSpacing.roundedSm,
+                color: isDark
+                    ? AppColors.darkSurface
+                    : AppColors.lightSurfaceElevated,
+                borderRadius: AppSpacing.roundedMd,
+                border: Border.all(
+                  color: isDark ? AppColors.navyBorder : AppColors.lightBorder,
+                ),
               ),
               padding: const EdgeInsets.all(4),
               child: Row(
                 children: [
-                  _buildTypeTab('text', 'Text', Icons.article_outlined, state.postType),
-                  _buildTypeTab('image', 'Photos', Icons.photo_library_outlined, state.postType),
-                  _buildTypeTab('video', 'Short Video', Icons.videocam_outlined, state.postType),
+                  _buildTypeTab(
+                    'text',
+                    'Text',
+                    Icons.notes_rounded,
+                    state.postType,
+                  ),
+                  _buildTypeTab(
+                    'image',
+                    'Photos',
+                    Icons.photo_library_outlined,
+                    state.postType,
+                  ),
+                  _buildTypeTab(
+                    'video',
+                    'Short',
+                    Icons.play_circle_outline_rounded,
+                    state.postType,
+                  ),
                 ],
               ),
             ),
@@ -210,16 +299,24 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.error.withValues(alpha: 0.1),
                   borderRadius: AppSpacing.roundedSm,
-                  border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: AppColors.error.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.error_outline, color: AppColors.error, size: 20),
+                    const Icon(
+                      Icons.error_outline,
+                      color: AppColors.error,
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         state.errorMessage!,
-                        style: AppTypography.bodySmall.copyWith(color: AppColors.error),
+                        style: AppTypography.bodySmall.copyWith(
+                          color: AppColors.error,
+                        ),
                       ),
                     ),
                   ],
@@ -228,28 +325,52 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
               const SizedBox(height: AppSpacing.space16),
             ],
 
-            // 2. Content / Caption Field
-            AppTextField(
-              controller: _contentController,
-              label: state.postType == 'text' ? 'Post Content' : 'Caption',
-              hintText: state.postType == 'text'
-                  ? 'What do you want to share?'
-                  : 'Write a caption and hashtags...',
-              maxLines: 6,
-              maxLength: 1000,
-              showCounter: true,
-              onChanged: notifier.setContent,
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.space16),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                borderRadius: AppSpacing.roundedLg,
+                border: Border.all(
+                  color: isDark ? AppColors.navyBorder : AppColors.lightBorder,
+                ),
+              ),
+              child: AppTextField(
+                controller: _contentController,
+                label: state.postType == 'text' ? 'Post Content' : 'Caption',
+                hintText: state.postType == 'text'
+                    ? 'What do you want to share?'
+                    : 'Add context, mentions, or hashtags...',
+                maxLines: state.postType == 'text' ? 9 : 5,
+                maxLength: 1000,
+                showCounter: true,
+                onChanged: notifier.setContent,
+              ),
             ),
             const SizedBox(height: AppSpacing.space16),
 
             // 4. Media Section for Photos
             if (state.postType == 'image') ...[
-              Text(
-                'Photos (Up to 10)',
-                style: AppTypography.label.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Photo carousel',
+                      style: AppTypography.label.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '${state.selectedImages.length}/10',
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.primaryCrimson,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: AppSpacing.space8),
               if (state.selectedImages.isNotEmpty) ...[
@@ -257,9 +378,11 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                   height: 110,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    itemCount: state.selectedImages.length +
+                    itemCount:
+                        state.selectedImages.length +
                         (state.selectedImages.length < 10 ? 1 : 0),
-                    separatorBuilder: (context, index) => const SizedBox(width: 8),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(width: 8),
                     itemBuilder: (context, index) {
                       if (index == state.selectedImages.length) {
                         return GestureDetector(
@@ -278,7 +401,10 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                               ),
                             ),
                             child: const Center(
-                              child: Icon(Icons.add_photo_alternate_outlined, size: 28),
+                              child: Icon(
+                                Icons.add_photo_alternate_outlined,
+                                size: 28,
+                              ),
                             ),
                           ),
                         );
@@ -326,29 +452,50 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                   onTap: _pickImages,
                   child: Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(AppSpacing.space24),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.space24,
+                      vertical: AppSpacing.space32,
+                    ),
                     decoration: BoxDecoration(
                       color: isDark
                           ? AppColors.darkSurfaceElevated
-                          : AppColors.lightSurfaceElevated,
-                      borderRadius: AppSpacing.roundedSm,
+                          : AppColors.primarySoft,
+                      borderRadius: AppSpacing.roundedLg,
                       border: Border.all(
-                        color: isDark ? AppColors.navyBorder : AppColors.lightBorder,
+                        color: AppColors.primaryCrimson.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Column(
                       children: [
-                        const Icon(
-                          Icons.add_photo_alternate_outlined,
-                          size: 40,
-                          color: AppColors.primaryCrimson,
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryCrimson.withValues(
+                              alpha: 0.12,
+                            ),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.add_photo_alternate_outlined,
+                            size: 30,
+                            color: AppColors.primaryCrimson,
+                          ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppSpacing.space12),
                         Text(
                           'Select Photos from Gallery',
                           style: AppTypography.label.copyWith(
                             color: AppColors.primaryCrimson,
                             fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.space4),
+                        Text(
+                          'Choose up to 10 images for your carousel',
+                          textAlign: TextAlign.center,
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.textMuted,
                           ),
                         ),
                       ],
@@ -362,10 +509,12 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
             // 5. Media Section for Short Video
             if (state.postType == 'video') ...[
               Text(
-                'Short Video',
+                'Short video',
                 style: AppTypography.label.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  fontWeight: FontWeight.w800,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
               ),
               const SizedBox(height: AppSpacing.space8),
@@ -378,19 +527,29 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                         : AppColors.lightSurfaceElevated,
                     borderRadius: AppSpacing.roundedSm,
                     border: Border.all(
-                      color: isDark ? AppColors.navyBorder : AppColors.lightBorder,
+                      color: isDark
+                          ? AppColors.navyBorder
+                          : AppColors.lightBorder,
                     ),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.videocam, color: AppColors.primaryCrimson, size: 32),
+                      const Icon(
+                        Icons.videocam,
+                        color: AppColors.primaryCrimson,
+                        size: 32,
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              state.selectedVideo!.path.split('/').last.split(r'\').last,
+                              state.selectedVideo!.path
+                                  .split('/')
+                                  .last
+                                  .split(r'\')
+                                  .last,
                               style: AppTypography.bodySmall.copyWith(
                                 fontWeight: FontWeight.w600,
                                 color: isDark
@@ -428,7 +587,9 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                   'Custom Thumbnail (Optional)',
                   style: AppTypography.label.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -442,7 +603,9 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                           : AppColors.lightSurfaceElevated,
                       borderRadius: AppSpacing.roundedSm,
                       border: Border.all(
-                        color: isDark ? AppColors.navyBorder : AppColors.lightBorder,
+                        color: isDark
+                            ? AppColors.navyBorder
+                            : AppColors.lightBorder,
                       ),
                     ),
                     child: Row(
@@ -458,7 +621,11 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                             ),
                           )
                         else
-                          const Icon(Icons.image_outlined, color: AppColors.textMuted, size: 28),
+                          const Icon(
+                            Icons.image_outlined,
+                            color: AppColors.textMuted,
+                            size: 28,
+                          ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
@@ -472,7 +639,10 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                             ),
                           ),
                         ),
-                        const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          color: AppColors.textMuted,
+                        ),
                       ],
                     ),
                   ),
@@ -483,29 +653,50 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                   onTap: _pickVideo,
                   child: Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(AppSpacing.space24),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.space24,
+                      vertical: AppSpacing.space32,
+                    ),
                     decoration: BoxDecoration(
                       color: isDark
                           ? AppColors.darkSurfaceElevated
-                          : AppColors.lightSurfaceElevated,
-                      borderRadius: AppSpacing.roundedSm,
+                          : AppColors.primarySoft,
+                      borderRadius: AppSpacing.roundedLg,
                       border: Border.all(
-                        color: isDark ? AppColors.navyBorder : AppColors.lightBorder,
+                        color: AppColors.primaryCrimson.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Column(
                       children: [
-                        const Icon(
-                          Icons.video_call_outlined,
-                          size: 40,
-                          color: AppColors.primaryCrimson,
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryCrimson.withValues(
+                              alpha: 0.12,
+                            ),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.video_call_outlined,
+                            size: 30,
+                            color: AppColors.primaryCrimson,
+                          ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppSpacing.space12),
                         Text(
                           'Select Video from Gallery',
                           style: AppTypography.label.copyWith(
                             color: AppColors.primaryCrimson,
                             fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.space4),
+                        Text(
+                          'Vertical videos work best for Shorts',
+                          textAlign: TextAlign.center,
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.textMuted,
                           ),
                         ),
                       ],
@@ -521,17 +712,34 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
               'Visibility',
               style: AppTypography.label.copyWith(
                 fontWeight: FontWeight.w600,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
               ),
             ),
             const SizedBox(height: 8),
-            Row(
+            Wrap(
+              spacing: AppSpacing.space8,
+              runSpacing: AppSpacing.space8,
               children: [
-                _buildVisibilityChip('public', 'Public', Icons.public_rounded, state.visibility),
-                const SizedBox(width: 8),
-                _buildVisibilityChip('followers_only', 'Followers Only', Icons.people_rounded, state.visibility),
-                const SizedBox(width: 8),
-                _buildVisibilityChip('private', 'Private', Icons.lock_rounded, state.visibility),
+                _buildVisibilityChip(
+                  'public',
+                  'Public',
+                  Icons.public_rounded,
+                  state.visibility,
+                ),
+                _buildVisibilityChip(
+                  'followers_only',
+                  'Followers',
+                  Icons.people_rounded,
+                  state.visibility,
+                ),
+                _buildVisibilityChip(
+                  'private',
+                  'Only me',
+                  Icons.lock_rounded,
+                  state.visibility,
+                ),
               ],
             ),
           ],
@@ -540,36 +748,59 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
     );
   }
 
-  Widget _buildTypeTab(String type, String label, IconData icon, String currentType) {
+  String _composerTitle(String postType) {
+    switch (postType) {
+      case 'image':
+        return 'New photo post';
+      case 'video':
+        return 'New short video';
+      default:
+        return 'New text post';
+    }
+  }
+
+  Widget _buildTypeTab(
+    String type,
+    String label,
+    IconData icon,
+    String currentType,
+  ) {
     final isSelected = type == currentType;
     return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          ref.read(createPostNotifierProvider.notifier).setPostType(type);
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.primaryCrimson : Colors.transparent,
-            borderRadius: AppSpacing.roundedSm,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 16,
-                color: isSelected ? Colors.white : AppColors.textMuted,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: AppTypography.caption.copyWith(
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            ref.read(createPostNotifierProvider.notifier).setPostType(type);
+          },
+          borderRadius: AppSpacing.roundedSm,
+          child: Container(
+            constraints: const BoxConstraints(
+              minHeight: AppSpacing.minTouchTarget,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+            decoration: BoxDecoration(
+              color: isSelected ? AppColors.primaryCrimson : Colors.transparent,
+              borderRadius: AppSpacing.roundedSm,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 16,
                   color: isSelected ? Colors.white : AppColors.textMuted,
                 ),
-              ),
-            ],
+                const SizedBox(width: 6),
+                Text(
+                  label,
+                  style: AppTypography.caption.copyWith(
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: isSelected ? Colors.white : AppColors.textMuted,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -594,7 +825,9 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.primaryCrimson.withValues(alpha: 0.15)
-              : (isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated),
+              : (isDark
+                    ? AppColors.darkSurfaceElevated
+                    : AppColors.lightSurfaceElevated),
           borderRadius: AppSpacing.roundedFull,
           border: Border.all(
             color: isSelected ? AppColors.primaryCrimson : Colors.transparent,
@@ -608,7 +841,9 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
               size: 14,
               color: isSelected
                   ? AppColors.primaryCrimson
-                  : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                  : (isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight),
             ),
             const SizedBox(width: 4),
             Text(
@@ -617,7 +852,9 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 color: isSelected
                     ? AppColors.primaryCrimson
-                    : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                    : (isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight),
               ),
             ),
           ],

@@ -1,115 +1,144 @@
 # 11 — Discover & Search
 
-## Discover purpose
+## Status
 
-Answer:
-1. What should I watch/read?
-2. Who should I follow?
-3. Which community should I join?
-4. What can I find directly?
+**Fully implemented.** All Discover and Search features are live end-to-end.
 
-## Backend
+---
 
-- `GET /api/v1/feeds/discover`
-- `GET /api/v1/recommendations/users`
-- `GET /api/v1/recommendations/communities`
+## Discover screen (`DiscoverScreen`)
 
-## Suggested Discover hierarchy
+### Entry point
 
-```text
-Discover
-[ Search ]
+- `lib/features/search/presentation/screens/discover_screen.dart`
+- Shown as the **Discover** shell tab.
 
-Interest chips
-
-Recommended posts
-[content]
-
-Communities for you
-[horizontal cards]
-
-People you may like
-[horizontal cards]
-
-Trending / more content
-```
-
-## Search is a real feature
-
-Backend docs define Meilisearch-backed typo-tolerant search with PostgreSQL fallback.
-
-Community and post results are always authorized from live PostgreSQL state. Private communities require membership; post visibility also accounts for ownership, follows, bidirectional blocks, and private-community membership. Hidden resources are treated as not found.
-
-### Unified
-`GET /api/v1/search`
-
-Across:
-- users;
-- communities;
-- posts;
-- interests.
-
-### Domain routes
-- `GET /api/v1/search/users`
-- `GET /api/v1/search/communities`
-- `GET /api/v1/search/posts`
-- `GET /api/v1/search/interests`
-
-## Search UX
+### What it shows
 
 ```text
-Search field
-   ↓
-Debounced query
-   ↓
-Loading
-   ↓
-Results
+AppBar: "Discover"
+
+┌─ Hero section ──────────────────────────────────────────────┐
+│  Eyebrow "Discover" label                                   │
+│  "Find your next obsession"                                 │
+│  Subtitle copy                                              │
+│  Tap-target search bar → navigates to DiscoverSearchScreen  │
+└─────────────────────────────────────────────────────────────┘
+
+── Explore topics ──  (horizontal chip row — hardcoded categories)
+   Gaming · Music · Streetwear · Technology AI · Design · Anime
+
+── Creators for you ──  (horizontal card carousel)
+   Recommended users based on shared interests
+
+── Communities for you ──  (horizontal card carousel)
+   Recommended communities; "See all" → communityList route
+
+── Recommended posts ──  (vertical PostCardWidget list)
+   Personalized discover feed; full PostCardWidget interactions
 ```
 
-Use result categories/tabs only when supported by the API response/route strategy.
+### Backend calls
 
-## User results
-May match:
-- display name;
-- username;
-- bio.
+| Data             | Endpoint                          |
+|------------------|-----------------------------------|
+| Discover posts   | `GET /api/v1/feeds/discover`      |
+| Recommended users| `GET /api/v1/recommendations/users` |
+| Recommended communities | `GET /api/v1/recommendations/communities` |
 
-## Community results
-May match:
-- name;
-- slug;
-- description.
+### Interactions
 
-Backend applies accessibility filtering.
+- Pull-to-refresh replaces all sections.
+- Scroll-to-bottom triggers `loadMorePosts`.
+- Topic chips navigate to `DiscoverSearchScreen` with the chip label as query.
+- Follow / Unfollow from creator cards — optimistic update with revert on error.
+- Join / Leave / Request from community cards — optimistic update.
+- Like, save, share, comment from post cards.
 
-## Post results
-May match:
-- title;
-- content.
+---
 
-Backend applies:
-- visibility;
-- blocking rules.
+## Search screen (`DiscoverSearchScreen`)
 
-## Interest results
-May match master taxonomy fields.
+### Entry point
 
-## No results
+- `lib/features/search/presentation/screens/discover_search_screen.dart`
+- Pushed on top of the Discover tab, route name `discoverSearch`.
 
-Suggested:
+### Features
 
-> No results for “query”.
+```text
+AppBar: animated search bar (focus glow ring, clear button)
+         + category chip tab bar with live count badges
 
-Offer:
-- clear query;
-- switch category;
-- browse recommendations.
+Body:
+  query empty  → recent-searches list (SharedPreferences) or prompt
+  loading      → skeleton list
+  error        → EmptyStateWidget + Retry
+  no results   → EmptyStateWidget + Clear
+  has results  → grouped or paginated result list
+```
 
-## Search failure
+### Categories
 
-Because backend documents PostgreSQL fallback, Flutter should treat backend response as authoritative and should not implement its own separate local search engine.
+| Tab          | API call                            | Pagination |
+|--------------|-------------------------------------|------------|
+| All          | `GET /api/v1/search` (unified)      | No (top-6 per type) |
+| Creators     | `GET /api/v1/search?type=users`     | Yes |
+| Communities  | `GET /api/v1/search?type=communities` | Yes |
+| Posts        | `GET /api/v1/search?type=posts`     | Yes |
+| Interests    | `GET /api/v1/search?type=interests` | Yes |
 
-## Admin sync
+### Behavior
 
-`POST /api/v1/search/sync` is admin-only and should not appear in normal consumer UI.
+- **Debounced search**: 350 ms after user stops typing.
+- **Query submit**: saves to recent-searches history (`SharedPreferences`, max 8).
+- **Recent searches**: shown when query is empty; each entry can be tapped to re-search or swiped to delete; "Clear all" removes all.
+- **Category switching**: resets scroll to top and reloads results.
+- **Pagination**: scroll-to-bottom on non-All categories appends next page.
+- **Optimistic actions**: Follow/Unfollow and Join/Leave directly from result cards.
+
+---
+
+## Result widgets (`discover_result_cards.dart`)
+
+| Widget                  | Shows                                      |
+|-------------------------|--------------------------------------------|
+| `DiscoverCreatorCard`   | Avatar, display name + verified badge, `@handle`, follower count, bio, shared-interest pill, Follow button |
+| `DiscoverCommunityCard` | Cover image banner, avatar, name, public/private badge, description, member + post count, matched-interest badge, Join button |
+| `DiscoverPostResultCard`| Author avatar + name, post-type icon, title, content preview, media thumbnail, like + comment counts |
+| `DiscoverInterestTile`  | Colored icon (slug-based), name, description or slug, arrow |
+
+---
+
+## State management
+
+| Provider                              | Type              | Scope |
+|---------------------------------------|-------------------|-------|
+| `discoverNotifierProvider`            | `StateNotifier`   | global (shell tab) |
+| `discoverSearchNotifierProvider(q)` | `autoDispose.family` | per-search session |
+
+---
+
+## Recent-search history
+
+Stored in `SharedPreferences` under key `discover_recent_searches` as a JSON-encoded list of strings (max 8 entries). Managed entirely in the `DiscoverSearchScreen` widget — no server persistence.
+
+---
+
+## Backend search features
+
+- Typo-tolerant Meilisearch with PostgreSQL fallback.
+- Visibility, blocking, and private-community access filtering applied server-side.
+- Pagination: `limit` + `offset`, max 100 per request.
+- Admin-only search index sync: `POST /api/v1/search/sync` — not exposed in consumer UI.
+
+---
+
+## Tests
+
+| File | Coverage |
+|------|----------|
+| `test/unit/features/search/discover_notifier_test.dart` | loadInitial, loadMorePosts, toggleFollow, toggleCommunity, toggleLike, toggleSave, refresh |
+| `test/unit/features/search/discover_search_notifier_test.dart` | updateQuery, setCategory, loadMore, error handling, toggleFollow, toggleCommunity, activeCount |
+| `test/widgets/features/search/discover_screen_test.dart` | skeleton, topic chips, creators/communities/posts sections, empty state, error state, follow tap |
+| `test/widgets/features/search/discover_search_screen_test.dart` | empty prompt, category chips, all-results grouping, user/community cards, no-results, error, loading, category switch, recent searches |

@@ -15,6 +15,17 @@ The profile and social relationship architecture powers user identity, discovery
 | `/user/:username` | Alias | `PublicProfileScreen` | Canonical user handle alias route |
 | `/user/:userId/follow-list` | `RouteNames.followList` | `FollowListScreen` | Tabbed followers/following list with search filtering, pull-to-refresh, and inline follow toggles |
 
+### Profile presentation
+
+- Personal and public profiles share a responsive overview card so identity,
+  verification, social stats, biography, interests, and primary actions remain
+  visually consistent.
+- The avatar uses a branded accent ring, verified creators receive an explicit
+  badge, and follower/following stats remain interactive.
+- Edit/follow and profile-link actions use consistent 48 dp touch targets.
+- Personal content uses pinned Posts/Saved tabs; public profiles use a clear
+  Posts section followed by the creator's grid or empty state.
+
 ---
 
 ## 2. Profile Models & Fields
