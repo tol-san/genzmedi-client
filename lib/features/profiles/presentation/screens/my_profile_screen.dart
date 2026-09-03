@@ -99,13 +99,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
             IconButton(
               icon: const Icon(Icons.settings_outlined),
               tooltip: 'Settings',
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Account Settings (Coming soon)'),
-                  ),
-                );
-              },
+              onPressed: () => context.pushNamed(RouteNames.settings),
             ),
             IconButton(
               icon: const Icon(Icons.logout_rounded, color: AppColors.error),

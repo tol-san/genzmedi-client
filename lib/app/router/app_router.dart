@@ -34,6 +34,9 @@ import 'package:client/features/search/presentation/screens/discover_screen.dart
 import 'package:client/features/search/presentation/screens/discover_search_screen.dart';
 import 'package:client/features/reports/presentation/screens/report_detail_screen.dart';
 import 'package:client/features/reports/presentation/screens/reports_screen.dart';
+import 'package:client/features/settings/presentation/screens/account_settings_screen.dart';
+import 'package:client/features/settings/presentation/screens/blocked_users_screen.dart';
+import 'package:client/features/settings/presentation/screens/change_password_screen.dart';
 
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
@@ -328,6 +331,21 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => ReportDetailScreen(
           reportId: state.pathParameters['reportId'] ?? '',
         ),
+      ),
+      GoRoute(
+        path: '/settings',
+        name: RouteNames.settings,
+        builder: (context, state) => const AccountSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/settings/change-password',
+        name: RouteNames.changePassword,
+        builder: (context, state) => const ChangePasswordScreen(),
+      ),
+      GoRoute(
+        path: '/settings/blocked-users',
+        name: RouteNames.blockedUsers,
+        builder: (context, state) => const BlockedUsersScreen(),
       ),
 
       // 5-Tab Shell Route

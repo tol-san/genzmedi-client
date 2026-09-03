@@ -9,7 +9,7 @@ Not every item must be a separate Flutter route. Some are sheets, tabs, dialogs,
 4. Email Verification state
 5. Forgot Password
 6. Reset Password
-7. Change Password
+7. Change Password — implemented
 8. Interest Onboarding
 
 ## Main
@@ -26,13 +26,18 @@ Not every item must be a separate Flutter route. Some are sheets, tabs, dialogs,
 17. Search — Posts
 18. Search — Interests
 
-## Users
+## Users & Settings
 19. Public Profile
 20. Edit Profile
 21. Followers
 22. Following
 23. Manage Interests
 24. Saved Posts
+25. Account Settings Hub — implemented
+26. Blocked Accounts Management — implemented
+27. Appearance Theme Selector — implemented
+28. Legal & Policy Sheets — implemented
+
 
 ## Communities
 25. Community Detail
