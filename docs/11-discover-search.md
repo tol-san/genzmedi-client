@@ -16,43 +16,39 @@
 ### What it shows
 
 ```text
-AppBar: "Discover"
+Search communities → navigates to DiscoverSearchScreen
 
-Search field → navigates to DiscoverSearchScreen
+Interest filters → All plus up to three categories from the live interest catalog
 
-── Communities for you ──  (first, compact vertical rows)
-   Interest match + member count; Join / Request / Joined action
+── Featured for you ──
+   Swipeable cover-image community cards with member count and Join state
+   Compact page-position indicator
+
+── More communities ──
+   Two-column cover-image grid with Join / Joined actions
    "See all" → communityList route
-
-── People with your interests ──  (compact vertical rows)
-   Shared interests + Follow / Following action
-
-── Trending for you ──  (vertical PostCardWidget list)
-   Engagement-ranked and interest-matched Discover feed
 ```
 
-The order is intentional: GenZ Media is an interest-first community platform.
-Discover should move users from a matched interest into a community, then into
-its posts, chat, and live experiences. People and trending content support that
-journey rather than replacing it with a creator-first feed. Decorative hero
-content, hardcoded topic chips, colored section badges, and oversized carousels
-are omitted to keep the interface focused.
+Discover is a focused community browser. It moves users from an interest
+filter into a community, then into its posts, chat, and live experiences.
+Recommended communities and joined communities are merged and de-duplicated so
+the screen remains useful when the recommendation endpoint excludes every community
+the user already joined. People and posts remain available in Unified Search.
 
 ### Backend calls
 
 | Data             | Endpoint                          |
 |------------------|-----------------------------------|
-| Discover posts   | `GET /api/v1/feeds/discover`      |
-| Recommended users| `GET /api/v1/recommendations/users` |
 | Recommended communities | `GET /api/v1/recommendations/communities` |
+| Joined communities | `GET /api/v1/communities/me/joined` |
+| Interest filters | `GET /api/v1/interests` |
 
 ### Interactions
 
-- Pull-to-refresh replaces all sections.
-- Scroll-to-bottom triggers `loadMorePosts`.
-- Community rows open Community Detail; Join / Leave / Request uses optimistic update with revert on error.
-- People rows open Public Profile; Follow / Unfollow uses optimistic update with revert on error.
-- Like, save, share, comment from post cards.
+- Pull-to-refresh reloads recommendations, joined communities, and interests.
+- Interest chips filter the featured carousel and community grid locally.
+- Featured and grid cards open Community Detail.
+- Join / Leave / Request uses optimistic update with revert on error.
 
 ---
 
@@ -155,7 +151,7 @@ Stored in `SharedPreferences` under key `discover_recent_searches` as a JSON-enc
 
 | File | Coverage |
 |------|----------|
-| `test/unit/features/search/discover_notifier_test.dart` | loadInitial, loadMorePosts, toggleFollow, toggleCommunity, toggleLike, toggleSave, refresh |
+| `test/unit/features/search/discover_notifier_test.dart` | recommendation/joined merge, de-duplication, interest mapping, membership updates, error rollback, refresh |
 | `test/unit/features/search/discover_search_notifier_test.dart` | updateQuery, setCategory, loadMore, error handling, toggleFollow, toggleCommunity, toggleLike, toggleSave, toggleInterest, activeCount |
-| `test/widgets/features/search/discover_screen_test.dart` | skeleton, search entry, community-first hierarchy, shared-interest people, trending posts, empty/error states, follow tap |
+| `test/widgets/features/search/discover_screen_test.dart` | community search, interest filters, featured carousel, community grid, joined fallback, membership flow, error state, 393×650 visual baseline |
 | `test/widgets/features/search/discover_search_screen_test.dart` | empty prompt, category chips, all-results grouping, user/community/post/interest cards, no-results, error, loading, category switch, recent searches, interactive card actions |

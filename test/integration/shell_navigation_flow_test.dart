@@ -89,32 +89,6 @@ void main() {
         .thenAnswer((_) async => <PostModel>[]);
 
     when(
-      () => mockDiscoveryRepository.getDiscoverPosts(
-        limit: any(named: 'limit'),
-        offset: any(named: 'offset'),
-      ),
-    ).thenAnswer(
-      (_) async => const DiscoveryPage<PostModel>(
-        items: [],
-        total: 0,
-        limit: 10,
-        offset: 0,
-      ),
-    );
-    when(
-      () => mockDiscoveryRepository.getRecommendedUsers(
-        limit: any(named: 'limit'),
-        offset: any(named: 'offset'),
-      ),
-    ).thenAnswer(
-      (_) async => const DiscoveryPage<DiscoverUserModel>(
-        items: [],
-        total: 0,
-        limit: 10,
-        offset: 0,
-      ),
-    );
-    when(
       () => mockDiscoveryRepository.getRecommendedCommunities(
         limit: any(named: 'limit'),
         offset: any(named: 'offset'),
@@ -127,6 +101,21 @@ void main() {
         offset: 0,
       ),
     );
+    when(
+      () => mockDiscoveryRepository.getJoinedCommunities(
+        limit: any(named: 'limit'),
+        offset: any(named: 'offset'),
+      ),
+    ).thenAnswer(
+      (_) async => const DiscoveryPage<DiscoverCommunityModel>(
+        items: [],
+        total: 0,
+        limit: 20,
+        offset: 0,
+      ),
+    );
+    when(() => mockDiscoveryRepository.getInterests())
+        .thenAnswer((_) async => const <DiscoverInterestModel>[]);
   });
 
   group('Full E2E Shell Navigation Flow Integration Test', () {

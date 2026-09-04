@@ -17,7 +17,7 @@ Not every item must be a separate Flutter route. Some are sheets, tabs, dialogs,
 10. Shorts Feed
 11. Create Hub
 12. Discover
-    - Interest-first discovery hierarchy: search, compact recommended-community rows with Join/Request actions, people matched by shared interests, then trending posts. Decorative hero content, hardcoded topic chips, colored badges, and oversized carousels are intentionally omitted.
+    - Community-first discovery: community search, horizontal interest filters, a featured community carousel, and a two-column community grid with Join/Joined state. Recommended and already-joined communities are merged so the primary community object remains visible. People and posts stay in Unified Search instead of competing with the community browsing flow.
 13. My Profile
 
 ## Search

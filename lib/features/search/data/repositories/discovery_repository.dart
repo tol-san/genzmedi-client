@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/core/errors/error_mapper.dart';
 import 'package:client/core/network/api_client.dart';
 import 'package:client/core/network/api_endpoints.dart';
+import 'package:client/features/communities/data/models/community_models.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/search/data/models/discovery_models.dart';
 
@@ -66,6 +67,41 @@ class DiscoveryRepository {
         limit,
         offset,
       );
+    } on DioException catch (error) {
+      throw ErrorMapper.fromDioException(error);
+    }
+  }
+
+  Future<DiscoveryPage<DiscoverCommunityModel>> getJoinedCommunities({
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    try {
+      final response = await dio.get(
+        ApiEndpoints.myJoinedCommunities,
+        queryParameters: {'limit': limit, 'offset': offset},
+      );
+      return _page(
+        response.data as Map<String, dynamic>,
+        (json) => DiscoverCommunityModel(
+          community: CommunityModel.fromJson(json),
+          isJoined: true,
+        ),
+        limit,
+        offset,
+      );
+    } on DioException catch (error) {
+      throw ErrorMapper.fromDioException(error);
+    }
+  }
+
+  Future<List<DiscoverInterestModel>> getInterests() async {
+    try {
+      final response = await dio.get(ApiEndpoints.interests);
+      return (response.data as List<dynamic>? ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .map(DiscoverInterestModel.fromJson)
+          .toList();
     } on DioException catch (error) {
       throw ErrorMapper.fromDioException(error);
     }

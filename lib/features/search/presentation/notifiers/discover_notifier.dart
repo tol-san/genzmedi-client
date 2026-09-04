@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/core/errors/app_exception.dart';
-import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/search/data/models/discovery_models.dart';
 import 'package:client/features/search/data/repositories/discovery_repository.dart';
 import 'package:client/features/search/presentation/notifiers/discover_state.dart';
@@ -14,7 +13,6 @@ final discoverNotifierProvider =
 
 class DiscoverNotifier extends StateNotifier<DiscoverState> {
   final DiscoveryRepository repository;
-  static const int _postPageSize = 10;
 
   DiscoverNotifier({required this.repository})
     : super(const DiscoverState(isLoading: true)) {
@@ -24,25 +22,16 @@ class DiscoverNotifier extends StateNotifier<DiscoverState> {
   Future<void> loadInitial() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final results = await Future.wait<Object>([
-        repository.getDiscoverPosts(limit: _postPageSize),
-        repository.getRecommendedUsers(),
-        repository.getRecommendedCommunities(),
-      ]);
-      final posts = results[0] as DiscoveryPage<PostModel>;
-      final users = results[1] as DiscoveryPage<DiscoverUserModel>;
-      final communities = results[2] as DiscoveryPage<DiscoverCommunityModel>;
+      final data = await _loadCommunities();
       state = state.copyWith(
-        posts: posts.items,
-        users: users.items,
-        communities: communities.items,
-        hasMorePosts: posts.hasMore,
+        communities: data.$1,
+        interests: data.$2,
         isLoading: false,
       );
     } catch (error) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: _message(error, 'Could not load Discover.'),
+        errorMessage: _message(error, 'Could not load communities.'),
       );
     }
   }
@@ -50,75 +39,46 @@ class DiscoverNotifier extends StateNotifier<DiscoverState> {
   Future<void> refresh() async {
     state = state.copyWith(isRefreshing: true, clearError: true);
     try {
-      final results = await Future.wait<Object>([
-        repository.getDiscoverPosts(limit: _postPageSize),
-        repository.getRecommendedUsers(),
-        repository.getRecommendedCommunities(),
-      ]);
-      final posts = results[0] as DiscoveryPage<PostModel>;
+      final data = await _loadCommunities();
       state = state.copyWith(
-        posts: posts.items,
-        users: (results[1] as DiscoveryPage<DiscoverUserModel>).items,
-        communities:
-            (results[2] as DiscoveryPage<DiscoverCommunityModel>).items,
-        hasMorePosts: posts.hasMore,
+        communities: data.$1,
+        interests: data.$2,
         isRefreshing: false,
       );
     } catch (error) {
       state = state.copyWith(
         isRefreshing: false,
-        errorMessage: _message(error, 'Could not refresh Discover.'),
+        errorMessage: _message(error, 'Could not refresh communities.'),
       );
     }
   }
 
-  Future<void> loadMorePosts() async {
-    if (state.isLoading || state.isLoadingMore || !state.hasMorePosts) return;
-    state = state.copyWith(isLoadingMore: true);
-    try {
-      final page = await repository.getDiscoverPosts(
-        limit: _postPageSize,
-        offset: state.posts.length,
-      );
-      state = state.copyWith(
-        posts: [...state.posts, ...page.items],
-        hasMorePosts: page.hasMore,
-        isLoadingMore: false,
-      );
-    } catch (error) {
-      state = state.copyWith(
-        isLoadingMore: false,
-        errorMessage: _message(error, 'Could not load more posts.'),
-      );
-    }
-  }
+  Future<(List<DiscoverCommunityModel>, List<DiscoverInterestModel>)>
+  _loadCommunities() async {
+    final results = await Future.wait<Object>([
+      repository.getRecommendedCommunities(limit: 20),
+      repository.getJoinedCommunities(limit: 20),
+      repository.getInterests(),
+    ]);
+    final recommended =
+        (results[0] as DiscoveryPage<DiscoverCommunityModel>).items;
+    final joined = (results[1] as DiscoveryPage<DiscoverCommunityModel>).items;
+    final interests = results[2] as List<DiscoverInterestModel>;
+    final interestNames = {for (final item in interests) item.id: item.name};
+    final merged = <String, DiscoverCommunityModel>{};
 
-  Future<void> toggleFollow(String userId) async {
-    final index = state.users.indexWhere((item) => item.user.id == userId);
-    if (index < 0 || state.pendingUserIds.contains(userId)) return;
-    final original = state.users[index];
-    final target = !original.isFollowing;
-    final pending = {...state.pendingUserIds, userId};
-    final users = [...state.users]
-      ..[index] = original.copyWith(isFollowing: target);
-    state = state.copyWith(users: users, pendingUserIds: pending);
-    try {
-      if (target) {
-        await repository.followUser(userId);
-      } else {
-        await repository.unfollowUser(userId);
-      }
-      state = state.copyWith(
-        pendingUserIds: {...state.pendingUserIds}..remove(userId),
-      );
-    } catch (error) {
-      final reverted = [...state.users]..[index] = original;
-      state = state.copyWith(
-        users: reverted,
-        pendingUserIds: {...state.pendingUserIds}..remove(userId),
-        errorMessage: _message(error, 'Could not update follow status.'),
+    for (final item in [...recommended, ...joined]) {
+      merged[item.community.id] = DiscoverCommunityModel(
+        community: item.community,
+        isJoined: item.isJoined,
+        isJoinPending: item.isJoinPending,
+        isMatchedInterest: item.isMatchedInterest,
+        interestName:
+            item.interestName ?? interestNames[item.community.interestId],
       );
     }
+
+    return (merged.values.toList(), interests);
   }
 
   Future<void> toggleCommunity(String communityId) async {
@@ -162,50 +122,6 @@ class DiscoverNotifier extends StateNotifier<DiscoverState> {
           ..remove(communityId),
         errorMessage: _message(error, 'Could not update membership.'),
       );
-    }
-  }
-
-  Future<void> toggleLike(String postId) async {
-    final index = state.posts.indexWhere((post) => post.id == postId);
-    if (index < 0) return;
-    final original = state.posts[index];
-    final target = !original.isLiked;
-    final posts = [...state.posts]
-      ..[index] = original.copyWith(
-        isLiked: target,
-        likeCount: (original.likeCount + (target ? 1 : -1)).clamp(0, 1 << 31),
-      );
-    state = state.copyWith(posts: posts);
-    try {
-      await repository.likePost(postId, like: target);
-    } catch (_) {
-      state = state.copyWith(posts: [...state.posts]..[index] = original);
-    }
-  }
-
-  Future<void> toggleSave(String postId) async {
-    final index = state.posts.indexWhere((post) => post.id == postId);
-    if (index < 0) return;
-    final original = state.posts[index];
-    final target = !original.isSaved;
-    final posts = [...state.posts]
-      ..[index] = original.copyWith(
-        isSaved: target,
-        saveCount: (original.saveCount + (target ? 1 : -1)).clamp(0, 1 << 31),
-      );
-    state = state.copyWith(posts: posts);
-    try {
-      await repository.savePost(postId, save: target);
-    } catch (_) {
-      state = state.copyWith(posts: [...state.posts]..[index] = original);
-    }
-  }
-
-  Future<String?> sharePost(String postId) async {
-    try {
-      return await repository.sharePost(postId);
-    } catch (_) {
-      return 'https://genzmedia.app/posts/$postId';
     }
   }
 
