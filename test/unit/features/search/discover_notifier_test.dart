@@ -8,11 +8,6 @@ import 'package:mocktail/mocktail.dart';
 
 class MockDiscoveryRepository extends Mock implements DiscoveryRepository {}
 
-const _interest = DiscoverInterestModel(
-  id: 'interest-1',
-  name: 'Gaming',
-  slug: 'gaming',
-);
 const _community = CommunityModel(
   id: 'community-1',
   ownerId: 'owner-1',
@@ -20,7 +15,10 @@ const _community = CommunityModel(
   name: 'Pixel Masters',
   slug: 'pixel-masters',
 );
-const _recommended = DiscoverCommunityModel(community: _community);
+const _recommended = DiscoverCommunityModel(
+  community: _community,
+  interestName: 'Gaming',
+);
 const _joined = DiscoverCommunityModel(
   community: CommunityModel(
     id: 'community-2',
@@ -40,7 +38,6 @@ void _stubSuccess(MockDiscoveryRepository repo) {
       .thenAnswer((_) async => _page([_recommended]));
   when(() => repo.getJoinedCommunities(limit: 20))
       .thenAnswer((_) async => _page([_joined]));
-  when(() => repo.getInterests()).thenAnswer((_) async => const [_interest]);
 }
 
 void main() {
@@ -49,7 +46,7 @@ void main() {
   setUp(() => mockRepo = MockDiscoveryRepository());
 
   group('DiscoverNotifier community discovery', () {
-    test('loads and merges recommended, joined, and interest data', () async {
+    test('loads and merges recommended and joined communities', () async {
       _stubSuccess(mockRepo);
 
       final notifier = DiscoverNotifier(repository: mockRepo);
@@ -57,7 +54,6 @@ void main() {
 
       expect(notifier.state.isLoading, isFalse);
       expect(notifier.state.communities.length, 2);
-      expect(notifier.state.interests, const [_interest]);
       expect(notifier.state.communities.first.interestName, 'Gaming');
       expect(notifier.state.communities.last.isJoined, isTrue);
     });
@@ -70,8 +66,6 @@ void main() {
           const DiscoverCommunityModel(community: _community, isJoined: true),
         ]),
       );
-      when(() => mockRepo.getInterests())
-          .thenAnswer((_) async => const [_interest]);
 
       final notifier = DiscoverNotifier(repository: mockRepo);
       await pumpEventQueue();
@@ -85,7 +79,6 @@ void main() {
           .thenThrow(const NetworkException(message: 'No network'));
       when(() => mockRepo.getJoinedCommunities(limit: 20))
           .thenAnswer((_) async => _page([]));
-      when(() => mockRepo.getInterests()).thenAnswer((_) async => const []);
 
       final notifier = DiscoverNotifier(repository: mockRepo);
       await pumpEventQueue();

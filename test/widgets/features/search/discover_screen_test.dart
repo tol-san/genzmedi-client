@@ -12,17 +12,6 @@ import 'package:mocktail/mocktail.dart';
 
 class MockDiscoveryRepository extends Mock implements DiscoveryRepository {}
 
-const _gaming = DiscoverInterestModel(
-  id: 'i-gaming',
-  name: 'Gaming',
-  slug: 'gaming',
-);
-const _sports = DiscoverInterestModel(
-  id: 'i-sports',
-  name: 'Sports',
-  slug: 'sports',
-);
-
 DiscoverCommunityModel _community(
   String id,
   String name,
@@ -60,13 +49,11 @@ void _stubInitial(
   MockDiscoveryRepository repo, {
   List<DiscoverCommunityModel>? recommended,
   List<DiscoverCommunityModel> joined = const [],
-  List<DiscoverInterestModel> interests = const [_gaming, _sports],
 }) {
   when(() => repo.getRecommendedCommunities(limit: 20))
       .thenAnswer((_) async => _page(recommended ?? _recommended));
   when(() => repo.getJoinedCommunities(limit: 20))
       .thenAnswer((_) async => _page(joined));
-  when(() => repo.getInterests()).thenAnswer((_) async => interests);
 }
 
 void main() {
@@ -93,12 +80,10 @@ void main() {
     ) async {
       final recommended = Completer<DiscoveryPage<DiscoverCommunityModel>>();
       final joined = Completer<DiscoveryPage<DiscoverCommunityModel>>();
-      final interests = Completer<List<DiscoverInterestModel>>();
       when(() => mockRepo.getRecommendedCommunities(limit: 20))
           .thenAnswer((_) => recommended.future);
       when(() => mockRepo.getJoinedCommunities(limit: 20))
           .thenAnswer((_) => joined.future);
-      when(() => mockRepo.getInterests()).thenAnswer((_) => interests.future);
 
       await tester.pumpWidget(buildWidget());
       await tester.pump();
@@ -119,8 +104,6 @@ void main() {
         find.widgetWithText(TextField, 'Search communities'),
         findsOneWidget,
       );
-      expect(find.text('All'), findsOneWidget);
-      expect(find.text('Sports'), findsWidgets);
       expect(find.text('Gaming'), findsWidgets);
       expect(find.text('Featured for you'), findsOneWidget);
       expect(find.text('More communities'), findsOneWidget);
@@ -129,21 +112,6 @@ void main() {
       expect(find.text('People with your interests'), findsNothing);
       expect(find.text('Posts for you'), findsNothing);
       expect(find.byType(AppBar), findsNothing);
-    });
-
-    testWidgets('interest chips filter featured and grid communities', (
-      tester,
-    ) async {
-      _stubInitial(mockRepo);
-
-      await tester.pumpWidget(buildWidget());
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Sports').first);
-      await tester.pumpAndSettle();
-
-      expect(find.text('Football Fans'), findsOneWidget);
-      expect(find.text('K-pop Central'), findsOneWidget);
-      expect(find.text('Creator Culture'), findsNothing);
     });
 
     testWidgets('join button uses the real community membership flow', (
@@ -159,6 +127,27 @@ void main() {
 
       verify(() => mockRepo.joinCommunity('c-1')).called(1);
       expect(find.text('Joined'), findsOneWidget);
+    });
+
+    testWidgets('featured carousel loops in both swipe directions', (
+      tester,
+    ) async {
+      _stubInitial(mockRepo);
+
+      await tester.pumpWidget(buildWidget());
+      await tester.pumpAndSettle();
+
+      final pageView = tester.widget<PageView>(find.byType(PageView));
+      expect(pageView.childrenDelegate.estimatedChildCount, 3);
+      expect(pageView.controller!.initialPage, 1);
+      expect(find.text('Creator Culture'), findsOneWidget);
+
+      await tester.drag(find.byType(PageView), const Offset(320, 0));
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(PageView), const Offset(-320, 0));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('shows joined communities when recommendations are empty', (
@@ -187,7 +176,6 @@ void main() {
           .thenThrow(Exception('network error'));
       when(() => mockRepo.getJoinedCommunities(limit: 20))
           .thenAnswer((_) async => _page([]));
-      when(() => mockRepo.getInterests()).thenAnswer((_) async => const []);
 
       await tester.pumpWidget(buildWidget());
       await tester.pumpAndSettle();

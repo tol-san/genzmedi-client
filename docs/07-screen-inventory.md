@@ -17,7 +17,7 @@ Not every item must be a separate Flutter route. Some are sheets, tabs, dialogs,
 10. Shorts Feed
 11. Create Hub
 12. Discover
-    - Community-first discovery: community search, horizontal interest filters, a featured community carousel, and a two-column community grid with Join/Joined state. Recommended and already-joined communities are merged so the primary community object remains visible. People and posts stay in Unified Search instead of competing with the community browsing flow.
+    - Community-first discovery: community search, an infinite featured community carousel, and a two-column community grid with Join/Joined state. Recommended and already-joined communities are merged so the primary community object remains visible. People, posts, and interest exploration stay in Unified Search instead of competing with the community browsing flow.
 13. My Profile
 
 ## Search

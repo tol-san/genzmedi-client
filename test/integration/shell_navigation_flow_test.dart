@@ -114,8 +114,6 @@ void main() {
         offset: 0,
       ),
     );
-    when(() => mockDiscoveryRepository.getInterests())
-        .thenAnswer((_) async => const <DiscoverInterestModel>[]);
   });
 
   group('Full E2E Shell Navigation Flow Integration Test', () {

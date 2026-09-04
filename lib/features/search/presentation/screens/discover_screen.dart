@@ -23,8 +23,10 @@ class DiscoverScreen extends ConsumerStatefulWidget {
 }
 
 class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
-  final _featuredController = PageController(viewportFraction: 0.88);
-  String? _selectedInterestId;
+  final _featuredController = PageController(
+    initialPage: 1,
+    viewportFraction: 0.88,
+  );
   int _featuredIndex = 0;
 
   @override
@@ -42,6 +44,19 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     );
   }
 
+  void _moveFeaturedPage(int page, int itemCount) {
+    if (page == 1) return;
+
+    setState(() {
+      _featuredIndex = (_featuredIndex + (page == 0 ? -1 : 1)) % itemCount;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_featuredController.hasClients) {
+        _featuredController.jumpToPage(1);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(discoverNotifierProvider);
@@ -57,14 +72,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
       }
     });
 
-    final visibleCommunities = _selectedInterestId == null
-        ? state.communities
-        : state.communities
-              .where((item) => item.community.interestId == _selectedInterestId)
-              .toList();
-    final featuredCount = math.min(3, visibleCommunities.length);
-    final featured = visibleCommunities.take(featuredCount).toList();
-    final moreCommunities = visibleCommunities.skip(featuredCount).toList();
+    final featuredCount = math.min(3, state.communities.length);
+    final featured = state.communities.take(featuredCount).toList();
+    final moreCommunities = state.communities.skip(featuredCount).toList();
 
     return Scaffold(
       backgroundColor: isDark
@@ -90,20 +100,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
                   children: [
                     _SearchField(onTap: _openSearch),
-                    const SizedBox(height: AppSpacing.space16),
-                    _InterestFilters(
-                      interests: state.interests,
-                      selectedId: _selectedInterestId,
-                      onSelected: (id) {
-                        setState(() {
-                          _selectedInterestId = id;
-                          _featuredIndex = 0;
-                        });
-                        if (_featuredController.hasClients) {
-                          _featuredController.jumpToPage(0);
-                        }
-                      },
-                    ),
                     const SizedBox(height: AppSpacing.space24),
                     const _SectionTitle('Featured for you'),
                     const SizedBox(height: AppSpacing.space8),
@@ -115,31 +111,44 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     else ...[
                       SizedBox(
                         height: 132,
-                        child: PageView.builder(
-                          controller: _featuredController,
-                          padEnds: false,
-                          itemCount: featured.length,
-                          onPageChanged: (index) {
-                            setState(() => _featuredIndex = index);
-                          },
-                          itemBuilder: (context, index) {
-                            final item = featured[index];
-                            return Padding(
-                              padding: EdgeInsets.only(
-                                right: index == featured.length - 1 ? 0 : 12,
-                              ),
-                              child: _FeaturedCommunityCard(
-                                item: item,
+                        child: featured.length == 1
+                            ? _FeaturedCommunityCard(
+                                item: featured.first,
                                 isPending: state.pendingCommunityIds.contains(
-                                  item.community.id,
+                                  featured.first.community.id,
                                 ),
-                                onTap: () => _openCommunity(item.community.id),
+                                onTap: () =>
+                                    _openCommunity(featured.first.community.id),
                                 onMembershipToggle: () =>
-                                    notifier.toggleCommunity(item.community.id),
+                                    notifier.toggleCommunity(
+                                      featured.first.community.id,
+                                    ),
+                              )
+                            : PageView.builder(
+                                controller: _featuredController,
+                                padEnds: false,
+                                itemCount: 3,
+                                onPageChanged: (page) =>
+                                    _moveFeaturedPage(page, featured.length),
+                                itemBuilder: (context, page) {
+                                  final logicalIndex =
+                                      (_featuredIndex + page - 1) %
+                                      featured.length;
+                                  final item = featured[logicalIndex];
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 12),
+                                    child: _FeaturedCommunityCard(
+                                      item: item,
+                                      isPending: state.pendingCommunityIds
+                                          .contains(item.community.id),
+                                      onTap: () =>
+                                          _openCommunity(item.community.id),
+                                      onMembershipToggle: () => notifier
+                                          .toggleCommunity(item.community.id),
+                                    ),
+                                  );
+                                },
                               ),
-                            );
-                          },
-                        ),
                       ),
                       if (featured.length > 1) ...[
                         const SizedBox(height: AppSpacing.space8),
@@ -231,103 +240,6 @@ class _SearchField extends StatelessWidget {
           borderRadius: AppSpacing.roundedMd,
           borderSide: BorderSide(
             color: isDark ? AppColors.navyBorder : const Color(0xFFD5E0EE),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _InterestFilters extends StatelessWidget {
-  final List<DiscoverInterestModel> interests;
-  final String? selectedId;
-  final ValueChanged<String?> onSelected;
-
-  const _InterestFilters({
-    required this.interests,
-    required this.selectedId,
-    required this.onSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final visible = interests.take(3).toList();
-    return SizedBox(
-      height: 36,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: visible.length + 1,
-        separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.space8),
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            return _FilterChip(
-              label: 'All',
-              icon: Icons.auto_awesome_rounded,
-              selected: selectedId == null,
-              onTap: () => onSelected(null),
-            );
-          }
-          final interest = visible[index - 1];
-          return _FilterChip(
-            label: interest.name,
-            icon: _iconForInterest(interest.slug),
-            selected: selectedId == interest.id,
-            onTap: () => onSelected(interest.id),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _FilterChip({
-    required this.label,
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Material(
-      color: selected
-          ? const Color(0xFF079BE5)
-          : isDark
-          ? AppColors.darkSurface
-          : Colors.white,
-      shape: StadiumBorder(
-        side: BorderSide(
-          color: selected
-              ? const Color(0xFF079BE5)
-              : isDark
-              ? AppColors.navyBorder
-              : const Color(0xFFD5E0EE),
-        ),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const StadiumBorder(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 13),
-          child: Row(
-            children: [
-              Icon(icon, size: 15, color: selected ? Colors.white : null),
-              const SizedBox(width: 5),
-              Text(
-                label,
-                style: AppTypography.label.copyWith(
-                  fontSize: 13,
-                  color: selected ? Colors.white : null,
-                ),
-              ),
-            ],
           ),
         ),
       ),
@@ -743,19 +655,6 @@ class _DiscoverSkeleton extends StatelessWidget {
       ],
     );
   }
-}
-
-IconData _iconForInterest(String slug) {
-  final value = slug.toLowerCase();
-  if (value.contains('sport') || value.contains('football')) {
-    return Icons.sports_basketball_rounded;
-  }
-  if (value.contains('game')) return Icons.sports_esports_rounded;
-  if (value.contains('music')) return Icons.headphones_rounded;
-  if (value.contains('tech')) return Icons.memory_rounded;
-  if (value.contains('photo')) return Icons.photo_camera_rounded;
-  if (value.contains('fashion')) return Icons.checkroom_rounded;
-  return Icons.interests_rounded;
 }
 
 String _compactCount(int count) {

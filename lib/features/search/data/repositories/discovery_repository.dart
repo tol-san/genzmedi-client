@@ -95,18 +95,6 @@ class DiscoveryRepository {
     }
   }
 
-  Future<List<DiscoverInterestModel>> getInterests() async {
-    try {
-      final response = await dio.get(ApiEndpoints.interests);
-      return (response.data as List<dynamic>? ?? const [])
-          .whereType<Map<String, dynamic>>()
-          .map(DiscoverInterestModel.fromJson)
-          .toList();
-    } on DioException catch (error) {
-      throw ErrorMapper.fromDioException(error);
-    }
-  }
-
   Future<UnifiedDiscoverySearch> searchAll(
     String query, {
     int limit = 6,

@@ -18,10 +18,8 @@
 ```text
 Search communities → navigates to DiscoverSearchScreen
 
-Interest filters → All plus up to three categories from the live interest catalog
-
 ── Featured for you ──
-   Swipeable cover-image community cards with member count and Join state
+   Infinite-loop swipeable cover-image community cards with member count and Join state
    Compact page-position indicator
 
 ── More communities ──
@@ -29,8 +27,8 @@ Interest filters → All plus up to three categories from the live interest cata
    "See all" → communityList route
 ```
 
-Discover is a focused community browser. It moves users from an interest
-filter into a community, then into its posts, chat, and live experiences.
+Discover is a focused community browser. It moves users from a featured or
+recommended community into its posts, chat, and live experiences.
 Recommended communities and joined communities are merged and de-duplicated so
 the screen remains useful when the recommendation endpoint excludes every community
 the user already joined. People and posts remain available in Unified Search.
@@ -41,12 +39,11 @@ the user already joined. People and posts remain available in Unified Search.
 |------------------|-----------------------------------|
 | Recommended communities | `GET /api/v1/recommendations/communities` |
 | Joined communities | `GET /api/v1/communities/me/joined` |
-| Interest filters | `GET /api/v1/interests` |
 
 ### Interactions
 
-- Pull-to-refresh reloads recommendations, joined communities, and interests.
-- Interest chips filter the featured carousel and community grid locally.
+- Pull-to-refresh reloads recommended and joined communities.
+- Featured recommendations use a three-page circular carousel. After each left or right swipe, the logical community index advances and the controller resets to the center page, providing continuous swiping without a large or unbounded Flutter scroll extent. The page indicator follows the logical community index.
 - Featured and grid cards open Community Detail.
 - Join / Leave / Request uses optimistic update with revert on error.
 
@@ -151,7 +148,7 @@ Stored in `SharedPreferences` under key `discover_recent_searches` as a JSON-enc
 
 | File | Coverage |
 |------|----------|
-| `test/unit/features/search/discover_notifier_test.dart` | recommendation/joined merge, de-duplication, interest mapping, membership updates, error rollback, refresh |
+| `test/unit/features/search/discover_notifier_test.dart` | recommendation/joined merge, de-duplication, membership updates, error rollback, refresh |
 | `test/unit/features/search/discover_search_notifier_test.dart` | updateQuery, setCategory, loadMore, error handling, toggleFollow, toggleCommunity, toggleLike, toggleSave, toggleInterest, activeCount |
-| `test/widgets/features/search/discover_screen_test.dart` | community search, interest filters, featured carousel, community grid, joined fallback, membership flow, error state, 393×650 visual baseline |
+| `test/widgets/features/search/discover_screen_test.dart` | community search, infinite featured carousel, community grid, joined fallback, membership flow, error state, 393×650 visual baseline |
 | `test/widgets/features/search/discover_search_screen_test.dart` | empty prompt, category chips, all-results grouping, user/community/post/interest cards, no-results, error, loading, category switch, recent searches, interactive card actions |

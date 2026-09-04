@@ -3,16 +3,16 @@
 - Source visual truth: user-provided conversation attachment (467 × 628 px); the attachment is not exposed as a local file path.
 - Implementation screenshot: `test/widgets/features/search/goldens/discover_communities.png`
 - Implementation viewport: 393 × 650 logical px at devicePixelRatio 1.
-- State: light theme; five community fixtures; All interest filter selected; first featured page; no live network imagery in the widget-test renderer.
+- State: light theme; five community fixtures; first featured page; no live network imagery in the widget-test renderer.
 - Density normalization: implementation captured at 1×. Source cannot be locally opened or normalized.
 
 ## Full-view comparison evidence
 
-The rendered Flutter baseline confirms the same major composition as the supplied reference: bordered search field, one horizontal filter row, featured heading and partial-width carousel, compact blue page indicator, More communities heading, and a two-column rounded-card grid. The source attachment and implementation screenshot could not be placed into the required combined comparison input because the conversation attachment has no local resource path and Computer Use exposes no app or browser surface.
+The rendered Flutter baseline confirms the final composition: bordered search field, featured heading and partial-width carousel, compact blue page indicator, More communities heading, and a two-column rounded-card grid. The source attachment and implementation screenshot could not be placed into the required combined comparison input because the conversation attachment has no local resource path and Computer Use exposes no app or browser surface.
 
 ## Focused-region comparison evidence
 
-Search/filter, featured-card, indicator, and grid regions are all visible in the implementation baseline. Exact typography and source-image crop comparison is blocked: Flutter widget tests render text with the deterministic Ahem test font, and the fixtures intentionally do not perform live image requests.
+Search, featured-card, indicator, and grid regions are all visible in the implementation baseline. Exact typography and source-image crop comparison is blocked: Flutter widget tests render text with the deterministic Ahem test font, and the fixtures intentionally do not perform live image requests.
 
 ## Findings
 
@@ -32,14 +32,14 @@ Search/filter, featured-card, indicator, and grid regions are all visible in the
 
 - Fonts and typography: hierarchy and sizes implemented; exact visual fidelity blocked by Ahem in the test renderer.
 - Spacing and layout rhythm: 20 px page inset, 16–24 px section spacing, 132 px carousel, and two-column grid confirmed in the rendered baseline.
-- Colors and visual tokens: pale canvas, white bordered controls, cyan selection state, navy image fallback, white overlays, and blue indicator confirmed.
+- Colors and visual tokens: pale canvas, white bordered search, navy image fallback, white overlays, and blue indicator confirmed.
 - Image quality and asset fidelity: production uses real community cover URLs; live crops are not visible in the deterministic baseline.
-- Copy and content: Search communities, All/category filters, Featured for you, More communities, Join/Joined, and member counts match the selected direction.
+- Copy and content: Search communities, Featured for you, More communities, Join/Joined, and member counts match the selected direction.
 
 ## Comparison history
 
-- Iteration 1: replaced the previous list/feed composition with community filters, featured carousel, page indicator, and cover-card grid; added joined-community merge so the design does not collapse to an empty creator feed.
-- Iteration 2: limited visible filters to All + three categories and normalized the visual baseline to 393 × 650.
+- Iteration 1: replaced the previous list/feed composition with a featured carousel, page indicator, and cover-card grid; added joined-community merge so the design does not collapse to an empty creator feed.
+- Iteration 2: removed the locally inferred interest-filter UI and its extra catalog request; normalized the visual baseline to 393 × 650.
 - Post-fix evidence: `test/widgets/features/search/goldens/discover_communities.png`.
 
 ## Implementation checklist

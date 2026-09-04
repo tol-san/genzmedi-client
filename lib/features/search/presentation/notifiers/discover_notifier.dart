@@ -23,11 +23,7 @@ class DiscoverNotifier extends StateNotifier<DiscoverState> {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final data = await _loadCommunities();
-      state = state.copyWith(
-        communities: data.$1,
-        interests: data.$2,
-        isLoading: false,
-      );
+      state = state.copyWith(communities: data, isLoading: false);
     } catch (error) {
       state = state.copyWith(
         isLoading: false,
@@ -40,11 +36,7 @@ class DiscoverNotifier extends StateNotifier<DiscoverState> {
     state = state.copyWith(isRefreshing: true, clearError: true);
     try {
       final data = await _loadCommunities();
-      state = state.copyWith(
-        communities: data.$1,
-        interests: data.$2,
-        isRefreshing: false,
-      );
+      state = state.copyWith(communities: data, isRefreshing: false);
     } catch (error) {
       state = state.copyWith(
         isRefreshing: false,
@@ -53,18 +45,14 @@ class DiscoverNotifier extends StateNotifier<DiscoverState> {
     }
   }
 
-  Future<(List<DiscoverCommunityModel>, List<DiscoverInterestModel>)>
-  _loadCommunities() async {
+  Future<List<DiscoverCommunityModel>> _loadCommunities() async {
     final results = await Future.wait<Object>([
       repository.getRecommendedCommunities(limit: 20),
       repository.getJoinedCommunities(limit: 20),
-      repository.getInterests(),
     ]);
     final recommended =
         (results[0] as DiscoveryPage<DiscoverCommunityModel>).items;
     final joined = (results[1] as DiscoveryPage<DiscoverCommunityModel>).items;
-    final interests = results[2] as List<DiscoverInterestModel>;
-    final interestNames = {for (final item in interests) item.id: item.name};
     final merged = <String, DiscoverCommunityModel>{};
 
     for (final item in [...recommended, ...joined]) {
@@ -73,12 +61,11 @@ class DiscoverNotifier extends StateNotifier<DiscoverState> {
         isJoined: item.isJoined,
         isJoinPending: item.isJoinPending,
         isMatchedInterest: item.isMatchedInterest,
-        interestName:
-            item.interestName ?? interestNames[item.community.interestId],
+        interestName: item.interestName,
       );
     }
 
-    return (merged.values.toList(), interests);
+    return merged.values.toList();
   }
 
   Future<void> toggleCommunity(String communityId) async {

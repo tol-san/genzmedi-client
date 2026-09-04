@@ -3,7 +3,6 @@ import 'package:client/features/search/data/models/discovery_models.dart';
 
 class DiscoverState extends Equatable {
   final List<DiscoverCommunityModel> communities;
-  final List<DiscoverInterestModel> interests;
   final bool isLoading;
   final bool isRefreshing;
   final Set<String> pendingCommunityIds;
@@ -11,7 +10,6 @@ class DiscoverState extends Equatable {
 
   const DiscoverState({
     this.communities = const [],
-    this.interests = const [],
     this.isLoading = false,
     this.isRefreshing = false,
     this.pendingCommunityIds = const {},
@@ -20,7 +18,6 @@ class DiscoverState extends Equatable {
 
   DiscoverState copyWith({
     List<DiscoverCommunityModel>? communities,
-    List<DiscoverInterestModel>? interests,
     bool? isLoading,
     bool? isRefreshing,
     Set<String>? pendingCommunityIds,
@@ -29,7 +26,6 @@ class DiscoverState extends Equatable {
   }) {
     return DiscoverState(
       communities: communities ?? this.communities,
-      interests: interests ?? this.interests,
       isLoading: isLoading ?? this.isLoading,
       isRefreshing: isRefreshing ?? this.isRefreshing,
       pendingCommunityIds: pendingCommunityIds ?? this.pendingCommunityIds,
@@ -40,7 +36,6 @@ class DiscoverState extends Equatable {
   @override
   List<Object?> get props => [
     communities,
-    interests,
     isLoading,
     isRefreshing,
     pendingCommunityIds,
