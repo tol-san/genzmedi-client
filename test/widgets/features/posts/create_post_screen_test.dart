@@ -109,7 +109,18 @@ void main() {
     });
 
     testWidgets(
-      'renders community badge when community is provided and allows clearing',
+      'renders default My Profile destination selector when no community is provided',
+      (tester) async {
+        await tester.pumpWidget(buildTestWidget());
+        await tester.pumpAndSettle();
+
+        expect(find.text('Destination: My Profile (Default)'), findsOneWidget);
+        expect(find.text('Change'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'renders community badge when community is provided unlocked and allows clearing',
       (tester) async {
         await tester.pumpWidget(
           ProviderScope(
@@ -121,6 +132,7 @@ void main() {
                 initialPostType: 'text',
                 communityId: 'comm-123',
                 communityName: 'FlutterDevs',
+                isCommunityLocked: false,
               ),
             ),
           ),
@@ -134,6 +146,33 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('Posting to: FlutterDevs'), findsNothing);
+        expect(find.text('Destination: My Profile (Default)'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'renders locked community banner without clear icon when isCommunityLocked is true',
+      (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              postRepositoryProvider.overrideWithValue(mockPostRepository),
+            ],
+            child: const MaterialApp(
+              home: CreatePostScreen(
+                initialPostType: 'text',
+                communityId: 'comm-123',
+                communityName: 'FlutterDevs',
+                isCommunityLocked: true,
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Posting to: FlutterDevs'), findsOneWidget);
+        expect(find.text('Locked'), findsOneWidget);
+        expect(find.byIcon(Icons.close_rounded), findsNothing);
       },
     );
   });

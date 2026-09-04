@@ -13,7 +13,7 @@ extension DiscoverSearchCategoryX on DiscoverSearchCategory {
       case DiscoverSearchCategory.all:
         return 'All';
       case DiscoverSearchCategory.users:
-        return 'Creators';
+        return 'People';
       case DiscoverSearchCategory.communities:
         return 'Communities';
       case DiscoverSearchCategory.posts:
@@ -253,7 +253,7 @@ PostModel postFromSearchJson(Map<String, dynamic> json) {
         'url': thumbnailUrl,
         'thumbnail_url': thumbnailUrl,
         'order': 0,
-      }
+      },
     ];
   } else {
     media = existingMedia ?? const [];

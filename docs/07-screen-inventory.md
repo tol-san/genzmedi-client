@@ -17,6 +17,7 @@ Not every item must be a separate Flutter route. Some are sheets, tabs, dialogs,
 10. Shorts Feed
 11. Create Hub
 12. Discover
+    - Interest-first discovery hierarchy: search, compact recommended-community rows with Join/Request actions, people matched by shared interests, then trending posts. Decorative hero content, hardcoded topic chips, colored badges, and oversized carousels are intentionally omitted.
 13. My Profile
 
 ## Search
@@ -32,7 +33,7 @@ Not every item must be a separate Flutter route. Some are sheets, tabs, dialogs,
 21. Followers
 22. Following
 23. Manage Interests
-24. Saved Posts
+24. Saved Posts — implemented (My Profile tab with destination-specific routing, immediate unsave eviction, load-more pagination, error retry UI, and inaccessible post handling)
 25. Account Settings Hub — implemented (`/settings`)
 26. Change Password — implemented (`/settings/change-password`)
 27. Blocked Accounts Management — implemented (`/settings/blocked-users`)
@@ -45,23 +46,23 @@ Not every item must be a separate Flutter route. Some are sheets, tabs, dialogs,
 
 
 ## Communities
-25. Community Detail
-26. Create Community
-27. Edit Community
-28. Members
-29. Join Requests
-30. Owner Management
+25. Community Detail — implemented (`/communities/:communityId`)
+26. Create Community — implemented (`/communities/create`)
+27. Edit Community — implemented (`/communities/:communityId/edit`)
+28. Members — implemented (Tab on detail screen)
+29. Join Requests — implemented (Tab on detail screen for private community owners)
+30. Owner Management & Deletion — implemented (Options menu with typed-name confirmation)
 31. Community Chat
 32. Live Room Lobby / Detail
 33. Active Live Room
 
 ## Content
 34. Post Detail — implemented (`/posts/:postId`)
-35. Text Composer — implemented (`/create/composer?type=text`)
-36. Image Composer — implemented (`/create/composer?type=image`)
-37. Short Video Composer — implemented (`/create/composer?type=video`)
+35. Text Composer — implemented (`/create/composer?type=text`, supports community destination & locking)
+36. Image Composer — implemented (`/create/composer?type=image`, supports community destination & locking)
+37. Short Video Composer — implemented (`/create/composer?type=video`, supports community destination & locking)
 38. Edit Post Screen — implemented (`/posts/:postId/edit`)
-39. Upload / Publishing State — implemented
+39. Post Photo Viewer / Lightbox — implemented (Full-screen lightbox, zoom/pan, single/multi-photo download to phone gallery, progress streaming, permission & settings handling, error retry)
 40. Comments & Inline Editor — implemented (Modal Sheet & Detail list with inline editing, 1000 char counter, and (edited) tag)
 41. Reply Thread / Reply Expansion — implemented
 42. Delete Confirmation Dialog — implemented (Dialog)

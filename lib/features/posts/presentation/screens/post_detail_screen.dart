@@ -10,6 +10,7 @@ import 'package:client/core/theme/app_colors.dart';
 import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/theme/app_typography.dart';
 import 'package:client/core/widgets/app_avatar.dart';
+import 'package:client/core/widgets/app_button.dart';
 import 'package:client/features/feeds/presentation/notifiers/home_feed_notifier.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/posts/presentation/notifiers/post_detail_notifier.dart';
@@ -315,9 +316,65 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
             )
           : post == null
           ? Center(
-              child: Text(
-                state.errorMessage ?? 'Post not found',
-                style: AppTypography.body.copyWith(color: AppColors.textMuted),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.space24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      state.errorMessage?.toLowerCase().contains('private') ==
+                                  true ||
+                              state.errorMessage
+                                      ?.toLowerCase()
+                                      .contains('access') ==
+                                  true
+                          ? Icons.lock_outline_rounded
+                          : Icons.article_outlined,
+                      size: 56,
+                      color: AppColors.textMuted,
+                    ),
+                    const SizedBox(height: AppSpacing.space16),
+                    Text(
+                      state.errorMessage?.toLowerCase().contains('private') ==
+                              true
+                          ? 'Private Post'
+                          : 'Post Unavailable',
+                      style: AppTypography.title.copyWith(fontSize: 18),
+                    ),
+                    const SizedBox(height: AppSpacing.space8),
+                    Text(
+                      state.errorMessage ??
+                          'This post may have been deleted, set to private, or is no longer accessible.',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: AppSpacing.space24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        OutlinedButton(
+                          onPressed: () {
+                            if (Navigator.of(context).canPop()) {
+                              Navigator.of(context).pop();
+                            }
+                          },
+                          child: const Text('Go Back'),
+                        ),
+                        const SizedBox(width: AppSpacing.space12),
+                        AppButton(
+                          text: 'Retry',
+                          size: AppButtonSize.small,
+                          isFullWidth: false,
+                          onPressed: () {
+                            notifier.loadPost();
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             )
           : Column(

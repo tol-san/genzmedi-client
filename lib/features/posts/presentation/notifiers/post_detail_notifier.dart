@@ -5,6 +5,7 @@ import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/posts/data/repositories/comment_repository.dart';
 import 'package:client/features/posts/data/repositories/post_repository.dart';
 import 'package:client/features/posts/presentation/notifiers/post_detail_state.dart';
+import 'package:client/features/profiles/presentation/notifiers/my_profile_notifier.dart';
 
 final postDetailNotifierProvider = StateNotifierProvider.autoDispose
     .family<PostDetailNotifier, PostDetailState, String>((ref, postId) {
@@ -14,6 +15,7 @@ final postDetailNotifierProvider = StateNotifierProvider.autoDispose
         postId: postId,
         postRepository: postRepo,
         commentRepository: commentRepo,
+        ref: ref,
       );
     });
 
@@ -21,12 +23,14 @@ class PostDetailNotifier extends StateNotifier<PostDetailState> {
   final String postId;
   final PostRepository postRepository;
   final CommentRepository commentRepository;
+  final Ref? ref;
   static const int _pageSize = 20;
 
   PostDetailNotifier({
     required this.postId,
     required this.postRepository,
     required this.commentRepository,
+    this.ref,
   }) : super(
          const PostDetailState(isLoadingPost: true, isLoadingComments: true),
        ) {
@@ -306,6 +310,9 @@ class PostDetailNotifier extends StateNotifier<PostDetailState> {
         await postRepository.savePost(postId);
       } else {
         await postRepository.unsavePost(postId);
+        if (ref?.exists(myProfileNotifierProvider) == true) {
+          ref?.read(myProfileNotifierProvider.notifier).removeSavedPost(postId);
+        }
       }
     } catch (_) {
       if (mounted) {

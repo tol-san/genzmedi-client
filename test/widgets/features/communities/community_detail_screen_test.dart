@@ -176,5 +176,89 @@ void main() {
       expect(find.text('Request to Join'), findsWidgets);
       expect(find.text('Private Community'), findsOneWidget);
     });
+
+    testWidgets('renders owner options menu with Edit, Manage reports, and Delete community',
+        (tester) async {
+      when(() => mockRepository.getCommunity('comm-detail-1'))
+          .thenAnswer((_) async => testPublicOwnerDetail);
+
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Community options'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Edit community'), findsOneWidget);
+      expect(find.text('Manage reports'), findsOneWidget);
+      expect(find.text('Delete community'), findsOneWidget);
+    });
+
+    testWidgets('allows owner to delete community via confirmation dialog',
+        (tester) async {
+      when(() => mockRepository.getCommunity('comm-detail-1'))
+          .thenAnswer((_) async => testPublicOwnerDetail);
+      when(() => mockRepository.deleteCommunity('comm-detail-1'))
+          .thenAnswer((_) async {});
+
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Community options'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Delete community'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Delete Community?'), findsOneWidget);
+
+      final confirmField = find.byKey(const Key('confirm_delete_field'));
+      await tester.enterText(confirmField, 'Cyberpunk Art Collective');
+      await tester.pumpAndSettle();
+
+      final confirmBtn = find.widgetWithText(ElevatedButton, 'Delete Community');
+      await tester.tap(confirmBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpAndSettle();
+
+      verify(() => mockRepository.deleteCommunity('comm-detail-1')).called(1);
+    });
+
+    testWidgets(
+        'renders quick post CTA and Post FAB for community members and owners',
+        (tester) async {
+      when(() => mockRepository.getCommunity('comm-detail-1'))
+          .thenAnswer((_) async => testPublicOwnerDetail);
+
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Share something with the community...'),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(FloatingActionButton, 'Post'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('hides quick post CTA and Post FAB for non-members',
+        (tester) async {
+      when(() => mockRepository.getCommunity('comm-detail-1'))
+          .thenAnswer((_) async => testPublicNonMemberDetail);
+
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Share something with the community...'),
+        findsNothing,
+      );
+      expect(
+        find.widgetWithText(FloatingActionButton, 'Post'),
+        findsNothing,
+      );
+    });
   });
 }

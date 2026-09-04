@@ -290,3 +290,32 @@ class CommunityCreateRequestModel {
     };
   }
 }
+
+class CommunityUpdateRequestModel {
+  final String? name;
+  final String? description;
+  final String? interestId;
+  final String? coverImageUrl;
+  final String? avatarUrl;
+  final bool? isPrivate;
+
+  const CommunityUpdateRequestModel({
+    this.name,
+    this.description,
+    this.interestId,
+    this.coverImageUrl,
+    this.avatarUrl,
+    this.isPrivate,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (name != null) 'name': name,
+      if (description != null) 'description': description,
+      if (interestId != null) 'interest_id': interestId,
+      if (coverImageUrl != null) 'cover_image_url': coverImageUrl,
+      if (avatarUrl != null) 'avatar_url': avatarUrl,
+      'is_private': ?isPrivate,
+    };
+  }
+}

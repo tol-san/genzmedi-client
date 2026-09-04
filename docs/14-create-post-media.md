@@ -12,11 +12,10 @@
 
 ### 1. Creation Hub & Modes
 - **Hub Navigation (`CreateHubScreen`)**:
-  - Branded format-picker hero with three focused creation cards.
+  - Streamlined format-picker with three focused, distraction-free creation cards.
   - **Text post** starts a long-form text composer.
-  - **Multi-image post** starts a carousel composer for up to 10 photos.
+  - **Multi-image post** starts a carousel composer for photos.
   - **Short video** starts a vertical-video composer with optional cover image.
-  - Poll remains visible as a clearly disabled coming-soon option.
 - **Composer Modes (`CreatePostScreen`)**:
   - A fixed publish action, persistent draft cue, responsive format switcher,
     accessible audience controls, and mode-specific titles are shared by all
@@ -28,6 +27,7 @@
 ### 2. Media Upload Pipeline & Real-Time Progress Tracking
 - Media files are uploaded to MinIO via `POST /api/v1/posts/media` using multipart form data.
 - Post objects live in a private bucket. Upload and post responses expose only short-lived signed URLs.
+- Feed responses preserve externally hosted HTTP(S) URLs on seeded or legacy posts; only application-owned MinIO objects are presigned.
 - A post may attach only media under the current user's `posts/{user_id}/...` prefix; declared MIME types are checked against decoded file signatures.
 - **Progress Tracking**:
   - Dio's `onSendProgress(int sent, int total)` streams chunk progress directly to `CreatePostNotifier`.
@@ -64,9 +64,16 @@
 - **Payload**: `report_type: post`, `target_id: postId`, `reason`, `description`, optional `community_id`.
 
 ### 6. Community Context & Assignment
-- **Navigation**: Opening the composer from `CommunityDetailScreen` propagates `communityId` and `communityName` via query parameters.
-- **Composer Badge**: Displays an active community chip (`Posting to: [Community Name]`) in `CreatePostScreen` with an interactive clear button.
-- **Submission**: Binds `community_id` to `PostCreateRequestModel` for verified community feed inclusion.
+- **Navigation**: Opening the composer from `CommunityDetailScreen` propagates `communityId`, `communityName`, `communityAvatarUrl`, and `isLocked: 'true'` via query parameters.
+- **Locked Destination Banner**:
+  - Displays the community avatar logo and name: `Posting to: [Community Name]`.
+  - Displays a prominent `Locked` badge (`Icons.lock_outline_rounded`), strictly preventing accidental publication to personal profiles when started from inside a community context.
+- **Global Destination Picker**:
+  - When opened from the global creation hub (`communityId == null`), displays `Destination: My Profile (Default)`.
+  - An interactive `Change` button opens a modal sheet allowing selection of any joined community (`joinedCommunities`), or resetting back to personal profile.
+- **Submission & Feed Integration**:
+  - Binds `community_id` to `PostCreateRequestModel`.
+  - Returns the newly created `PostModel` on pop, which `CommunityDetailNotifier.addPost()` immediately prepends to the community post feed while incrementing `community.postCount`.
 
 ### 7. Comment & Reply Editing (`CommentTileWidget`)
 - **Backend Endpoint**: `PATCH /api/v1/comments/{comment_id}`
@@ -82,3 +89,19 @@
   - `PostDetailNotifier.updateComment` updates local and feed comments seamlessly without reloading.
   - Preserves existing child replies, reply counts, and expanded/collapsed state.
   - Displays persistent `(edited)` tag next to the timestamp once updated (`is_edited: true`).
+
+### 8. Photo Viewer & Gallery Download Pipeline (`PostPhotoViewerScreen`)
+- **Engine**: Dedicated `PhotoDownloadService` (`photoDownloadServiceProvider`) backed by Dio byte streaming and native `gal` gallery write integration.
+- **Workflow & Actions**:
+  - Full-screen lightbox with pan, zoom, author attribution, engagement actions, and options menu (`Icons.more_vert_rounded`).
+  - **Single Photo**: "Save to phone" downloads the currently viewed photo.
+  - **Multi-Photo Posts**: Discloses both "Save this photo" and "Save all photos (N)" options.
+- **Permission Flow**:
+  - Android: Modern Scoped Storage MediaStore API (Android 10+ requires zero storage permissions); legacy fallback `WRITE_EXTERNAL_STORAGE` and `READ_MEDIA_IMAGES` configured in `AndroidManifest.xml`.
+  - iOS: `PHPhotoLibrary` permission checks with `NSPhotoLibraryUsageDescription` and `NSPhotoLibraryAddUsageDescription` in `Info.plist`.
+  - **Permanently Denied Action**: If gallery permissions are permanently blocked, displays an actionable SnackBar button (`Settings`) navigating directly to system app permissions via `permission_handler`'s `openAppSettings()`.
+- **Download Lifecycle & UI States**:
+  - **Duplicate Tap Prevention**: Disables download triggers and guards methods while `_isDownloading == true`.
+  - **Progress Overlay Banner**: Displays animated floating overlay containing a circular indicator, linear progress track, and live status (e.g. *Downloading photo (65%)*, *Saving to device gallery...*).
+  - **Unique Filename Generation**: Generates collision-resistant identifiers `genz_{shortPostId}_{mediaId}.{ext}`, inferring extensions from Content-Type or URI path.
+  - **Error & Retry**: Surfaces network timeouts or download errors with a SnackBar containing a `Retry` callback.

@@ -9,6 +9,7 @@ import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/theme/app_typography.dart';
 import 'package:client/core/widgets/app_button.dart';
 import 'package:client/core/widgets/empty_state_widget.dart';
+import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/profiles/presentation/notifiers/my_profile_notifier.dart';
 import 'package:client/features/profiles/presentation/widgets/profile_overview_card.dart';
 import 'package:client/features/profiles/presentation/widgets/profile_post_card.dart';
@@ -262,11 +263,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
         final post = state.posts[index];
         return ProfilePostCard(
           post: post,
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Post: ${post.title ?? post.id}')),
-            );
-          },
+          onTap: () => _navigateToPost(context, post, isFromSavedTab: false),
         );
       },
     );
@@ -274,7 +271,49 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
 
   Widget _buildSavedTab(dynamic state, bool isDark) {
     if (state.isLoadingSaved && state.savedPosts.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.primaryCrimson),
+      );
+    }
+
+    if (state.savedErrorMessage != null && state.savedPosts.isEmpty) {
+      return Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpacing.space24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.error_outline_rounded,
+                size: 48,
+                color: AppColors.error,
+              ),
+              const SizedBox(height: AppSpacing.space12),
+              Text(
+                'Failed to load saved posts',
+                style: AppTypography.title.copyWith(fontSize: 16),
+              ),
+              const SizedBox(height: AppSpacing.space4),
+              Text(
+                state.savedErrorMessage.toString(),
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textMuted,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.space16),
+              AppButton(
+                text: 'Retry',
+                size: AppButtonSize.small,
+                isFullWidth: false,
+                onPressed: () {
+                  ref.read(myProfileNotifierProvider.notifier).loadSavedPosts();
+                },
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     if (state.savedPosts.isEmpty) {
@@ -285,27 +324,85 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
       );
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(AppSpacing.space12),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 6,
-        mainAxisSpacing: 6,
-        childAspectRatio: 1.0,
-      ),
-      itemCount: state.savedPosts.length,
-      itemBuilder: (context, index) {
-        final post = state.savedPosts[index];
-        return ProfilePostCard(
-          post: post,
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Saved: ${post.title ?? post.id}')),
-            );
-          },
-        );
+    return NotificationListener<ScrollNotification>(
+      onNotification: (scrollInfo) {
+        if (scrollInfo.metrics.pixels >=
+            scrollInfo.metrics.maxScrollExtent - 200) {
+          ref.read(myProfileNotifierProvider.notifier).loadMoreSavedPosts();
+        }
+        return false;
       },
+      child: Column(
+        children: [
+          Expanded(
+            child: GridView.builder(
+              padding: const EdgeInsets.all(AppSpacing.space12),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 6,
+                mainAxisSpacing: 6,
+                childAspectRatio: 1.0,
+              ),
+              itemCount: state.savedPosts.length,
+              itemBuilder: (context, index) {
+                final post = state.savedPosts[index];
+                return ProfilePostCard(
+                  post: post,
+                  onTap: () => _navigateToPost(context, post, isFromSavedTab: true),
+                );
+              },
+            ),
+          ),
+          if (state.isLoadingMoreSaved == true)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.space8),
+              child: Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.primaryCrimson,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
+  }
+
+  Future<void> _navigateToPost(
+    BuildContext context,
+    PostModel post, {
+    required bool isFromSavedTab,
+  }) async {
+    if (post.postType == 'video') {
+      await context.pushNamed(
+        RouteNames.shortsViewer,
+        extra: post,
+        queryParameters: {'postId': post.id},
+      );
+    } else if (post.postType == 'image' && post.media.isNotEmpty) {
+      await context.pushNamed(
+        RouteNames.mediaViewer,
+        pathParameters: {'postId': post.id},
+        extra: post,
+      );
+    } else {
+      await context.pushNamed(
+        RouteNames.postDetail,
+        pathParameters: {'postId': post.id},
+      );
+    }
+
+    if (mounted) {
+      if (isFromSavedTab) {
+        ref.read(myProfileNotifierProvider.notifier).loadSavedPosts();
+      } else {
+        ref.read(myProfileNotifierProvider.notifier).loadPosts();
+      }
+    }
   }
 }
 

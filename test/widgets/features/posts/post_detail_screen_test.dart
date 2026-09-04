@@ -5,6 +5,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:client/core/auth/auth_notifier.dart';
 import 'package:client/core/auth/auth_state.dart';
 import 'package:client/core/auth/user_model.dart';
+import 'package:client/core/errors/app_exception.dart';
 import 'package:client/features/posts/data/models/comment_model.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/posts/data/repositories/comment_repository.dart';
@@ -213,6 +214,37 @@ void main() {
       verify(() => mockCommentRepository.updateComment('c-1', content: 'Updated insightful comment!')).called(1);
       expect(find.text('Updated insightful comment!'), findsOneWidget);
       expect(find.text('(edited)'), findsOneWidget);
+    });
+
+    testWidgets(
+        'renders Post Unavailable card with Go Back and Retry buttons when post is deleted or inaccessible',
+        (tester) async {
+      when(() => mockPostRepository.getPost('p-detail-1'))
+          .thenThrow(const NotFoundException('Post not found'));
+      when(
+        () => mockCommentRepository.getComments(
+          'p-detail-1',
+          limit: 20,
+          offset: 0,
+        ),
+      ).thenAnswer((_) async => []);
+
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Post Unavailable'), findsOneWidget);
+      expect(find.text('Post not found'), findsOneWidget);
+      expect(find.text('Go Back'), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
+
+      when(() => mockPostRepository.getPost('p-detail-1'))
+          .thenAnswer((_) async => testPost);
+
+      await tester.tap(find.text('Retry'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Full description of the post content.'), findsOneWidget);
+      expect(find.text('Post Unavailable'), findsNothing);
     });
   });
 }

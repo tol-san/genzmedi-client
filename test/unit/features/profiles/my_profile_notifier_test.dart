@@ -93,5 +93,127 @@ void main() {
       expect(notifier.state.errorMessage, 'Connection timed out');
       expect(notifier.state.isLoadingProfile, isFalse);
     });
+
+    test('loadSavedPosts populates savedPosts and sets hasMoreSaved', () async {
+      final twentyPosts = List.generate(
+        20,
+        (i) => PostModel(
+          id: 'p-saved-$i',
+          author: const PostAuthorModel(id: 'u-1', username: 'author'),
+          content: 'Saved post #$i',
+        ),
+      );
+
+      when(
+        () => mockRepository.getSavedPosts(
+          limit: any(named: 'limit'),
+          offset: any(named: 'offset'),
+        ),
+      ).thenAnswer((_) async => twentyPosts);
+
+      final notifier = MyProfileNotifier(
+        repository: mockRepository,
+        initialUser: mockUser,
+      );
+      await notifier.loadSavedPosts();
+
+      expect(notifier.state.savedPosts.length, 20);
+      expect(notifier.state.hasMoreSaved, isTrue);
+      expect(notifier.state.isLoadingSaved, isFalse);
+    });
+
+    test('loadMoreSavedPosts appends posts to existing savedPosts', () async {
+      final firstBatch = List.generate(
+        20,
+        (i) => PostModel(
+          id: 'p-saved-$i',
+          author: const PostAuthorModel(id: 'u-1', username: 'author'),
+          content: 'Saved post #$i',
+        ),
+      );
+
+      final secondBatch = [
+        const PostModel(
+          id: 'p-saved-21',
+          author: PostAuthorModel(id: 'u-1', username: 'author'),
+          content: 'Saved post #21',
+        ),
+      ];
+
+      when(
+        () => mockRepository.getSavedPosts(limit: 20, offset: 0),
+      ).thenAnswer((_) async => firstBatch);
+      when(
+        () => mockRepository.getSavedPosts(limit: 20, offset: 20),
+      ).thenAnswer((_) async => secondBatch);
+
+      final notifier = MyProfileNotifier(
+        repository: mockRepository,
+        initialUser: mockUser,
+      );
+      await notifier.loadSavedPosts();
+      expect(notifier.state.savedPosts.length, 20);
+
+      await notifier.loadMoreSavedPosts();
+      expect(notifier.state.savedPosts.length, 21);
+      expect(notifier.state.hasMoreSaved, isFalse);
+      expect(notifier.state.isLoadingMoreSaved, isFalse);
+    });
+
+    test('removeSavedPost removes the target post immediately', () async {
+      when(
+        () => mockRepository.getSavedPosts(
+          limit: any(named: 'limit'),
+          offset: any(named: 'offset'),
+        ),
+      ).thenAnswer((_) async => [mockSavedPost]);
+
+      final notifier = MyProfileNotifier(
+        repository: mockRepository,
+        initialUser: mockUser,
+      );
+      await notifier.loadSavedPosts();
+      expect(notifier.state.savedPosts.length, 1);
+
+      notifier.removeSavedPost('p-saved-1');
+      expect(notifier.state.savedPosts.isEmpty, isTrue);
+    });
+
+    test('updateSavedPost evicts post when isSaved becomes false', () async {
+      when(
+        () => mockRepository.getSavedPosts(
+          limit: any(named: 'limit'),
+          offset: any(named: 'offset'),
+        ),
+      ).thenAnswer((_) async => [mockSavedPost]);
+
+      final notifier = MyProfileNotifier(
+        repository: mockRepository,
+        initialUser: mockUser,
+      );
+      await notifier.loadSavedPosts();
+      expect(notifier.state.savedPosts.length, 1);
+
+      notifier.updateSavedPost(mockSavedPost.copyWith(isSaved: false));
+      expect(notifier.state.savedPosts.isEmpty, isTrue);
+    });
+
+    test('sets savedErrorMessage when loadSavedPosts fails', () async {
+      when(
+        () => mockRepository.getSavedPosts(
+          limit: any(named: 'limit'),
+          offset: any(named: 'offset'),
+        ),
+      ).thenThrow(const ApiException(message: 'Server failed', statusCode: 500));
+
+      final notifier = MyProfileNotifier(
+        repository: mockRepository,
+        initialUser: mockUser,
+      );
+      await notifier.loadSavedPosts();
+
+      expect(notifier.state.savedErrorMessage, 'Server failed');
+      expect(notifier.state.isLoadingSaved, isFalse);
+    });
   });
 }

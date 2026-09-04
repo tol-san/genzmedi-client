@@ -8,15 +8,13 @@ void main() {
   }
 
   group('CreateHubScreen Widget Tests', () {
-    testWidgets('renders polished format picker and creation choices', (
+    testWidgets('renders streamlined format picker with removed banner, badges, poll, and arrows', (
       tester,
     ) async {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
       expect(find.text('Create'), findsOneWidget);
-      expect(find.text('What are you posting?'), findsOneWidget);
-      expect(find.text('Pick a format and make it yours.'), findsOneWidget);
       expect(find.text('Choose a format'), findsOneWidget);
 
       expect(find.text('Text post'), findsOneWidget);
@@ -34,18 +32,14 @@ void main() {
         findsOneWidget,
       );
 
-      expect(find.text('Poll'), findsOneWidget);
-      expect(find.text('COMING SOON'), findsOneWidget);
-    });
-
-    testWidgets('tapping Poll shows coming soon snackbar', (tester) async {
-      await tester.pumpWidget(buildTestWidget());
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Poll'));
-      await tester.pump();
-
-      expect(find.text('Polls are coming soon to GenZ Media!'), findsOneWidget);
+      // Verify removed elements are not present
+      expect(find.text('What are you posting?'), findsNothing);
+      expect(find.text('Pick a format and make it yours.'), findsNothing);
+      expect(find.text('SHORT'), findsNothing);
+      expect(find.text('UP TO 10'), findsNothing);
+      expect(find.text('Poll'), findsNothing);
+      expect(find.text('COMING SOON'), findsNothing);
+      expect(find.byIcon(Icons.arrow_forward_rounded), findsNothing);
     });
   });
 }

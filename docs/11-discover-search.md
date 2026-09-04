@@ -18,25 +18,25 @@
 ```text
 AppBar: "Discover"
 
-┌─ Hero section ──────────────────────────────────────────────┐
-│  Eyebrow "Discover" label                                   │
-│  "Find your next obsession"                                 │
-│  Subtitle copy                                              │
-│  Tap-target search bar → navigates to DiscoverSearchScreen  │
-└─────────────────────────────────────────────────────────────┘
+Search field → navigates to DiscoverSearchScreen
 
-── Explore topics ──  (horizontal chip row — hardcoded categories)
-   Gaming · Music · Streetwear · Technology AI · Design · Anime
+── Communities for you ──  (first, compact vertical rows)
+   Interest match + member count; Join / Request / Joined action
+   "See all" → communityList route
 
-── Creators for you ──  (horizontal card carousel)
-   Recommended users based on shared interests
+── People with your interests ──  (compact vertical rows)
+   Shared interests + Follow / Following action
 
-── Communities for you ──  (horizontal card carousel)
-   Recommended communities; "See all" → communityList route
-
-── Recommended posts ──  (vertical PostCardWidget list)
-   Personalized discover feed; full PostCardWidget interactions
+── Trending for you ──  (vertical PostCardWidget list)
+   Engagement-ranked and interest-matched Discover feed
 ```
+
+The order is intentional: GenZ Media is an interest-first community platform.
+Discover should move users from a matched interest into a community, then into
+its posts, chat, and live experiences. People and trending content support that
+journey rather than replacing it with a creator-first feed. Decorative hero
+content, hardcoded topic chips, colored section badges, and oversized carousels
+are omitted to keep the interface focused.
 
 ### Backend calls
 
@@ -50,9 +50,8 @@ AppBar: "Discover"
 
 - Pull-to-refresh replaces all sections.
 - Scroll-to-bottom triggers `loadMorePosts`.
-- Topic chips navigate to `DiscoverSearchScreen` with the chip label as query.
-- Follow / Unfollow from creator cards — optimistic update with revert on error.
-- Join / Leave / Request from community cards — optimistic update.
+- Community rows open Community Detail; Join / Leave / Request uses optimistic update with revert on error.
+- People rows open Public Profile; Follow / Unfollow uses optimistic update with revert on error.
 - Like, save, share, comment from post cards.
 
 ---
@@ -83,7 +82,7 @@ Body:
 | Tab          | API call                            | Pagination |
 |--------------|-------------------------------------|------------|
 | All          | `GET /api/v1/search` (unified)      | No (top-6 per type) |
-| Creators     | `GET /api/v1/search?type=users`     | Yes |
+| People       | `GET /api/v1/search?type=users`     | Yes |
 | Communities  | `GET /api/v1/search?type=communities` | Yes |
 | Posts        | `GET /api/v1/search?type=posts`     | Yes |
 | Interests    | `GET /api/v1/search?type=interests` | Yes |
@@ -158,5 +157,5 @@ Stored in `SharedPreferences` under key `discover_recent_searches` as a JSON-enc
 |------|----------|
 | `test/unit/features/search/discover_notifier_test.dart` | loadInitial, loadMorePosts, toggleFollow, toggleCommunity, toggleLike, toggleSave, refresh |
 | `test/unit/features/search/discover_search_notifier_test.dart` | updateQuery, setCategory, loadMore, error handling, toggleFollow, toggleCommunity, toggleLike, toggleSave, toggleInterest, activeCount |
-| `test/widgets/features/search/discover_screen_test.dart` | skeleton, topic chips, creators/communities/posts sections, empty state, error state, follow tap |
+| `test/widgets/features/search/discover_screen_test.dart` | skeleton, search entry, community-first hierarchy, shared-interest people, trending posts, empty/error states, follow tap |
 | `test/widgets/features/search/discover_search_screen_test.dart` | empty prompt, category chips, all-results grouping, user/community/post/interest cards, no-results, error, loading, category switch, recent searches, interactive card actions |

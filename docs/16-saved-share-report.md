@@ -4,21 +4,29 @@
 
 Feature requirement:
 - Save / Unsave
-- private saved post list
+- Private saved post list
+- Paginated retrieval and destination routing
 
-Documented mutation endpoints:
-- `POST /api/v1/posts/{post_id}/save`
-- `DELETE /api/v1/posts/{post_id}/save`
+Documented endpoints:
+- `POST /api/v1/posts/{post_id}/save` — Save post
+- `DELETE /api/v1/posts/{post_id}/save` — Unsave post
+- `GET /api/v1/posts/saved` — Fetch paginated saved posts for authenticated user (`limit`, `offset`)
 
-The endpoint directory does not explicitly document the list endpoint for Saved Posts.
-
-See `22-contract-gaps-openapi-checks.md`.
-
-## Saved UX
-
-Profile → Saved Posts
-
-Other users must not see who saved a post.
+## Saved UX & Navigation Flow
+- **Profile Tab**: Displayed in `MyProfileScreen` under the `Saved` tab. Saved posts are strictly private to the authenticated user.
+- **Destination-Specific Navigation**:
+  - **Short Video (`postType == 'video'`)**: Routes to `ShortsViewer` (`RouteNames.shortsViewer`).
+  - **Multi-Image (`postType == 'image' && media.isNotEmpty`)**: Routes to `MediaViewer` (`RouteNames.mediaViewer`).
+  - **Text / General (`postType == 'text'`)**: Routes to `PostDetailScreen` (`RouteNames.postDetail`).
+- **Immediate Cross-App Eviction**:
+  - When a post is unsaved anywhere in the application (Post Detail, Home Feed, Shorts, Discover), `MyProfileNotifier.removeSavedPost(postId)` immediately evicts the item from `MyProfileState.savedPosts` without requiring a reload.
+- **Auto-Refresh on Return**:
+  - Returning from the opened post viewer automatically re-queries saved posts to synchronize likes, comments, and save status.
+- **Pagination & Infinite Scroll**:
+  - `MyProfileNotifier.loadMoreSavedPosts()` fetches subsequent pages with offset pagination when scrolling near the bottom of the grid.
+- **Error & Inaccessible Content Handling**:
+  - `MyProfileScreen` renders an error card with a `Retry` button if loading saved posts fails.
+  - `PostDetailScreen` renders a dedicated `Post Unavailable` / `Private Post` card with clear explanations, a "Go Back" action, and a "Retry" button when a saved post is deleted or no longer accessible.
 
 # Share
 

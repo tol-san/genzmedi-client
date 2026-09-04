@@ -83,6 +83,52 @@ class _ShortsFeedScreenState extends ConsumerState<ShortsFeedScreen> {
       );
     }
 
+    if (state.errorMessage != null &&
+        displayShorts.isEmpty &&
+        !state.isLoading) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.space24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.cloud_off_rounded,
+                  size: 48,
+                  color: AppColors.primaryCrimson,
+                ),
+                const SizedBox(height: AppSpacing.space16),
+                Text(
+                  'Unable to load shorts',
+                  style: AppTypography.heading.copyWith(color: Colors.white),
+                ),
+                const SizedBox(height: AppSpacing.space8),
+                Text(
+                  state.errorMessage!,
+                  textAlign: TextAlign.center,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.textMuted,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.space24),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text('Try again'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryCrimson,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: notifier.refresh,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     if (displayShorts.isEmpty && !state.isLoading) {
       return Scaffold(
         backgroundColor: Colors.black,

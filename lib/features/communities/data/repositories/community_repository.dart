@@ -260,4 +260,29 @@ class CommunityRepository {
       throw ErrorMapper.fromDioException(e);
     }
   }
+
+  /// Update community settings (Owner only)
+  Future<CommunityModel> updateCommunity(
+    String communityId,
+    CommunityUpdateRequestModel request,
+  ) async {
+    try {
+      final response = await dio.patch(
+        ApiEndpoints.communityDetail(communityId),
+        data: request.toJson(),
+      );
+      return CommunityModel.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
+
+  /// Delete community and cascade memberships and posts (Owner only)
+  Future<void> deleteCommunity(String communityId) async {
+    try {
+      await dio.delete(ApiEndpoints.communityDetail(communityId));
+    } on DioException catch (e) {
+      throw ErrorMapper.fromDioException(e);
+    }
+  }
 }

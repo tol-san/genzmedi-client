@@ -10,6 +10,9 @@ class MyProfileState extends Equatable {
   final bool isLoadingPosts;
   final List<PostModel> savedPosts;
   final bool isLoadingSaved;
+  final bool isLoadingMoreSaved;
+  final bool hasMoreSaved;
+  final String? savedErrorMessage;
   final String? errorMessage;
 
   const MyProfileState({
@@ -20,6 +23,9 @@ class MyProfileState extends Equatable {
     this.isLoadingPosts = false,
     this.savedPosts = const [],
     this.isLoadingSaved = false,
+    this.isLoadingMoreSaved = false,
+    this.hasMoreSaved = false,
+    this.savedErrorMessage,
     this.errorMessage,
   });
 
@@ -31,6 +37,10 @@ class MyProfileState extends Equatable {
     bool? isLoadingPosts,
     List<PostModel>? savedPosts,
     bool? isLoadingSaved,
+    bool? isLoadingMoreSaved,
+    bool? hasMoreSaved,
+    String? savedErrorMessage,
+    bool clearSavedError = false,
     String? errorMessage,
     bool clearError = false,
   }) {
@@ -42,6 +52,12 @@ class MyProfileState extends Equatable {
       isLoadingPosts: isLoadingPosts ?? this.isLoadingPosts,
       savedPosts: savedPosts ?? this.savedPosts,
       isLoadingSaved: isLoadingSaved ?? this.isLoadingSaved,
+      isLoadingMoreSaved: isLoadingMoreSaved ?? this.isLoadingMoreSaved,
+      hasMoreSaved: hasMoreSaved ?? this.hasMoreSaved,
+      savedErrorMessage:
+          clearSavedError
+              ? null
+              : (savedErrorMessage ?? this.savedErrorMessage),
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
@@ -55,6 +71,9 @@ class MyProfileState extends Equatable {
     isLoadingPosts,
     savedPosts,
     isLoadingSaved,
+    isLoadingMoreSaved,
+    hasMoreSaved,
+    savedErrorMessage,
     errorMessage,
   ];
 }

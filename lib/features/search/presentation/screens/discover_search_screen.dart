@@ -347,7 +347,7 @@ class _DiscoverSearchScreenState extends ConsumerState<DiscoverSearchScreen>
     return [
       if (state.users.isNotEmpty) ...[
         _ResultHeading(
-          title: 'Creators',
+          title: 'People',
           count: state.users.length,
           onSeeAll: () => notifier.setCategory(DiscoverSearchCategory.users),
         ),

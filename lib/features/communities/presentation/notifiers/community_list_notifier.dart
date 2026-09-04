@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/core/errors/app_exception.dart';
+import 'package:client/features/communities/data/models/community_models.dart';
 import 'package:client/features/communities/data/repositories/community_repository.dart';
 import 'package:client/features/communities/presentation/notifiers/community_list_state.dart';
 
@@ -74,5 +75,27 @@ class CommunityListNotifier extends StateNotifier<CommunityListState> {
     state = state.copyWith(isRefreshing: true);
     await loadAll();
     state = state.copyWith(isRefreshing: false);
+  }
+
+  void removeCommunity(String communityId) {
+    state = state.copyWith(
+      exploreCommunities: state.exploreCommunities
+          .where((c) => c.id != communityId)
+          .toList(),
+      joinedCommunities: state.joinedCommunities
+          .where((c) => c.id != communityId)
+          .toList(),
+    );
+  }
+
+  void updateCommunity(CommunityModel updated) {
+    state = state.copyWith(
+      exploreCommunities: state.exploreCommunities
+          .map((c) => c.id == updated.id ? updated : c)
+          .toList(),
+      joinedCommunities: state.joinedCommunities
+          .map((c) => c.id == updated.id ? updated : c)
+          .toList(),
+    );
   }
 }

@@ -8,6 +8,7 @@ import 'package:client/core/auth/user_model.dart';
 import 'package:client/core/storage/preferences_service.dart';
 import 'package:client/core/storage/secure_storage_service.dart';
 import 'package:client/features/auth/data/repositories/auth_repository.dart';
+import 'package:client/features/feeds/data/repositories/feed_repository.dart';
 import 'package:client/features/feeds/presentation/screens/shorts_feed_screen.dart';
 import 'package:client/features/notifications/data/repositories/notification_repository.dart';
 import 'package:client/features/notifications/presentation/notifiers/notification_center_notifier.dart';
@@ -30,6 +31,8 @@ class MockDiscoveryRepository extends Mock implements DiscoveryRepository {}
 class MockNotificationRepository extends Mock
     implements NotificationRepository {}
 
+class MockFeedRepository extends Mock implements FeedRepository {}
+
 void main() {
   setUpAll(() {
     GoogleFonts.config.allowRuntimeFetching = false;
@@ -41,6 +44,7 @@ void main() {
   late MockPreferencesService mockPrefs;
   late MockDiscoveryRepository mockDiscoveryRepository;
   late MockNotificationRepository mockNotificationRepository;
+  late MockFeedRepository mockFeedRepository;
 
   setUp(() {
     mockRepository = MockAuthRepository();
@@ -49,6 +53,20 @@ void main() {
     mockPrefs = MockPreferencesService();
     mockDiscoveryRepository = MockDiscoveryRepository();
     mockNotificationRepository = MockNotificationRepository();
+    mockFeedRepository = MockFeedRepository();
+
+    when(
+      () => mockFeedRepository.getHomeFeed(
+        limit: any(named: 'limit'),
+        offset: any(named: 'offset'),
+      ),
+    ).thenAnswer((_) async => <PostModel>[]);
+    when(
+      () => mockFeedRepository.getShortsFeed(
+        limit: any(named: 'limit'),
+        offset: any(named: 'offset'),
+      ),
+    ).thenAnswer((_) async => <PostModel>[]);
 
     when(() => mockStorage.getAccessToken())
         .thenAnswer((_) async => 'valid_access_token');
@@ -119,6 +137,7 @@ void main() {
         ProviderScope(
           overrides: [
             authRepositoryProvider.overrideWithValue(mockRepository),
+            feedRepositoryProvider.overrideWithValue(mockFeedRepository),
             profileRepositoryProvider.overrideWithValue(mockProfileRepository),
             discoveryRepositoryProvider.overrideWithValue(
               mockDiscoveryRepository,

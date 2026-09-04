@@ -1,7 +1,7 @@
 # 13 — Communities & Membership
 
 ## Status
-- **Client Implementation**: Complete (`CommunityListScreen`, `CommunityDetailScreen`, `CreateCommunityScreen`, `CommunityCardWidget`, `CommunityRepository`, `CommunityListNotifier`, `CommunityDetailNotifier`, `CreateCommunityNotifier`).
+- **Client Implementation**: Complete (`CommunityListScreen`, `CommunityDetailScreen`, `CreateCommunityScreen`, `EditCommunityScreen`, `DeleteCommunityConfirmDialog`, `CommunityCardWidget`, `CommunityRepository`, `CommunityListNotifier`, `CommunityDetailNotifier`, `CreateCommunityNotifier`).
 - **Backend Endpoints**:
   - `POST /api/v1/communities`
   - `GET /api/v1/communities`
@@ -37,7 +37,34 @@
   - Identified by the Crimson Owner Shield badge.
   - Can kick members via the **Members** tab.
   - Can review and approve/reject join requests.
-  - Can upload custom cover banners via `POST /communities/{id}/cover`.
+  - Can upload custom cover banners and avatar logos.
 - **Member**:
   - Can view community content and participate in discussions.
   - Can leave anytime with a confirmation dialog.
+
+### 4. Edit Community Information (`EditCommunityScreen`)
+- **Route**: `/communities/:communityId/edit`
+- **Owner Permissions**: Only the community creator/owner or superusers can access.
+- **Editable Attributes**:
+  - Community name (2–100 characters).
+  - Description (up to 1,000 characters).
+  - Privacy mode: Dynamically switch between Public and Private.
+  - Visual branding: Upload and change cover banner and avatar logo.
+- **State Propagation**: Updates `CommunityDetailNotifier` and `CommunityListNotifier` in place.
+
+### 5. Community Deletion & Cascading
+- **Destructive Cascade**: Deletes all memberships, community posts, comments, media in storage, and search index records.
+- **Typed-Name Confirmation Dialog (`DeleteCommunityConfirmDialog`)**: Requires the owner to type the exact community name to confirm deletion before the delete button activates.
+- **State Eviction**: Evicts community from explore and joined feeds and routes back to `/communities`.
+
+### 6. Community Post Creation & Feed Association
+- **Access Control**: Restricted to active members and community owners. Non-members and users with pending requests cannot publish community posts.
+- **Direct Entry Points**:
+  - Quick Post CTA prompt in the community `Posts` tab.
+  - Floating Action Button (`Post`) rendered for active members and owners.
+- **Locked Destination Safety**:
+  - The composer locks the destination to the current community (`Posting to [Community Name] (Locked)`), preventing accidental publication to personal profiles.
+  - Community branding (avatar and name) is visually highlighted in the destination banner.
+- **Feed & Counter Synchronization**:
+  - Newly published posts are optimistically prepended to the community post feed (`CommunityDetailNotifier.addPost`).
+  - The community `postCount` increments immediately.

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,20 +8,27 @@ import 'package:image_picker/image_picker.dart';
 import 'package:client/core/theme/app_colors.dart';
 import 'package:client/core/theme/app_spacing.dart';
 import 'package:client/core/theme/app_typography.dart';
+import 'package:client/core/utils/media_url_resolver.dart';
 import 'package:client/core/widgets/app_button.dart';
 import 'package:client/core/widgets/app_text_field.dart';
+import 'package:client/features/communities/presentation/notifiers/community_list_notifier.dart';
 import 'package:client/features/posts/presentation/notifiers/create_post_notifier.dart';
+import 'package:client/features/posts/presentation/notifiers/create_post_state.dart';
 
 class CreatePostScreen extends ConsumerStatefulWidget {
   final String initialPostType;
   final String? communityId;
   final String? communityName;
+  final String? communityAvatarUrl;
+  final bool isCommunityLocked;
 
   const CreatePostScreen({
     super.key,
     this.initialPostType = 'text',
     this.communityId,
     this.communityName,
+    this.communityAvatarUrl,
+    this.isCommunityLocked = false,
   });
 
   @override
@@ -30,10 +38,14 @@ class CreatePostScreen extends ConsumerStatefulWidget {
 class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   final ImagePicker _picker = ImagePicker();
   final TextEditingController _contentController = TextEditingController();
+  String? _currentCommunityName;
+  String? _currentCommunityAvatarUrl;
 
   @override
   void initState() {
     super.initState();
+    _currentCommunityName = widget.communityName;
+    _currentCommunityAvatarUrl = widget.communityAvatarUrl;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref
           .read(createPostNotifierProvider.notifier)
@@ -94,6 +106,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
 
     final success = await notifier.submitPost();
     if (success && mounted) {
+      final post = ref.read(createPostNotifierProvider).createdPost;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Post published successfully!'),
@@ -101,7 +114,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
         ),
       );
       notifier.reset();
-      context.pop();
+      context.pop(post);
     }
   }
 
@@ -267,55 +280,8 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
               const SizedBox(height: AppSpacing.space16),
             ],
 
-            // Community Context Badge
-            if (state.communityId != null) ...[
-              Container(
-                margin: const EdgeInsets.only(bottom: AppSpacing.space16),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.space12,
-                  vertical: AppSpacing.space8,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryCrimson.withValues(alpha: 0.1),
-                  borderRadius: AppSpacing.roundedSm,
-                  border: Border.all(
-                    color: AppColors.primaryCrimson.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.groups_rounded,
-                      color: AppColors.primaryCrimson,
-                      size: 18,
-                    ),
-                    const SizedBox(width: AppSpacing.space8),
-                    Text(
-                      'Posting to: ${widget.communityName ?? "Community"}',
-                      style: const TextStyle(
-                        color: AppColors.primaryCrimson,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.space8),
-                    GestureDetector(
-                      onTap: () {
-                        ref
-                            .read(createPostNotifierProvider.notifier)
-                            .setCommunityId(null);
-                      },
-                      child: const Icon(
-                        Icons.close_rounded,
-                        size: 16,
-                        color: AppColors.primaryCrimson,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            // Post Destination Banner (Community or Profile)
+            _buildDestinationBanner(context, state, isDark),
 
             // 1. Post Type Segmented Switcher
             Container(
@@ -922,6 +888,282 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDestinationBanner(
+    BuildContext context,
+    CreatePostState state,
+    bool isDark,
+  ) {
+    if (state.communityId != null) {
+      final isLocked =
+          widget.isCommunityLocked && widget.communityId == state.communityId;
+      return Container(
+        margin: const EdgeInsets.only(bottom: AppSpacing.space16),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.space12,
+          vertical: AppSpacing.space8,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.primaryCrimson.withValues(alpha: 0.1),
+          borderRadius: AppSpacing.roundedSm,
+          border: Border.all(
+            color: AppColors.primaryCrimson.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          children: [
+            if (_currentCommunityAvatarUrl != null &&
+                _currentCommunityAvatarUrl!.isNotEmpty)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: CachedNetworkImage(
+                  imageUrl:
+                      resolveMediaUrl(_currentCommunityAvatarUrl) ??
+                      _currentCommunityAvatarUrl!,
+                  width: 24,
+                  height: 24,
+                  fit: BoxFit.cover,
+                  errorWidget:
+                      (_, _, _) => const Icon(
+                        Icons.groups_rounded,
+                        color: AppColors.primaryCrimson,
+                        size: 18,
+                      ),
+                ),
+              )
+            else
+              const Icon(
+                Icons.groups_rounded,
+                color: AppColors.primaryCrimson,
+                size: 18,
+              ),
+            const SizedBox(width: AppSpacing.space8),
+            Expanded(
+              child: Text(
+                'Posting to: ${_currentCommunityName ?? "Community"}',
+                style: const TextStyle(
+                  color: AppColors.primaryCrimson,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.space8),
+            if (isLocked)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryCrimson.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.lock_outline_rounded,
+                      size: 12,
+                      color: AppColors.primaryCrimson,
+                    ),
+                    SizedBox(width: 3),
+                    Text(
+                      'Locked',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryCrimson,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _currentCommunityName = null;
+                    _currentCommunityAvatarUrl = null;
+                  });
+                  ref
+                      .read(createPostNotifierProvider.notifier)
+                      .setCommunityId(null);
+                },
+                child: const Icon(
+                  Icons.close_rounded,
+                  size: 16,
+                  color: AppColors.primaryCrimson,
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+
+    // Unlocked and no community selected: offer selector to post to personal or joined community
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.space16),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.space12,
+        vertical: AppSpacing.space8,
+      ),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        borderRadius: AppSpacing.roundedSm,
+        border: Border.all(
+          color: isDark ? AppColors.navyBorder : AppColors.lightBorder,
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.person_outline_rounded,
+            color: AppColors.textMuted,
+            size: 18,
+          ),
+          const SizedBox(width: AppSpacing.space8),
+          Expanded(
+            child: Text(
+              'Destination: My Profile (Default)',
+              style: AppTypography.bodySmall.copyWith(
+                color:
+                    isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
+              ),
+            ),
+          ),
+          TextButton.icon(
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            onPressed: () => _showDestinationPicker(context),
+            icon: const Icon(Icons.swap_horiz_rounded, size: 16),
+            label: const Text(
+              'Change',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showDestinationPicker(BuildContext context) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Consumer(
+            builder: (context, ref, _) {
+              final communityState = ref.watch(communityListNotifierProvider);
+              final joined = communityState.joinedCommunities;
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppSpacing.space16,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.space16,
+                      ),
+                      child: Text(
+                        'Select Post Destination',
+                        style: AppTypography.title.copyWith(fontSize: 16),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.space12),
+                    ListTile(
+                      leading: const CircleAvatar(
+                        backgroundColor: AppColors.primaryElectricBlue,
+                        radius: 16,
+                        child: Icon(Icons.person, size: 18, color: Colors.white),
+                      ),
+                      title: const Text('My Profile'),
+                      subtitle: const Text('Publish directly to your followers'),
+                      onTap: () {
+                        setState(() {
+                          _currentCommunityName = null;
+                          _currentCommunityAvatarUrl = null;
+                        });
+                        ref
+                            .read(createPostNotifierProvider.notifier)
+                            .setCommunityId(null);
+                        Navigator.pop(sheetContext);
+                      },
+                    ),
+                    if (joined.isNotEmpty) ...[
+                      const Divider(),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.space16,
+                          vertical: AppSpacing.space4,
+                        ),
+                        child: Text(
+                          'Your Communities',
+                          style: AppTypography.label.copyWith(
+                            color: AppColors.textMuted,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      ...joined.map(
+                        (comm) => ListTile(
+                          leading:
+                              comm.avatarUrl != null &&
+                                      comm.avatarUrl!.isNotEmpty
+                                  ? CircleAvatar(
+                                    radius: 16,
+                                    backgroundImage: CachedNetworkImageProvider(
+                                      resolveMediaUrl(comm.avatarUrl) ??
+                                          comm.avatarUrl!,
+                                    ),
+                                  )
+                                  : const CircleAvatar(
+                                    radius: 16,
+                                    backgroundColor: AppColors.primaryCrimson,
+                                    child: Icon(
+                                      Icons.groups_rounded,
+                                      size: 16,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                          title: Text(comm.name),
+                          subtitle: Text(
+                            '${comm.memberCount} members · ${comm.isPrivate ? "Private" : "Public"}',
+                          ),
+                          onTap: () {
+                            setState(() {
+                              _currentCommunityName = comm.name;
+                              _currentCommunityAvatarUrl = comm.avatarUrl;
+                            });
+                            ref
+                                .read(createPostNotifierProvider.notifier)
+                                .setCommunityId(comm.id);
+                            Navigator.pop(sheetContext);
+                          },
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

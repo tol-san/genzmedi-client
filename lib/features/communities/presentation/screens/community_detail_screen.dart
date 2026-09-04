@@ -15,6 +15,9 @@ import 'package:client/core/widgets/app_button.dart';
 import 'package:client/features/communities/data/models/community_models.dart';
 import 'package:client/features/communities/presentation/notifiers/community_detail_notifier.dart';
 import 'package:client/features/communities/presentation/notifiers/community_detail_state.dart';
+import 'package:client/features/communities/presentation/notifiers/community_list_notifier.dart';
+import 'package:client/features/communities/presentation/screens/edit_community_screen.dart';
+import 'package:client/features/posts/data/models/post_models.dart';
 import 'package:client/features/posts/presentation/widgets/post_card_widget.dart';
 import 'package:client/features/reports/data/models/report_models.dart';
 import 'package:client/features/reports/presentation/widgets/report_sheet.dart';
@@ -106,6 +109,55 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
     );
   }
 
+  Future<void> _confirmDeleteCommunity(
+    CommunityModel community,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) =>
+          DeleteCommunityConfirmDialog(communityName: community.name),
+    );
+
+    if (confirmed == true && mounted) {
+      final success = await ref
+          .read(communityDetailNotifierProvider(widget.communityId).notifier)
+          .deleteCommunity();
+
+      if (success) {
+        if (ref.exists(communityListNotifierProvider)) {
+          ref
+              .read(communityListNotifierProvider.notifier)
+              .removeCommunity(widget.communityId);
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Community deleted successfully.'),
+              backgroundColor: AppColors.signalMint,
+            ),
+          );
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          } else {
+            try {
+              context.goNamed(RouteNames.communityList);
+            } catch (_) {}
+          }
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to delete community. Please try again.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -147,7 +199,15 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
               PopupMenuButton<String>(
                 tooltip: 'Community options',
                 onSelected: (value) {
-                  if (value == 'report') {
+                  if (value == 'edit') {
+                    context.pushNamed(
+                      RouteNames.editCommunity,
+                      pathParameters: {'communityId': community.id},
+                      extra: community,
+                    );
+                  } else if (value == 'delete') {
+                    _confirmDeleteCommunity(community);
+                  } else if (value == 'report') {
                     ReportSheet.show(
                       context,
                       targetType: ReportTargetType.community,
@@ -166,28 +226,54 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
                   }
                 },
                 itemBuilder: (_) => [
-                  if (isOwner)
+                  if (isOwner) ...[
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit_outlined, size: 20),
+                          SizedBox(width: 8),
+                          Expanded(child: Text('Edit community')),
+                        ],
+                      ),
+                    ),
                     const PopupMenuItem(
                       value: 'moderate',
                       child: Row(
                         children: [
-                          Icon(Icons.shield_outlined),
-                          SizedBox(width: 10),
-                          Text('Manage reports'),
+                          Icon(Icons.shield_outlined, size: 20),
+                          SizedBox(width: 8),
+                          Expanded(child: Text('Manage reports')),
                         ],
                       ),
-                    )
-                  else
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete_outline, color: AppColors.error, size: 20),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Delete community',
+                              style: TextStyle(color: AppColors.error),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ] else ...[
                     const PopupMenuItem(
                       value: 'report',
                       child: Row(
                         children: [
-                          Icon(Icons.flag_outlined, color: AppColors.error),
-                          SizedBox(width: 10),
-                          Text('Report community'),
+                          Icon(Icons.flag_outlined, color: AppColors.error, size: 20),
+                          SizedBox(width: 8),
+                          Expanded(child: Text('Report community')),
                         ],
                       ),
                     ),
+                  ],
                 ],
               ),
           ],
@@ -541,6 +627,34 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
                   ],
                 ),
               ),
+        floatingActionButton:
+            (detail?.isMember == true || detail?.isOwner == true)
+                ? FloatingActionButton.extended(
+                  backgroundColor: AppColors.primaryCrimson,
+                  foregroundColor: Colors.white,
+                  icon: const Icon(Icons.edit_note_rounded),
+                  label: const Text(
+                    'Post',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  onPressed: () async {
+                    final createdPost = await context.pushNamed(
+                      RouteNames.createPost,
+                      queryParameters: {
+                        'communityId': detail!.community.id,
+                        'communityName': detail.community.name,
+                        if (detail.community.avatarUrl != null &&
+                            detail.community.avatarUrl!.isNotEmpty)
+                          'communityAvatarUrl': detail.community.avatarUrl!,
+                        'isLocked': 'true',
+                      },
+                    );
+                    if (createdPost is PostModel && mounted) {
+                      notifier.addPost(createdPost);
+                    }
+                  },
+                )
+                : null,
       ),
     );
   }
@@ -716,14 +830,21 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
                 horizontal: AppSpacing.space16,
               ),
               child: GestureDetector(
-                onTap: () {
-                  context.pushNamed(
+                onTap: () async {
+                  final createdPost = await context.pushNamed(
                     RouteNames.createPost,
                     queryParameters: {
                       'communityId': detail.community.id,
                       'communityName': detail.community.name,
+                      if (detail.community.avatarUrl != null &&
+                          detail.community.avatarUrl!.isNotEmpty)
+                        'communityAvatarUrl': detail.community.avatarUrl!,
+                      'isLocked': 'true',
                     },
                   );
+                  if (createdPost is PostModel && mounted) {
+                    notifier.addPost(createdPost);
+                  }
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(

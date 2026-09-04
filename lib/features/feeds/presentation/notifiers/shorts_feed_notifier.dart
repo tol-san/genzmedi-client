@@ -3,18 +3,20 @@ import 'package:client/core/errors/app_exception.dart';
 import 'package:client/features/feeds/data/repositories/feed_repository.dart';
 import 'package:client/features/feeds/presentation/notifiers/shorts_feed_state.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
+import 'package:client/features/profiles/presentation/notifiers/my_profile_notifier.dart';
 
 final shortsFeedNotifierProvider =
     StateNotifierProvider<ShortsFeedNotifier, ShortsFeedState>((ref) {
       final repository = ref.watch(feedRepositoryProvider);
-      return ShortsFeedNotifier(repository: repository);
+      return ShortsFeedNotifier(repository: repository, ref: ref);
     });
 
 class ShortsFeedNotifier extends StateNotifier<ShortsFeedState> {
   final FeedRepository repository;
+  final Ref? ref;
   static const int _pageSize = 20;
 
-  ShortsFeedNotifier({required this.repository})
+  ShortsFeedNotifier({required this.repository, this.ref})
     : super(const ShortsFeedState(isLoading: true)) {
     loadInitial();
   }
@@ -151,6 +153,9 @@ class ShortsFeedNotifier extends StateNotifier<ShortsFeedState> {
         await repository.savePost(postId);
       } else {
         await repository.unsavePost(postId);
+        if (ref?.exists(myProfileNotifierProvider) == true) {
+          ref?.read(myProfileNotifierProvider.notifier).removeSavedPost(postId);
+        }
       }
     } catch (_) {
       if (mounted) {

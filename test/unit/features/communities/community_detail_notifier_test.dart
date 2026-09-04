@@ -148,5 +148,37 @@ void main() {
       expect(notifier.state.joinRequests.isEmpty, isTrue);
       expect(notifier.state.detail?.community.memberCount, 51);
     });
+
+    test('addPost prepends post to feed and increments post count', () async {
+      when(() => mockRepository.getCommunity('comm-10'))
+          .thenAnswer((_) async => testOwnerDetail);
+      when(() => mockRepository.getCommunityPosts('comm-10'))
+          .thenAnswer((_) async => []);
+      when(() => mockRepository.listMembers('comm-10'))
+          .thenAnswer((_) async => [testMember]);
+      when(() => mockRepository.listJoinRequests('comm-10'))
+          .thenAnswer((_) async => []);
+
+      final notifier = CommunityDetailNotifier(
+        communityId: 'comm-10',
+        repository: mockRepository,
+      );
+      await pumpEventQueue();
+
+      expect(notifier.state.posts.length, 0);
+      expect(notifier.state.detail?.community.postCount, 0);
+
+      const newPost = PostModel(
+        id: 'p-new-1',
+        author: PostAuthorModel(id: 'u-1', username: 'alex'),
+        content: 'Brand new community post!',
+      );
+
+      notifier.addPost(newPost);
+
+      expect(notifier.state.posts.length, 1);
+      expect(notifier.state.posts.first.id, 'p-new-1');
+      expect(notifier.state.detail?.community.postCount, 1);
+    });
   });
 }

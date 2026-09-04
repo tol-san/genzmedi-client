@@ -150,6 +150,24 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
       return _buildFeedSkeleton(isDark);
     }
 
+    if (state.errorMessage != null && state.posts.isEmpty && !state.isLoading) {
+      return RefreshIndicator(
+        color: AppColors.primaryCrimson,
+        onRefresh: notifier.refresh,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.space48),
+          child: EmptyStateWidget(
+            icon: Icons.cloud_off_rounded,
+            title: 'Unable to load your feed',
+            subtitle: state.errorMessage!,
+            actionText: 'Try again',
+            onAction: notifier.refresh,
+          ),
+        ),
+      );
+    }
+
     if (state.posts.isEmpty && !state.isLoading) {
       return RefreshIndicator(
         color: AppColors.primaryCrimson,

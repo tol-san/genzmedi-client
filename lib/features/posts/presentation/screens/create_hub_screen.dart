@@ -23,73 +23,13 @@ class CreateHubScreen extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.space20,
-          AppSpacing.space12,
+          AppSpacing.space16,
           AppSpacing.space20,
           AppSpacing.space32,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.space20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: isDark
-                      ? [AppColors.darkSurfaceElevated, AppColors.darkSurface]
-                      : [AppColors.primarySoft, const Color(0xFFFFFAFA)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: AppSpacing.roundedLg,
-                border: Border.all(
-                  color: AppColors.primaryCrimson.withValues(alpha: 0.14),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 52,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryCrimson,
-                      borderRadius: AppSpacing.roundedMd,
-                    ),
-                    child: const Icon(
-                      Icons.auto_awesome_rounded,
-                      color: Colors.white,
-                      size: 26,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.space16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'What are you posting?',
-                          style: AppTypography.title.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: isDark
-                                ? AppColors.textPrimaryDark
-                                : AppColors.textPrimaryLight,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.space4),
-                        Text(
-                          'Pick a format and make it yours.',
-                          style: AppTypography.bodySmall.copyWith(
-                            color: isDark
-                                ? AppColors.textSecondaryDark
-                                : AppColors.textSecondaryLight,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.space24),
             Text(
               'Choose a format',
               style: AppTypography.label.copyWith(
@@ -113,7 +53,6 @@ class CreateHubScreen extends StatelessWidget {
               title: 'Multi-image post',
               subtitle: 'Share a carousel of up to 10 photos',
               accent: AppColors.signalMint,
-              badge: 'UP TO 10',
               onTap: () => _openComposer(context, 'image'),
             ),
             const SizedBox(height: AppSpacing.space12),
@@ -122,71 +61,7 @@ class CreateHubScreen extends StatelessWidget {
               title: 'Short video',
               subtitle: 'Upload a vertical clip with a cover image',
               accent: AppColors.primaryCrimson,
-              badge: 'SHORT',
               onTap: () => _openComposer(context, 'video'),
-            ),
-            const SizedBox(height: AppSpacing.space20),
-            Material(
-              color: isDark
-                  ? AppColors.darkSurface
-                  : AppColors.lightSurfaceElevated,
-              borderRadius: AppSpacing.roundedMd,
-              child: InkWell(
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Polls are coming soon to GenZ Media!'),
-                      backgroundColor: AppColors.primaryElectricBlue,
-                    ),
-                  );
-                },
-                borderRadius: AppSpacing.roundedMd,
-                child: Container(
-                  constraints: const BoxConstraints(
-                    minHeight: AppSpacing.minTouchTarget,
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.space16,
-                    vertical: AppSpacing.space12,
-                  ),
-                  decoration: BoxDecoration(
-                    borderRadius: AppSpacing.roundedMd,
-                    border: Border.all(
-                      color: isDark
-                          ? AppColors.navyBorder
-                          : AppColors.lightBorder,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.poll_outlined,
-                        color: AppColors.textMuted,
-                        size: 20,
-                      ),
-                      const SizedBox(width: AppSpacing.space12),
-                      Expanded(
-                        child: Text(
-                          'Poll',
-                          style: AppTypography.label.copyWith(
-                            color: isDark
-                                ? AppColors.textPrimaryDark
-                                : AppColors.textPrimaryLight,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        'COMING SOON',
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.textMuted,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
             ),
           ],
         ),
@@ -204,7 +79,6 @@ class _CreateFormatCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final Color accent;
-  final String? badge;
   final VoidCallback onTap;
 
   const _CreateFormatCard({
@@ -212,7 +86,6 @@ class _CreateFormatCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.accent,
-    this.badge,
     required this.onTap,
   });
 
@@ -227,7 +100,7 @@ class _CreateFormatCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: AppSpacing.roundedLg,
         child: Container(
-          constraints: const BoxConstraints(minHeight: 104),
+          constraints: const BoxConstraints(minHeight: 88),
           padding: const EdgeInsets.all(AppSpacing.space16),
           decoration: BoxDecoration(
             borderRadius: AppSpacing.roundedLg,
@@ -245,54 +118,28 @@ class _CreateFormatCard extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                width: 56,
-                height: 56,
+                width: 52,
+                height: 52,
                 decoration: BoxDecoration(
                   color: accent.withValues(alpha: 0.12),
                   borderRadius: AppSpacing.roundedMd,
                 ),
-                child: Icon(icon, color: accent, size: 28),
+                child: Icon(icon, color: accent, size: 26),
               ),
               const SizedBox(width: AppSpacing.space16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            title,
-                            style: AppTypography.bodyLarge.copyWith(
-                              color: isDark
-                                  ? AppColors.textPrimaryDark
-                                  : AppColors.textPrimaryLight,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                        if (badge != null) ...[
-                          const SizedBox(width: AppSpacing.space8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.space8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: accent.withValues(alpha: 0.12),
-                              borderRadius: AppSpacing.roundedFull,
-                            ),
-                            child: Text(
-                              badge!,
-                              style: AppTypography.caption.copyWith(
-                                color: accent,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 9,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
+                    Text(
+                      title,
+                      style: AppTypography.bodyLarge.copyWith(
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.space4),
                     Text(
@@ -303,12 +150,6 @@ class _CreateFormatCard extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: AppSpacing.space8),
-              const Icon(
-                Icons.arrow_forward_rounded,
-                color: AppColors.textMuted,
-                size: 20,
               ),
             ],
           ),

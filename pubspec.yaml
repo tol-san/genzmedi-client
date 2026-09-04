@@ -47,6 +47,7 @@ dependencies:
   freezed_annotation: ^3.1.0
   json_annotation: ^4.12.0
   image_picker: ^1.2.3
+  gal: ^2.3.3
   permission_handler: 11.3.1
   connectivity_plus: ^7.3.1
   video_player: ^2.14.0
@@ -54,7 +55,6 @@ dependencies:
   path_provider: ^2.1.6
   uuid: ^4.6.0
   web_socket_channel: ^3.0.3
-
 dev_dependencies:
   flutter_test:
     sdk: flutter

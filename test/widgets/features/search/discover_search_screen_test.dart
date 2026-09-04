@@ -71,9 +71,7 @@ void main() {
 
   Widget buildWidget({String initialQuery = ''}) {
     return ProviderScope(
-      overrides: [
-        discoveryRepositoryProvider.overrideWithValue(mockRepo),
-      ],
+      overrides: [discoveryRepositoryProvider.overrideWithValue(mockRepo)],
       child: MaterialApp(
         home: DiscoverSearchScreen(initialQuery: initialQuery),
       ),
@@ -83,20 +81,22 @@ void main() {
   group('DiscoverSearchScreen Widget Tests', () {
     // ── Empty state ─────────────────────────────────────────────────────────
 
-    testWidgets('shows search prompt when query is empty and no recent searches',
-        (tester) async {
-      await tester.pumpWidget(buildWidget());
-      await tester.pumpAndSettle();
+    testWidgets(
+      'shows search prompt when query is empty and no recent searches',
+      (tester) async {
+        await tester.pumpWidget(buildWidget());
+        await tester.pumpAndSettle();
 
-      expect(find.text('Search GenZ Media'), findsOneWidget);
-    });
+        expect(find.text('Search GenZ Media'), findsOneWidget);
+      },
+    );
 
     testWidgets('shows all five category chips', (tester) async {
       await tester.pumpWidget(buildWidget());
       await tester.pumpAndSettle();
 
       expect(find.text('All'), findsOneWidget);
-      expect(find.text('Creators'), findsOneWidget);
+      expect(find.text('People'), findsOneWidget);
       expect(find.text('Communities'), findsOneWidget);
       expect(find.text('Posts'), findsOneWidget);
       expect(find.text('Interests'), findsOneWidget);
@@ -104,26 +104,26 @@ void main() {
 
     // ── Results ─────────────────────────────────────────────────────────────
 
-    testWidgets('shows grouped results for all-category search', (tester) async {
-      when(
-        () => mockRepo.searchAll('matrix'),
-      ).thenAnswer((_) async => _fullResult());
+    testWidgets('shows grouped results for all-category search', (
+      tester,
+    ) async {
+      when(() => mockRepo.searchAll('matrix'))
+          .thenAnswer((_) async => _fullResult());
 
       await tester.pumpWidget(buildWidget(initialQuery: 'matrix'));
       await tester.pumpAndSettle();
 
       // All four category headings should appear
-      expect(find.text('Creators'), findsWidgets);
+      expect(find.text('People'), findsWidgets);
       expect(find.text('Communities'), findsWidgets);
       expect(find.text('Posts'), findsWidgets);
       expect(find.text('Interests'), findsWidgets);
     });
 
-    testWidgets('shows user result card when users are returned',
-        (tester) async {
-      when(
-        () => mockRepo.searchAll('neo'),
-      ).thenAnswer(
+    testWidgets('shows user result card when users are returned', (
+      tester,
+    ) async {
+      when(() => mockRepo.searchAll('neo')).thenAnswer(
         (_) async => UnifiedDiscoverySearch(
           query: 'neo',
           users: [_discoverUser],
@@ -140,11 +140,10 @@ void main() {
       expect(find.text('@neo'), findsOneWidget);
     });
 
-    testWidgets('shows community result card when communities are returned',
-        (tester) async {
-      when(
-        () => mockRepo.searchAll('matrix'),
-      ).thenAnswer(
+    testWidgets('shows community result card when communities are returned', (
+      tester,
+    ) async {
+      when(() => mockRepo.searchAll('matrix')).thenAnswer(
         (_) async => UnifiedDiscoverySearch(
           query: 'matrix',
           users: [],
@@ -163,11 +162,10 @@ void main() {
 
     // ── No results ──────────────────────────────────────────────────────────
 
-    testWidgets('shows no-results empty state on empty unified search',
-        (tester) async {
-      when(
-        () => mockRepo.searchAll('xzxzxz'),
-      ).thenAnswer(
+    testWidgets('shows no-results empty state on empty unified search', (
+      tester,
+    ) async {
+      when(() => mockRepo.searchAll('xzxzxz')).thenAnswer(
         (_) async => UnifiedDiscoverySearch(
           query: 'xzxzxz',
           users: [],
@@ -188,9 +186,8 @@ void main() {
     // ── Error state ─────────────────────────────────────────────────────────
 
     testWidgets('shows error empty state on API failure', (tester) async {
-      when(
-        () => mockRepo.searchAll('crash'),
-      ).thenThrow(Exception('search failed'));
+      when(() => mockRepo.searchAll('crash'))
+          .thenThrow(Exception('search failed'));
 
       await tester.pumpWidget(buildWidget(initialQuery: 'crash'));
       await tester.pumpAndSettle();
@@ -203,9 +200,8 @@ void main() {
 
     testWidgets('shows list view while search is pending', (tester) async {
       final completer = Completer<UnifiedDiscoverySearch>();
-      when(
-        () => mockRepo.searchAll('loading'),
-      ).thenAnswer((_) => completer.future);
+      when(() => mockRepo.searchAll('loading'))
+          .thenAnswer((_) => completer.future);
 
       await tester.pumpWidget(buildWidget(initialQuery: 'loading'));
       await tester.pump();
@@ -217,11 +213,9 @@ void main() {
 
     // ── Category switching ──────────────────────────────────────────────────
 
-    testWidgets('tapping Creators chip triggers category search',
-        (tester) async {
-      when(
-        () => mockRepo.searchAll('neo'),
-      ).thenAnswer((_) async => _fullResult(query: 'neo'));
+    testWidgets('tapping People chip triggers category search', (tester) async {
+      when(() => mockRepo.searchAll('neo'))
+          .thenAnswer((_) async => _fullResult(query: 'neo'));
       when(
         () => mockRepo.searchCategory(
           'neo',
@@ -233,7 +227,7 @@ void main() {
       await tester.pumpWidget(buildWidget(initialQuery: 'neo'));
       await tester.pumpAndSettle();
 
-      final creatorChip = find.widgetWithText(GestureDetector, 'Creators');
+      final creatorChip = find.widgetWithText(GestureDetector, 'People');
       if (creatorChip.evaluate().isNotEmpty) {
         await tester.tap(creatorChip.first);
         await tester.pumpAndSettle();
@@ -250,8 +244,9 @@ void main() {
 
     // ── Recent searches ─────────────────────────────────────────────────────
 
-    testWidgets('shows recent searches list from SharedPreferences',
-        (tester) async {
+    testWidgets('shows recent searches list from SharedPreferences', (
+      tester,
+    ) async {
       SharedPreferences.setMockInitialValues({
         'discover_recent_searches': ['matrix', 'gaming'],
       });
@@ -264,8 +259,9 @@ void main() {
       expect(find.text('gaming'), findsOneWidget);
     });
 
-    testWidgets('shows Clear all button when recent searches exist',
-        (tester) async {
+    testWidgets('shows Clear all button when recent searches exist', (
+      tester,
+    ) async {
       SharedPreferences.setMockInitialValues({
         'discover_recent_searches': ['streetwear'],
       });
@@ -278,8 +274,9 @@ void main() {
 
     // ── Post and Interest Card Actions ─────────────────────────────────────
 
-    testWidgets('shows post result card and interest tile in search results',
-        (tester) async {
+    testWidgets('shows post result card and interest tile in search results', (
+      tester,
+    ) async {
       when(() => mockRepo.searchAll('matrix')).thenAnswer(
         (_) async => UnifiedDiscoverySearch(
           query: 'matrix',
@@ -299,8 +296,9 @@ void main() {
       expect(find.text('Add'), findsOneWidget);
     });
 
-    testWidgets('tapping like on post card calls likePost on repo',
-        (tester) async {
+    testWidgets('tapping like on post card calls likePost on repo', (
+      tester,
+    ) async {
       when(() => mockRepo.searchAll('matrix')).thenAnswer(
         (_) async => UnifiedDiscoverySearch(
           query: 'matrix',
@@ -326,31 +324,33 @@ void main() {
       verify(() => mockRepo.likePost('p-1', like: true)).called(1);
     });
 
-    testWidgets('tapping Add on interest tile calls toggleUserInterest on repo',
-        (tester) async {
-      when(() => mockRepo.searchAll('matrix')).thenAnswer(
-        (_) async => UnifiedDiscoverySearch(
-          query: 'matrix',
-          users: [],
-          communities: [],
-          posts: [],
-          interests: [_interest],
-          totalResults: 1,
-        ),
-      );
-      when(() => mockRepo.toggleUserInterest('i-1', add: true))
-          .thenAnswer((_) async {});
+    testWidgets(
+      'tapping Add on interest tile calls toggleUserInterest on repo',
+      (tester) async {
+        when(() => mockRepo.searchAll('matrix')).thenAnswer(
+          (_) async => UnifiedDiscoverySearch(
+            query: 'matrix',
+            users: [],
+            communities: [],
+            posts: [],
+            interests: [_interest],
+            totalResults: 1,
+          ),
+        );
+        when(() => mockRepo.toggleUserInterest('i-1', add: true))
+            .thenAnswer((_) async {});
 
-      await tester.pumpWidget(buildWidget(initialQuery: 'matrix'));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(buildWidget(initialQuery: 'matrix'));
+        await tester.pumpAndSettle();
 
-      final addButton = find.text('Add');
-      expect(addButton, findsOneWidget);
+        final addButton = find.text('Add');
+        expect(addButton, findsOneWidget);
 
-      await tester.tap(addButton);
-      await tester.pump();
+        await tester.tap(addButton);
+        await tester.pump();
 
-      verify(() => mockRepo.toggleUserInterest('i-1', add: true)).called(1);
-    });
+        verify(() => mockRepo.toggleUserInterest('i-1', add: true)).called(1);
+      },
+    );
   });
 }

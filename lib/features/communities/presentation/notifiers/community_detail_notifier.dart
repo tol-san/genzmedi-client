@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/core/errors/app_exception.dart';
+import 'package:client/features/communities/data/models/community_models.dart';
 import 'package:client/features/communities/data/repositories/community_repository.dart';
 import 'package:client/features/communities/presentation/notifiers/community_detail_state.dart';
+import 'package:client/features/posts/data/models/post_models.dart';
 
 final communityDetailNotifierProvider = StateNotifierProvider.autoDispose
     .family<CommunityDetailNotifier, CommunityDetailState, String>((
@@ -238,5 +240,45 @@ class CommunityDetailNotifier extends StateNotifier<CommunityDetailState> {
       state = state.copyWith(isActionLoading: false);
       return false;
     }
+  }
+
+  /// Update community details optimistically
+  void updateCommunity(CommunityModel updatedCommunity) {
+    if (state.detail != null) {
+      state = state.copyWith(
+        detail: state.detail!.copyWith(community: updatedCommunity),
+      );
+    }
+  }
+
+  /// Delete community (Owner only)
+  Future<bool> deleteCommunity() async {
+    state = state.copyWith(isActionLoading: true, clearError: true);
+    try {
+      await repository.deleteCommunity(communityId);
+      state = state.copyWith(isActionLoading: false);
+      return true;
+    } on AppException catch (e) {
+      state = state.copyWith(isActionLoading: false, errorMessage: e.message);
+      return false;
+    } catch (_) {
+      state = state.copyWith(
+        isActionLoading: false,
+        errorMessage: 'Failed to delete community.',
+      );
+      return false;
+    }
+  }
+
+  /// Add a newly created post to the community feed optimistically
+  void addPost(PostModel post) {
+    final updatedPosts = [post, ...state.posts];
+    final updatedCommunity = state.detail?.community.copyWith(
+      postCount: (state.detail?.community.postCount ?? 0) + 1,
+    );
+    state = state.copyWith(
+      posts: updatedPosts,
+      detail: state.detail?.copyWith(community: updatedCommunity),
+    );
   }
 }

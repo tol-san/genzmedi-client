@@ -41,6 +41,7 @@ abstract class RouteNames {
   static const String communityList = 'communityList';
   static const String communityDetail = 'communityDetail';
   static const String createCommunity = 'createCommunity';
+  static const String editCommunity = 'editCommunity';
 
   // Shell Tabs
   static const String homeFeed = 'homeFeed';

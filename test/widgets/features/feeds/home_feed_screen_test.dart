@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:client/core/errors/app_exception.dart';
 import 'package:client/core/widgets/app_skeleton.dart';
 import 'package:client/features/feeds/data/repositories/feed_repository.dart';
 import 'package:client/features/feeds/presentation/screens/home_feed_screen.dart';
@@ -149,6 +150,24 @@ void main() {
 
       expect(find.text('Your feed is just getting started'), findsOneWidget);
       expect(find.text('Explore Discover'), findsOneWidget);
+    });
+
+    testWidgets('renders request error when home feed fails', (tester) async {
+      when(() => mockRepository.getHomeFeed(limit: 20, offset: 0))
+          .thenThrow(const NetworkException());
+
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Unable to load your feed'), findsOneWidget);
+      expect(
+        find.text(
+          'Unable to connect to server. Please check your internet connection.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Try again'), findsOneWidget);
+      expect(find.text('Your feed is just getting started'), findsNothing);
     });
   });
 }

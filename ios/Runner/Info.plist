@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>GenZ Media needs access to your photo library to save photos.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>GenZ Media needs permission to save photos to your photo library.</string>
 </dict>
 </plist>

@@ -3,18 +3,20 @@ import 'package:client/core/errors/app_exception.dart';
 import 'package:client/features/feeds/data/repositories/feed_repository.dart';
 import 'package:client/features/feeds/presentation/notifiers/home_feed_state.dart';
 import 'package:client/features/posts/data/models/post_models.dart';
+import 'package:client/features/profiles/presentation/notifiers/my_profile_notifier.dart';
 
 final homeFeedNotifierProvider =
     StateNotifierProvider<HomeFeedNotifier, HomeFeedState>((ref) {
       final repository = ref.watch(feedRepositoryProvider);
-      return HomeFeedNotifier(repository: repository);
+      return HomeFeedNotifier(repository: repository, ref: ref);
     });
 
 class HomeFeedNotifier extends StateNotifier<HomeFeedState> {
   final FeedRepository repository;
+  final Ref? ref;
   static const int _pageSize = 20;
 
-  HomeFeedNotifier({required this.repository})
+  HomeFeedNotifier({required this.repository, this.ref})
     : super(const HomeFeedState(isLoading: true)) {
     loadInitial();
   }
@@ -143,6 +145,9 @@ class HomeFeedNotifier extends StateNotifier<HomeFeedState> {
         await repository.savePost(postId);
       } else {
         await repository.unsavePost(postId);
+        if (ref?.exists(myProfileNotifierProvider) == true) {
+          ref?.read(myProfileNotifierProvider.notifier).removeSavedPost(postId);
+        }
       }
     } catch (_) {
       // 2. Rollback on error

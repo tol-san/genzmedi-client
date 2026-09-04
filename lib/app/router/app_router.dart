@@ -13,9 +13,11 @@ import 'package:client/features/auth/presentation/screens/register_screen.dart';
 import 'package:client/features/auth/presentation/screens/reset_password_screen.dart';
 import 'package:client/features/auth/presentation/screens/splash_screen.dart';
 import 'package:client/features/auth/presentation/screens/verify_otp_screen.dart';
+import 'package:client/features/communities/data/models/community_models.dart';
 import 'package:client/features/communities/presentation/screens/community_detail_screen.dart';
 import 'package:client/features/communities/presentation/screens/community_list_screen.dart';
 import 'package:client/features/communities/presentation/screens/create_community_screen.dart';
+import 'package:client/features/communities/presentation/screens/edit_community_screen.dart';
 import 'package:client/features/feeds/presentation/screens/home_feed_screen.dart';
 import 'package:client/features/feeds/presentation/screens/shorts_feed_screen.dart';
 import 'package:client/features/notifications/presentation/screens/notification_center_screen.dart';
@@ -212,10 +214,18 @@ final routerProvider = Provider<GoRouter>((ref) {
           final type = state.uri.queryParameters['type'] ?? 'text';
           final communityId = state.uri.queryParameters['communityId'];
           final communityName = state.uri.queryParameters['communityName'];
+          final communityAvatarUrl =
+              state.uri.queryParameters['communityAvatarUrl'];
+          final isCommunityLocked =
+              state.uri.queryParameters['isLocked'] == 'true' ||
+              (communityId != null &&
+                  state.uri.queryParameters['isLocked'] != 'false');
           return CreatePostScreen(
             initialPostType: type,
             communityId: communityId,
             communityName: communityName,
+            communityAvatarUrl: communityAvatarUrl,
+            isCommunityLocked: isCommunityLocked,
           );
         },
       ),
@@ -318,6 +328,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/communities/create',
         name: RouteNames.createCommunity,
         builder: (context, state) => const CreateCommunityScreen(),
+      ),
+      GoRoute(
+        path: '/communities/:communityId/edit',
+        name: RouteNames.editCommunity,
+        builder: (context, state) {
+          final communityId = state.pathParameters['communityId'] ?? '';
+          final initialCommunity = state.extra is CommunityModel
+              ? state.extra as CommunityModel
+              : null;
+          return EditCommunityScreen(
+            communityId: communityId,
+            initialCommunity: initialCommunity,
+          );
+        },
       ),
       GoRoute(
         path: '/communities/:communityId',

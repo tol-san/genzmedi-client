@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:client/core/errors/app_exception.dart';
 import 'package:client/features/feeds/data/repositories/feed_repository.dart';
 import 'package:client/features/feeds/presentation/screens/shorts_feed_screen.dart';
 import 'package:client/features/feeds/presentation/widgets/short_video_item_widget.dart';
@@ -22,7 +23,11 @@ void main() {
     title: 'Epic Street Dance',
     content: '#dance #street #vibes',
     media: [
-      MediaItemModel(id: 'm-1', mediaType: 'video', url: 'https://example.com/dance.mp4')
+      MediaItemModel(
+        id: 'm-1',
+        mediaType: 'video',
+        url: 'https://example.com/dance.mp4',
+      ),
     ],
     likeCount: 1200,
     commentCount: 88,
@@ -35,17 +40,15 @@ void main() {
 
   Widget buildTestWidget() {
     return ProviderScope(
-      overrides: [
-        feedRepositoryProvider.overrideWithValue(mockRepository),
-      ],
-      child: const MaterialApp(
-        home: ShortsFeedScreen(),
-      ),
+      overrides: [feedRepositoryProvider.overrideWithValue(mockRepository)],
+      child: const MaterialApp(home: ShortsFeedScreen()),
     );
   }
 
   group('ShortsFeedScreen Widget Tests', () {
-    testWidgets('renders shorts page view and short video item overlay', (tester) async {
+    testWidgets('renders shorts page view and short video item overlay', (
+      tester,
+    ) async {
       when(() => mockRepository.getShortsFeed(limit: 20, offset: 0))
           .thenAnswer((_) async => [testShort]);
 
@@ -62,7 +65,9 @@ void main() {
       expect(find.byIcon(Icons.bookmark_border_rounded), findsOneWidget);
     });
 
-    testWidgets('renders empty state when shorts feed has no items', (tester) async {
+    testWidgets('renders empty state when shorts feed has no items', (
+      tester,
+    ) async {
       when(() => mockRepository.getShortsFeed(limit: 20, offset: 0))
           .thenAnswer((_) async => []);
 
@@ -71,6 +76,24 @@ void main() {
 
       expect(find.text('No shorts available'), findsOneWidget);
       expect(find.text('Refresh Feed'), findsOneWidget);
+    });
+
+    testWidgets('renders request error when shorts feed fails', (tester) async {
+      when(() => mockRepository.getShortsFeed(limit: 20, offset: 0))
+          .thenThrow(const NetworkException());
+
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Unable to load shorts'), findsOneWidget);
+      expect(
+        find.text(
+          'Unable to connect to server. Please check your internet connection.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Try again'), findsOneWidget);
+      expect(find.text('No shorts available'), findsNothing);
     });
   });
 }
